@@ -1,5 +1,7 @@
 # Upfront (`upfront`)
 
+![Upfront — strategic-response review](assets/banner.png)
+
 **A strategic-response review, not a predictor.** Paste a decision (or drop in a URL — a
 blog post, a repo README, a landing page) and Upfront maps the players who can **veto** the
 move, the coalitions around it, your **best response**, and how **contested the ground** is.
@@ -8,6 +10,14 @@ Then it freezes falsifiable claims you score against what actually happens.
 ```
 Your move → who can veto it → coalitions → best response → competition read → claims frozen → score them later
 ```
+
+| | |
+|---|---|
+| **You give it** | a decision memo, or a URL (repo README · blog post · news article · pricing page · forum thread · whitepaper) |
+| **You get** | veto player, coalitions, best response, competition read (red / purple / blue), frozen claims to score |
+| **Cost** | free models available; a 48h review is ~$0.02 on a cheap paid model and the price is shown before you run |
+| **Repeatable** | the same decision across 30m / 4h / 24h is compared automatically — repetition becomes evidence |
+| **Not** | a prediction, a guarantee, or a game solver |
 
 ### The competition read: red / purple / blue ocean
 
@@ -125,6 +135,63 @@ reason to run 30m, 4h and 24h on the same decision rather than trusting one repo
 returns the long-form `report_full.md` — same grounded content, expanded with
 per-stakeholder narratives, round-by-round trajectories, camp structure, and the MASS
 failure-mode audit.
+
+## Quickstart — one review, start to finish
+
+1. **Install and enable** the plugin (see *Install*), then open **Upfront** in the left sidebar.
+2. Press the green **`+ New review`** pill. Staring at a blank form is the wrong way in — press a
+   **recipe** instead (`Launch / adoption`, `Price change`, `Deprecation`, `Open-weight release`,
+   `Reputation / crisis`). It fills every field with a skeleton you edit.
+3. **Replace the placeholders with your real move.** Here is a complete, working example:
+
+```text
+Title: Open-weight Arete-27B
+
+Decision document:
+Nous is considering open-weighting Arete-27B. The weights ship under a permissive licence on
+release day, with the full training data and eval suite published alongside. The hosted API
+stays free for the first 90 days so people can try it before committing.
+
+Evidence:
+Q2 survey of 400 enterprise CIOs: 61% said they cannot route inference through an external API
+for compliance reasons. Open-weight model downloads tripled quarter over quarter, and community
+fine-tunes now outnumber closed-model adaptations 3:1. Enterprises want weights on-prem; the
+community wants the training data; nobody wants a licence that forbids commercial use.
+```
+
+4. **Pick a timeline** (`24 hours` is the recommended default) and a model — the form prints
+   `176 model calls · ~$0.02 at list price` (or `FREE`) before you commit.
+5. **Run review.** You get, in this order: a competition read, the friction bar, the veto player,
+   the stakeholder graph, the report, and 2–4 **frozen claims** to score later.
+
+A real run on the example above (deterministic test model):
+
+```text
+Friction : 47.3 / 100  (±3.0, high confidence)
+Sea      : Purple ocean — competition medium (friction 47/100 with 1 blocking camp)
+Veto     : Enterprise IT (−0.70) — cannot route inference through an external API
+Claims   : 4  → veto_player · friction_band · coalition · extracted
+```
+
+6. **Run it again at a different timeline** (`30m`, `4h`, `24h`) — the comparison panel appears
+   under the result and tells you whether the read is stable across timelines or moves with how
+   long you let it run. That is the difference between a one-off report and evidence.
+
+### What to paste — source → what it buys the review
+
+| Source | What it buys |
+|---|---|
+| Decision memo / release note | the move and its scope — the core input |
+| Survey, metrics, quotes | calibrated stances instead of invented ones (**biggest quality lever**) |
+| Repo README | technical objections, the developer audience |
+| Blog post | public positioning — how it will be read |
+| News article | reputational and regulator attention |
+| Pricing page | commercial objections: procurement, competitors |
+| Forum / Reddit thread | the loud minority and the real objections |
+| Whitepaper / PDF | enterprise and regulatory framing |
+
+Two sources that disagree beat five that agree. A decision plus one piece of real evidence is the
+best cheap run.
 
 ## What to feed it (and what hurts)
 

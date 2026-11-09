@@ -1,20 +1,36 @@
 name: upfront
 title: Upfront
 description: >-
-  A strategic-response review for decisions: paste a decision (or a URL) and see
-  who can veto it, the coalitions around it, your best response, and how contested
-  the ground is (red / purple / blue ocean). Inject a counter-move mid-run, then
-  score the frozen claims later. Runs on your active Hermes model, or on a model
-  you pick from the live Nous catalogue (prices shown before you run); fetches
-  user-supplied URLs to text (http/https, 200KB cap) and the public model
-  catalogue (anonymous, cached 6h).
+  Strategic-response review for decisions — a game review, not a forecast. Paste a decision
+  (or a URL: repo README, blog post, news article, pricing page, forum thread, whitepaper) and
+  Upfront maps the players who can veto the move, the coalitions around them, the best response,
+  and how contested the ground is on a red / purple / blue competition axis. Pick a model from
+  the live Nous catalogue with the run's cost shown before you start it, inject a counter-move
+  mid-run to watch the graph bend, then score the frozen claims later — same decision across
+  30m / 4h / 24h / 48h timelines gets compared automatically so repetition becomes evidence.
+  Ships agent tools plus a Hermes Desktop page. Local-first; runs on your active model, or a
+  model you choose (needs the model-override consent).
 repo: https://github.com/trillionverselabs-boop/upfront-test   # must be PUBLIC before submission
 sha: REPLACE_WITH_40_HEX_COMMIT
 tier: community
-category: desktop
+category: general
 maintainer: trillionverselabs-boop
 version: "0.3.0"
-capabilities:
-  tools: [upfront_run, upfront_status, upfront_report, upfront_history, upfront_calibration]
-  env: []
 requires_hermes: ">=0.23.0"
+capabilities:
+  tools:
+    - upfront_run
+    - upfront_status
+    - upfront_report
+    - upfront_history
+    - upfront_calibration
+  hooks: []
+  env: []
+image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/REPLACE_WITH_40_HEX_COMMIT/assets/banner.png
+screenshots:
+  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/REPLACE_WITH_40_HEX_COMMIT/assets/how-it-works.png
+docs_url: https://github.com/trillionverselabs-boop/upfront-test/blob/main/docs/POSITIONING.md
+readme: true
+known_issues: >-
+  Choosing a model for the run requires the llm.model_override consent; without it the run uses
+  your active model. Live UI screenshots are pinned in the next entry update.

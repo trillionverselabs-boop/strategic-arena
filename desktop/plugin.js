@@ -38,6 +38,64 @@ const URL_TYPES = [
   'pricing page', 'forum or Reddit thread', 'whitepaper / PDF', 'internal memo (if public)',
 ]
 
+// Recipes: which sources produce which kind of review. This is the bridge between
+// "what do I paste" and "what result do I want".
+const RECIPES = [
+  {
+    id: 'launch', label: 'Launch / adoption', goal: 'adoption',
+    title: 'Launching <product> — will they adopt it?',
+    decision: 'We are launching <product> on <date>. It does <what>, for <who>, at <price>. ' +
+      'The change for them is <what changes>. Support will be <plan>.',
+    evidence: 'Adoption data you already have: waitlist size, pricing tests, competitor share, ' +
+      'survey results, churn numbers — anything factual a stakeholder would react to.',
+    urls: 'product landing page, competitor pricing page, community thread about the problem',
+  },
+  {
+    id: 'price', label: 'Price change', goal: 'campaign',
+    title: 'Raising prices <x>%',
+    decision: 'We are raising <plan> from <old> to <new> on <date>, with <notice period> notice. ' +
+      'Existing customers <grandfathering terms>. Sales commission changes <how>.',
+    evidence: 'Current price, churn, gross margin, competitor prices, win/loss reasons.',
+    urls: 'pricing page, competitor pricing page, forum threads complaining about price',
+  },
+  {
+    id: 'deprecate', label: 'Deprecation', goal: 'deprecation',
+    title: 'Retiring <feature / API>',
+    decision: 'We are retiring <thing> on <date>. Migration path is <plan>. Support ends <when>. ' +
+      'Who is affected: <segments>.',
+    evidence: 'Usage share of the feature, number of accounts affected, migration effort estimates.',
+    urls: 'changelog entry, docs page being removed, forum thread where users discuss it',
+  },
+  {
+    id: 'openweight', label: 'Open-weight release', goal: 'open_weight',
+    title: 'Open-weighting <model>',
+    decision: 'We are releasing the weights for <model> under <licence>, with <training data / evals> ' +
+      'published. Hosted API <stays / changes> for <period>.',
+    evidence: 'Licence terms, benchmark results, enterprise compliance survey data, download trends.',
+    urls: 'model card, licence page, competitor open-weight release, compliance blog post',
+  },
+  {
+    id: 'crisis', label: 'Reputation / crisis', goal: 'campaign',
+    title: 'Responding to <incident>',
+    decision: 'We are publishing a response to <incident> on <date>. We accept <what>, deny <what>, ' +
+      'and commit to <remedy>. The tone is <apologetic / factual / firm>.',
+    evidence: 'Incident timeline, affected customer count, what competitors did in similar cases.',
+    urls: 'news article covering it, the social thread, our public postmortem',
+  },
+]
+
+// What each kind of source actually buys you.
+const SOURCE_GUIDE = [
+  ['Decision memo / release note', 'the move and its scope — the core input'],
+  ['Survey, metrics, quotes', 'calibrated stances instead of invented ones (biggest quality lever)'],
+  ['Repo README', 'technical objections, the developer audience'],
+  ['Blog post', 'public positioning — how it will be read'],
+  ['News article', 'reputational and regulator attention'],
+  ['Pricing page', 'commercial objections: procurement, competitors'],
+  ['Forum / Reddit thread', 'the loud minority and the real objections'],
+  ['Whitepaper / PDF', 'enterprise and regulatory framing'],
+]
+
 const SAMPLE = {
   title: 'Open-weight Arete-27B',
   decision:
@@ -182,6 +240,8 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
   const [evidence, setEvidence] = React.useState('')
   const [urls, setUrls] = React.useState('')
   const [window, setWindow] = React.useState('24h')
+  const [goal, setGoal] = React.useState('adoption')
+  const [showGuide, setShowGuide] = React.useState(false)
   const [models, setModels] = React.useState([])
   const [modelId, setModelId] = React.useState('')
   const [freeOnly, setFreeOnly] = React.useState(false)
@@ -204,6 +264,15 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
   const cost = !chosen ? 'your active model' : chosen.free ? 'FREE' : `~$${(calls * perCall).toFixed(3)} at list price`
   const hasInput = decision.trim().length > 0 || urls.trim().length > 0
 
+  function applyRecipe(r) {
+    setGoal(r.goal)
+    setTitle(r.title)
+    setDecision(r.decision)
+    setEvidence(r.evidence)
+    setUrls('')
+    setShowGuide(true)
+  }
+
   function useSample() {
     setTitle(SAMPLE.title); setDecision(SAMPLE.decision); setEvidence(SAMPLE.evidence)
   }
@@ -220,7 +289,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
       const urlList = urls.split('\n').map(u => u.trim()).filter(Boolean)
       const res = await ctx.rest('/run', {
         method: 'POST',
-        body: { title, documents: docs, urls: urlList, window, model: modelId || undefined },
+        body: { title, goal, documents: docs, urls: urlList, window, model: modelId || undefined },
       })
       onStarted(res.run_id, title)
     } catch (e) {
@@ -251,6 +320,33 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
               value: title, onChange: e => setTitle(e.target.value),
             }),
           }),
+        ]}),
+
+        // what kind of review + which sources produce it
+        jsxs('div', { className: 'mt-4 flex flex-col gap-2', children: [
+          jsx(Label, { children: 'Start from a recipe (optional) — it fills the fields, you edit them' }),
+          jsxs('div', { className: 'flex flex-wrap gap-1.5', children: [
+            ...RECIPES.map(r => jsx('button', {
+              type: 'button', key: r.id,
+              className: 'rounded-full border border-(--ui-border) px-3 py-1 text-xs hover:border-(--ui-accent)',
+              onClick: () => applyRecipe(r),
+              children: r.label,
+            })),
+            jsx('button', {
+              type: 'button',
+              className: 'rounded-full border border-(--ui-border) px-3 py-1 text-xs text-(--ui-text-tertiary) hover:text-(--ui-text)',
+              onClick: () => setShowGuide(v => !v),
+              children: showGuide ? 'hide what to paste' : 'what should I paste?',
+            }),
+          ]}),
+          showGuide && jsxs('div', { className: 'flex flex-col gap-1 rounded border border-(--ui-border) p-2', children: [
+            jsx('div', { className: 'text-[0.6875rem] uppercase tracking-wide text-(--ui-text-tertiary)', children: 'source → what it buys the review' }),
+            ...SOURCE_GUIDE.map(([k, v]) => jsxs('div', { key: k, className: 'grid grid-cols-2 gap-2 text-[0.6875rem]', children: [
+              jsx('span', { children: k }),
+              jsx('span', { className: 'text-(--ui-text-tertiary)', children: v }),
+            ]})),
+            jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-tertiary)', children: 'Two sources that disagree beat five that agree. A decision plus one piece of real evidence is the best cheap run.' }),
+          ]}),
         ]}),
 
         // decision or URL
