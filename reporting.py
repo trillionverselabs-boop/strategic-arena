@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List
 
@@ -253,6 +253,7 @@ def save_run(result: SimulationResult, report_md: str, frozen_jsonl: str,
         "run_id": result.run_id, "title": result.title, "goal": result.goal.value,
         "created_at": result.created_at, "friction": result.friction,
         "rounds": result.rounds,
+        "window": result.window,
         "uncertainty": result.uncertainty, "confidence": result.confidence,
         "blocker": result.blocker.name if result.blocker else None,
         "summary": result.summary,
@@ -306,6 +307,54 @@ def load_claims(run_id: str) -> List[dict]:
             continue
         if row.get("type") == "claim":
             out.append(row)
+    return out
+
+
+def due_claims(as_of=None) -> List[dict]:
+    """Runs whose window has closed and that nobody has scored yet.
+
+    This is the retention loop: every unscored run is a wasted claim, and an
+    unscored ledger makes the track record invisible. The system owns the to-do,
+    not the user's memory. Returns one row per due run, oldest first:
+
+        {run_id, title, due_at, window, created_at, claims[]}
+    """
+    now = _as_utc(as_of) or datetime.now(timezone.utc)
+    root = runs_dir()
+    if not root.exists():
+        return []
+
+    out: List[dict] = []
+    for d in root.iterdir():
+        meta_path = d / "meta.json"
+        if not meta_path.exists():
+            continue
+        try:
+            meta = json.loads(meta_path.read_text())
+        except Exception:
+            continue
+        if meta.get("verified"):
+            continue                       # already scored — nothing to ask for
+        created = _as_utc(meta.get("created_at"))
+        if created is None:
+            continue
+        window = str(meta.get("window") or "24h")
+        try:
+            from .models import Window
+            due = created + timedelta(seconds=Window(window).seconds)
+        except Exception:
+            continue                       # unknown window: never guess a deadline
+        if due > now:
+            continue
+        out.append({
+            "run_id": meta.get("run_id") or d.name,
+            "title": meta.get("title", ""),
+            "due_at": due.isoformat(timespec="seconds"),
+            "window": window,
+            "created_at": created.isoformat(timespec="seconds"),
+            "claims": load_claims(meta.get("run_id") or d.name),
+        })
+    out.sort(key=lambda r: r["due_at"])
     return out
 
 
@@ -457,3 +506,23 @@ def _parse(ts: str):
         return datetime.fromisoformat(ts)
     except Exception:
         return None
+
+
+def _as_utc(value):
+    """Coerce a timestamp (str or datetime) to aware UTC; None if unparseable.
+
+    Stored `created_at` values are UTC with an offset, but hand-edited or older
+    records may be naive — treat those as UTC rather than guessing a timezone.
+    """
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        dt = value
+    else:
+        dt = _parse(str(value))
+        if dt is None:
+            return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+

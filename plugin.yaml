@@ -8,5 +8,6 @@ provides_tools:
   - upfront_report
   - upfront_history
   - upfront_calibration
+  - upfront_due
 capabilities:
   - llm.model_override

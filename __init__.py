@@ -9,8 +9,33 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from .llm_adapter import LlmAdapter
 from .tools import register_tools
+
+SKILLS_DIR = Path(__file__).resolve().parent / "skills"
+
+
+def _register_skills(ctx) -> None:
+    """Ship the preset packs as plugin skills (`upfront:<name>`), not copies in ~/.hermes/skills.
+
+    Skills are a normal surface — no extra capability, no manifest change. A skill that
+    fails to register is logged and skipped: it must never take the plugin down.
+    """
+    if not SKILLS_DIR.is_dir():
+        return
+    for child in sorted(SKILLS_DIR.iterdir()):
+        md = child / "SKILL.md"
+        if not (child.is_dir() and md.exists()):
+            continue
+        try:
+            ctx.register_skill(child.name, md)
+        except Exception as exc:  # older host, bad frontmatter — the rest still load
+            try:
+                ctx.log(f"upfront: skill {child.name} skipped: {exc}")
+            except Exception:
+                pass
 
 
 def register(ctx) -> None:
@@ -21,6 +46,8 @@ def register(ctx) -> None:
         allow_override = False
 
     register_tools(ctx, allow_model_override=allow_override)
+    _register_skills(ctx)
+
 
     try:
         from .dashboard import plugin_api  # type: ignore

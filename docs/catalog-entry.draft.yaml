@@ -24,6 +24,7 @@ capabilities:
     - upfront_report
     - upfront_history
     - upfront_calibration
+    - upfront_due
   hooks: []
   env: []
 image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/REPLACE_WITH_40_HEX_COMMIT/assets/banner.png

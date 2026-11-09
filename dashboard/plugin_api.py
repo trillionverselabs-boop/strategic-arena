@@ -202,6 +202,17 @@ async def history(limit: int = 20):
     return reporting.list_runs(limit)
 
 
+@router.get("/due")
+async def due():
+    """Runs whose window has closed and that are still unscored.
+
+    The desktop and `upfront_due` both read this — one payload, one truth.
+    """
+    rows = reporting.due_claims()
+    return {"due": rows, "count": len(rows)}
+
+
+
 # ── helpers ──────────────────────────────────────────────────────────
 
 def _scenario_from(body: dict):

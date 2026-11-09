@@ -47,6 +47,14 @@ class Window(str, Enum):
             "12h": 12, "24h": 16, "48h": 20,
         }[self.value]
 
+    @property
+    def seconds(self) -> int:
+        """Wall-clock length of the window — when the claims become scorable."""
+        return {
+            "30m": 30 * 60, "1h": 3600, "4h": 4 * 3600, "6h": 6 * 3600,
+            "12h": 12 * 3600, "24h": 24 * 3600, "48h": 48 * 3600,
+        }[self.value]
+
 
 class Document(BaseModel):
     type: DocumentType
@@ -106,6 +114,7 @@ class SimulationResult(BaseModel):
     created_at: str = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
+    window: str = "24h"   # the timeline the run was asked for; sets when claims are due
     rounds: int
     personas: List[Persona]
     events: List[Event] = Field(default_factory=list)

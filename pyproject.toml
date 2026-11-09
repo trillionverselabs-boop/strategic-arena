@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hermes-upfront"
-version = "0.1.0"
-description = "Upfront Prediction — pre-launch opponent. Paste a decision, watch a living stakeholder graph react."
+version = "0.3.0"
+description = "Upfront — strategic-response review for decisions: who can veto the move, their coalitions, your best response, and how contested the ground is."
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.6,<3",

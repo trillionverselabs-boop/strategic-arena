@@ -191,3 +191,25 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
 
     ctx.register_tool(name="upfront_calibration", toolset="upfront",
                       schema=cal_schema, handler=handle_calibration)
+
+    # ── upfront_due ──────────────────────────────────────────────────
+    due_schema = {
+        "name": "upfront_due",
+        "description": (
+            "Reviews whose window has closed and that nobody has scored yet. Call this when a "
+            "review's timeline is up: it returns {due: [{run_id, title, due_at, window, claims}]} "
+            "so you can ask the user to score each claim (✓/✗) and set a verdict. Scoring is what "
+            "builds the track record; an unscored run is a wasted claim."
+        ),
+        "parameters": {"type": "object", "properties": {
+            "as_of": {"type": "string",
+                      "description": "Optional ISO timestamp to evaluate 'due' against (default: now)."}}},
+    }
+
+    def handle_due(params, **kwargs):
+        from . import reporting
+        rows = reporting.due_claims(as_of=params.get("as_of") or None)
+        return json.dumps({"due": rows, "count": len(rows)})
+
+    ctx.register_tool(name="upfront_due", toolset="upfront", schema=due_schema, handler=handle_due)
+
