@@ -1,16 +1,10 @@
 name: upfront
 title: Upfront
 description: >-
-  Strategic-response review for decisions — a rehearsal, not a forecast. Paste a
-  decision (or a URL: repo README, blog post, news article, pricing page, forum
-  thread, whitepaper) and Upfront maps the players who can challenge the move,
-  their conditions, your best response, and how competitive the market is on a
-  red / purple / blue competition axis. Pick a model from the live Nous
-  catalogue with the run's cost shown before you start it, inject a counter-move
-  mid-run to watch the graph bend, then score the frozen claims later — same
-  decision across 30m / 4h / 24h / 48h timelines gets compared automatically so
-  repetition becomes evidence. Ships agent tools plus a Hermes Desktop page. Runs
-  on your own machine; no prediction, no cloud account required.
+  A rehearsal with a scorecard for high-stakes moves. Feed it a decision (or a
+  URL) and it simulates stakeholder reactions, maps coalitions, finds your best
+  response, and delivers a competitive read — plus verifiable scorecards to track
+  prediction vs. reality. Runs on your own machine. Built for Hermes Agent.
 
 repo: https://github.com/trillionverselabs-boop/upfront-test   # must be PUBLIC before submission
 sha: d357d1aff6fb4b4185223464ffd30177e4021dd7

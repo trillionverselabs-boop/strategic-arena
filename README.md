@@ -2,24 +2,49 @@
 
 ![Upfront — strategic-response review](assets/banner.png)
 
-> **See who can challenge your plan before you ship it.**
+> **A rehearsal with a scorecard for high-stakes moves.**
 >
-> Paste a decision — or just drop in a URL (a repo README, blog post, news
-> article, pricing page, forum thread) — and Upfront shows you the **players who
-> can challenge the move**, **their conditions**, your **best response**, and how
-> **competitive the market is** (red / purple / blue ocean). Then it freezes
-> **testable claims** you score against what actually happens — so the review
-> gets better with every run.
+> Feed it a strategic decision — a product launch, price change, breaking
+> announcement, API deprecation, or open-weight release — and it simulates
+> stakeholder reactions, maps emerging coalitions, finds your best response, and
+> delivers a competitive read. Complete with verifiable scorecards to track
+> prediction vs. reality.
 >
-> **Not a prediction. Not a guarantee. A rehearsal with a scorecard.**
+> **Not a prediction. Not a guarantee. A zero-fluff auditing engine.**
 
-### What "local-first" means
+### Why rehearsal, not chat
 
-Everything runs on **your own machine**. Your decisions, documents, and results
-stay in a folder on your computer (`~/.hermes/upfront/`). Nothing is sent to a
-cloud service, no account is required, and no data leaves unless you choose to
-fetch a URL or use your own model provider. You can unplug from the internet
-and still run a review (using a local model).
+Most AI tools act as conversational search engines. Upfront runs a **deterministic
+3-pass audit** instead of asking a model to "summarize a link":
+
+1. **Claim & fact extraction** — strips marketing fluff, PR spin, and slop to pull
+   raw metrics and structural claims.
+2. **Friction & coalition mapping** — simulates how customers, competitors, and
+   internal teams react, surfacing hidden technical or market risks.
+3. **Strategic synthesis & scorecard** — outputs an actionable competitive
+   response and freezes 2–4 verifiable claims you grade later.
+
+### Use cases
+
+**Business / GTM:** product & pricing changes (pushback, churn, counter-moves);
+breaking announcements & PR (market signal vs. hype); M&A / vendor due
+diligence (structural risk audit of a repo or whitepaper).
+
+**Developers / AI engineers:** open-weight & model releases (benchmark, SFT,
+license claims); architecture & dependency audits (integration friction, code
+debt).
+
+### What it is — and what it is not
+
+**What it is:** a rehearsal. You hand it a decision, it simulates how the people
+affected are likely to react, and hands back the blocker, the coalitions, your
+best response, and a read on how competitive the market is. Then it writes down
+2–4 testable claims and lets you score them later, so the review gets sharper
+with every run.
+
+**What it is not:** a prediction, a guarantee, a game solver, or a forecast. It
+does not tell you what *will* happen. It tells you what *could* happen and who
+can stop it — a dry run before you commit.
 
 ```
 Your move → who can veto it → coalitions → best response → competition read → claims frozen → score them later
@@ -71,6 +96,14 @@ can stop it — a dry run before you commit.
   how loud the pushback is, and whether the notice window is enough.
 - **An open-weight release** — "Weights ship under a permissive licence." Who
   gains, who loses, and how competitive that space already is.
+
+### What "local-first" means
+
+Everything runs on **your own machine**. Your decisions, documents, and results
+stay in a folder on your computer (`~/.hermes/upfront/`). Nothing is sent to a
+cloud service, no account is required, and no data leaves unless you choose to
+fetch a URL or use your own model provider. You can unplug from the internet
+and still run a review (using a local model).
 
 ### Credits and inspiration
 
