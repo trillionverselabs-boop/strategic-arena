@@ -40,6 +40,38 @@ model** via `ctx.llm` — the plugin never sees or stores a credential.
   can look it up in 48h and check whether the sim was right. History is the whole point:
   a prediction you can't verify is just a story.
 
+### Desktop experience (left sidebar → Upfront)
+
+The page is a full-center view. The **starting form** is a single card:
+
+- **Title** (single line), **Decision document** (large textarea, required),
+  **Evidence (optional)** (smaller textarea), **URLs** (one per line — blog post, repo
+  README, landing page; fetched as documents).
+- **Window** dropdown: `6h` / `12h` / `24h` / `48h`.
+- **Run button:** "Run prediction" (disabled until a decision is typed, or while running).
+
+**In progress:** when you click Run, the button reads `Simulating… X%` and a live
+**"Simulation in progress"** card appears below the form. It shows a progress bar and
+`Round N of M — X%`, and — wired to the same polled `/status` payload — a **live SVG
+graph that updates every round** as stakeholder stances shift. Node colors move
+red/yellow/green in real time as the simulation proceeds.
+
+**Finished report:** when the run completes, the live card gives way to a 2-column
+result view:
+- **Left:** the final stakeholder graph (nodes + oppose/support edges, camp labels).
+- **Right:** the markdown report (friction score, blocker, counter-moves, provenance,
+  camps, failure-mode audit, and the plain-language recommendation).
+
+**History:** every run is saved. The "Past runs — click to reopen & verify" list shows
+each run's title, friction score, and blocker. Clicking one reloads its graph and
+report so you can check the frozen prediction later.
+
+**Opt-in deep dive:** `upfront_report(run_id, full=true)` (or `GET /report/{id}?full=true`)
+returns the long-form `report_full.md` — the same grounded content expanded with
+per-stakeholder narratives, round-by-round trajectories, the camp structure, and the
+MASS failure-mode audit. Same predictions, just also saved as `report_full.md` next to
+`report.md`. It adds no new claims — longer, not invented filler.
+
 ## What to feed it (and what hurts)
 
 Best results come from documents that **contain a real disagreement**:
