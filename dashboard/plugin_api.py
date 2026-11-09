@@ -23,7 +23,8 @@ for p in (str(_UPSTREAM), str(_PLUGIN_ROOT)):
         sys.path.insert(0, p)
 
 from upfront import engine  # noqa: E402
-from upfront import reporting  # noqa: E402
+from upfront import portal, reporting  # noqa: E402
+from upfront.llm_adapter import LlmAdapter  # noqa: E402
 from upfront.models import Intervention  # noqa: E402
 
 router = APIRouter()
@@ -75,8 +76,16 @@ async def run(body: dict):
             def _on_round(snap):
                 engine._emit(run_id, "running", snap.round, scenario.rounds,
                              {k: round(v, 3) for k, v in (snap.stances or {}).items()})
+            base = _llm()
+            chosen = (scenario.model or "").strip()
+            llm = base
+            if chosen and chosen != "default":
+                llm = LlmAdapter(
+                    base._llm, temperature=scenario.temperature, model=chosen,
+                    allow_override=getattr(base, "allow_override", False),
+                )
             result = engine.run_scenario_progress(
-                scenario, _llm(), on_round=_on_round, run_id=run_id
+                scenario, llm, on_round=_on_round, run_id=run_id
             )
             engine._emit(run_id, "done", result.rounds, result.rounds,
                          {p.name: round(p.stance, 3) for p in result.personas})
@@ -163,6 +172,23 @@ async def verify(run_id: str, body: dict):
 @router.get("/calibration")
 async def calibration():
     return reporting.calibration()
+
+
+@router.get("/models")
+async def models(free: bool = False):
+    """Live Nous model catalogue with per-million-token prices (public, no creds)."""
+    cat = portal.catalogue()
+    items = cat.get("models", [])
+    if free:
+        items = [m for m in items if m.get("free")]
+    return {
+        "models": items,
+        "count": len(items),
+        "free_count": cat.get("free_count", 0),
+        "fetched_at": cat.get("fetched_at", ""),
+        "source": cat.get("source", ""),
+        "error": cat.get("error", ""),
+    }
 
 
 @router.get("/history")

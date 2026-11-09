@@ -69,6 +69,8 @@ The page is a full-center view. The **starting form** is a single card:
   README, landing page; fetched as documents). Fetched URLs are **real documents**, not
   free-text noise: the page is fetched, converted to text, and ingested alongside
   anything you pasted — with the URL kept as the source for provenance.
+- **Model** picker: the live catalogue with per-million prices, a "free only" filter, and
+  a live `N calls · cost` line for the selected window (see *Live model catalogue* below).
 - **Window** dropdown: `6h` / `12h` / `24h` / `48h`.
 - **Run button:** "Run prediction" (disabled until a decision is typed, or while running).
 
@@ -124,9 +126,30 @@ It does not need a frontier model — the work is many small structured judgment
   seconds per call; across 50–200 calls that adds up. Use it when you want the richest
   per-actor reasoning and don't mind the wait.
 
-We deliberately do **not** ship a hardcoded model price catalog — the plugin reads the
-model you're already using and runs on that. (A fake price list a reviewer can't verify
-would be dishonest.)
+### Live model catalogue with real prices
+
+The form's **Model** picker is populated from the public Nous inference catalogue
+(`https://inference-api.nousresearch.com/v1/models` — no credentials required, 357 usable
+chat models at the time of writing) and shows, for every model, the **published price per
+million tokens** in and out. The run line under it does the arithmetic before you commit:
+
+```
+176 calls · ~$0.02 at list price        (a paid flash-class model)
+176 calls · FREE                        (one of the five zero-priced models)
+```
+
+- **Free models are flagged and filterable** ("free only") — the currently configured
+  default, `reflection/beam-1.0-501b-a23b:free`, is one of them.
+- **Cheap ≠ frontier.** For a review the work is many small structured judgments, so a
+  flash-class model is usually the right buy; a frontier model costs ~$5 for the same
+  176 calls and makes the run *slower*, not smarter.
+- **Nothing is hardcoded.** Prices come from the same live endpoint the Portal uses, are
+  cached for 6 hours, and carry their fetch time in the UI. No invented price list.
+- **Choosing a specific model needs consent.** Hermes gates host-owned model selection
+  behind the `llm.model_override` capability; the plugin declares it and probes it. If the
+  user declines, the run still works — on the active model — and the UI says so.
+
+The catalogue is fetched anonymously, so it never touches a credential (see rule 11 below).
 
 ## Catalog disclosure (admission rule 13)
 

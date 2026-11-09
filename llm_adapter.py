@@ -4,12 +4,10 @@
 # Real ctx.llm (agent/plugin_llm.py PluginLlm):
 #   complete(messages: list[dict], *, provider=None, model=None, temperature=None, ...)
 #     -> PluginLlmCompleteResult(text=..., provider=..., model=..., usage=...)
-#   complete_structured(*, instructions, input=[...], json_schema=None, json_mode=False, ...)
-#     -> PluginLlmStructuredResult(parsed=..., text=..., content_type=...)
 #
-# The engine was written against `llm.complete(prompt) -> str`. This adapter keeps
-# that contract while calling the real API correctly. It also normalizes the
-# result to a plain string, which the engine's JSON parsing already handles.
+# Choosing a model for host-owned calls is a consent-gated capability
+# (`llm.model_override`). If the user has not granted it, the adapter silently
+# runs on the active model — never fails, never asks again.
 
 from __future__ import annotations
 
@@ -17,17 +15,29 @@ from __future__ import annotations
 class LlmAdapter:
     """Wraps ctx.llm and exposes complete(prompt: str) -> str."""
 
-    def __init__(self, ctx_llm, temperature: float = 0.6):
+    def __init__(self, ctx_llm, temperature: float = 0.6, model: str | None = None,
+                 allow_override: bool = False):
         self._llm = ctx_llm
         self.temperature = temperature
+        self.model = model or "default"
+        self.allow_override = allow_override
+
+    def _kwargs(self) -> dict:
+        kwargs = {"temperature": self.temperature}
+        if self.allow_override and self.model not in (None, "", "default"):
+            kwargs["model"] = self.model
+        return kwargs
 
     def complete(self, prompt: str) -> str:
         messages = [{"role": "user", "content": prompt}]
-        result = self._llm.complete(
-            messages,
-            temperature=self.temperature,
-        )
-        # PluginLlmCompleteResult has .text; tolerate a raw string just in case.
+        if self.allow_override and self.model not in (None, "", "default"):
+            try:
+                result = self._llm.complete(messages, model=self.model,
+                                            temperature=self.temperature)
+            except Exception:
+                result = self._llm.complete(messages, temperature=self.temperature)
+        else:
+            result = self._llm.complete(messages, temperature=self.temperature)
         if isinstance(result, str):
             return result
         return getattr(result, "text", "") or ""
@@ -44,5 +54,4 @@ class LlmAdapter:
         parsed = getattr(result, "parsed", None)
         if isinstance(parsed, dict):
             return parsed
-        # fall back to text parsing (engine's _parse_json handles it)
         return getattr(result, "text", "") or ""

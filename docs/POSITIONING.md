@@ -131,3 +131,4 @@ Default decision until the user says otherwise: **keep the id `upfront`, change 
 3. **Thin input → guesswork.** Input quality is scored and surfaced; a low-confidence run should be re-fed, not quoted.
 4. **Small coalitions.** 3–16 stakeholders is a leadership team, not a market. Scale claims are out of scope.
 5. **Track record needs volume.** Until 10+ scored runs, the ledger is a curiosity, not proof.
+6. **Model choice is consent-gated.** Picking a model for the review needs `llm.model_override`; without it the run uses the active model. Prices shown are the catalogue's published per-token prices, fetched live and cached 6h — never a hardcoded table.

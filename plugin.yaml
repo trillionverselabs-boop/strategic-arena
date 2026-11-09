@@ -1,10 +1,12 @@
 name: upfront
-version: "0.2.0"
+version: "0.3.0"
 requires_hermes: ">=0.23.0"
-description: "Upfront — a strategic-response review for decisions. Paste a decision (or a URL), see who can veto it, their coalitions, your best response, and how contested the ground is (red / purple / blue ocean); inject a counter-move mid-run, then score the frozen claims later. Local-first, runs on your active model."
+description: "Upfront — a strategic-response review for decisions. Paste a decision (or a URL), see who can veto it, their coalitions, your best response, and how contested the ground is (red / purple / blue ocean); pick a model from the live catalogue with per-run cost shown, inject a counter-move mid-run, then score the frozen claims later. Local-first."
 provides_tools:
   - upfront_run
   - upfront_status
   - upfront_report
   - upfront_history
   - upfront_calibration
+capabilities:
+  - llm.model_override

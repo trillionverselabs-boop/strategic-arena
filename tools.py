@@ -44,7 +44,7 @@ def _scenario_from(params: dict) -> Scenario:
     )
 
 
-def register_tools(ctx) -> None:
+def register_tools(ctx, allow_model_override: bool = False) -> None:
     # ── upfront_run ──────────────────────────────────────────────────
     run_schema = {
         "name": "upfront_run",
@@ -63,6 +63,15 @@ def register_tools(ctx) -> None:
                 "title": {"type": "string", "description": "Short title for the decision."},
                 "goal": {"type": "string", "enum": ["adoption", "open_weight", "deprecation", "campaign"]},
                 "window": {"type": "string", "enum": ["6h", "12h", "24h", "48h"]},
+                "model": {
+                    "type": "string",
+                    "description": (
+                        "Optional model id from the live catalogue (see the desktop form, "
+                        "or GET /api/plugins/upfront/models). Empty / 'default' runs on the "
+                        "user's active model. Only honoured when the user granted "
+                        "llm.model_override."
+                    ),
+                },
                 "documents": {
                     "type": "array",
                     "items": {
@@ -102,8 +111,13 @@ def register_tools(ctx) -> None:
     }
 
     def handle_run(params, **kwargs):
-        llm = LlmAdapter(ctx.llm, temperature=params.get("temperature", 0.6))
         scenario = _scenario_from(params)
+        llm = LlmAdapter(
+            ctx.llm,
+            temperature=scenario.temperature,
+            model=scenario.model,
+            allow_override=allow_model_override,
+        )
         result = engine.run_scenario(scenario, llm)
         return json.dumps({
             "run_id": result.run_id, "title": result.title,

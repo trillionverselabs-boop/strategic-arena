@@ -121,10 +121,22 @@ function UpfrontPage({ ctx }) {
   const [history, setHistory] = React.useState([])
   const [injectText, setInjectText] = React.useState('')
   const [claimHits, setClaimHits] = React.useState({})
+  const [models, setModels] = React.useState([])
+  const [modelId, setModelId] = React.useState('')
+  const [freeOnly, setFreeOnly] = React.useState(false)
+  const [catalogueNote, setCatalogueNote] = React.useState('')
   const gateway = useValue(host.state.gateway)
 
   React.useEffect(() => {
     ctx.rest('/history').then(setHistory).catch(() => {})
+    ctx.rest('/models').then(r => {
+      setModels(r.models || [])
+      setCatalogueNote(
+        r.error ? r.error
+          : r.count ? `catalogue: ${r.count} models (${r.free_count} free) · fetched ${r.fetched_at}`
+          : 'model catalogue empty'
+      )
+    }).catch(() => setCatalogueNote('model catalogue unavailable'))
   }, [])
 
   async function openRun(runId) {
@@ -149,7 +161,7 @@ function UpfrontPage({ ctx }) {
     const urlList = urls.split('\n').map(u => u.trim()).filter(Boolean)
     const { run_id } = await ctx.rest('/run', {
       method: 'POST',
-      body: { title, documents: docs, urls: urlList, window },
+      body: { title, documents: docs, urls: urlList, window, model: modelId || undefined },
     })
     setResult(null)
     setRunning({ runId: run_id, progress: 0, round: 0, total: 0, stances: {} })
@@ -196,6 +208,17 @@ function UpfrontPage({ ctx }) {
     return { nodes, edges: result?.graph?.edges || [] }
   }, [running?.stances, result])
 
+  const ROUNDS = { '6h': 8, '12h': 12, '24h': 16, '48h': 20 }
+  const calls = (ROUNDS[window] || 16) * 8 + 16          // rounds x ~8 stakeholders + reflections
+  const visibleModels = freeOnly ? models.filter(m => m.free) : models
+  const chosenModel = models.find(m => m.id === modelId)
+  const perCall = chosenModel
+    ? (700 / 1e6) * chosenModel.prompt_per_m + (120 / 1e6) * chosenModel.completion_per_m
+    : 0
+  const costText = !chosenModel
+    ? 'on your active model'
+    : chosenModel.free ? 'FREE' : `~$${(calls * perCall).toFixed(3)} at list price`
+
   const canRun = (decision.trim() || urls.trim()) && !running
 
   return jsxs('div', {
@@ -234,6 +257,26 @@ function UpfrontPage({ ctx }) {
           placeholder: 'URLs — blog post, repo README, landing page (one per line).',
           rows: 2, value: urls, onChange: e => setUrls(e.target.value),
         }),
+        jsxs('div', { className: 'flex flex-wrap items-center gap-2 rounded border border-(--ui-border) p-2', children: [
+          jsx(Field, { label: 'Model', help: 'Live list from the Nous model catalogue with real per-token prices. Leave on "active model" to use whatever Hermes already runs. Choosing a specific model needs the model-override consent; without it the run uses your active model.' }),
+          jsx('label', { className: 'flex items-center gap-1 text-xs', children: [
+            jsx('input', { type: 'checkbox', checked: freeOnly, onChange: e => setFreeOnly(e.target.checked) }),
+            jsx('span', { children: 'free only' }),
+          ]}),
+          jsx('select', {
+            className: 'max-w-[430px] rounded border border-(--ui-border) bg-(--ui-bg) px-2 py-1 text-xs',
+            value: modelId, onChange: e => setModelId(e.target.value),
+            children: [
+              jsx('option', { value: '', children: 'active model (default)' }),
+              ...visibleModels.map(m => jsx('option', {
+                key: m.id, value: m.id,
+                children: `${m.free ? 'FREE · ' : ''}${m.name} — $${m.prompt_per_m}/M in · $${m.completion_per_m}/M out`,
+              })),
+            ],
+          }),
+          jsx('span', { className: 'text-xs text-(--ui-text-secondary)', children: `${calls} calls · ${costText}` }),
+        ]}),
+        catalogueNote && jsx('div', { className: 'text-xs text-(--ui-text-tertiary)', children: catalogueNote }),
         jsxs('div', { className: 'flex items-center gap-2', children: [
           jsx(Field, { label: 'Window', help: '6h = 8 rounds, 12h = 12, 24h = 16, 48h = 20. Longer = slower and more thorough.' }),
           jsx('select', {
