@@ -252,6 +252,7 @@ def save_run(result: SimulationResult, report_md: str, frozen_jsonl: str,
     (d / "meta.json").write_text(json.dumps({
         "run_id": result.run_id, "title": result.title, "goal": result.goal.value,
         "created_at": result.created_at, "friction": result.friction,
+        "rounds": result.rounds,
         "uncertainty": result.uncertainty, "confidence": result.confidence,
         "blocker": result.blocker.name if result.blocker else None,
         "summary": result.summary,
@@ -369,6 +370,86 @@ def calibration() -> dict:
         "sea_state": by_sea,
         "note": "hit rate is only meaningful with n >= 10 scored runs",
     }
+
+
+def _final_stances(run_id: str) -> dict:
+    p = _run_dir(run_id) / "log.jsonl"
+    if not p.exists():
+        return {}
+    last = {}
+    for line in p.read_text().splitlines():
+        try:
+            row = json.loads(line)
+        except Exception:
+            continue
+        if row.get("type") == "snapshot":
+            last = row.get("stances") or {}
+    return last
+
+
+def compare_runs(title: str = "", limit: int = 20) -> dict:
+    """Compare every run of the same decision across timelines.
+
+    This is the feature that turns repetition into evidence: run the same decision
+    at 30m / 4h / 24h and see whether the read is stable or a product of how long
+    you let it run.
+    """
+    runs = list_runs(200)
+    if title:
+        needle = title.strip().lower()
+        runs = [r for r in runs if needle in str(r.get("title", "")).lower()]
+    runs = runs[:limit]
+
+    rows = []
+    for r in runs:
+        rows.append({
+            "run_id": r.get("run_id", ""),
+            "title": r.get("title", ""),
+            "rounds": r.get("rounds") or r.get("summary", ""),
+            "friction": r.get("friction"),
+            "confidence": r.get("confidence", ""),
+            "blocker": r.get("blocker"),
+            "sea_state": r.get("sea_state", ""),
+            "sea_label": r.get("sea_label", ""),
+            "created_at": r.get("created_at", ""),
+            "verified": r.get("verified", {}),
+        })
+
+    frictions = [x["friction"] for x in rows if isinstance(x["friction"], (int, float))]
+    blockers = [x["blocker"] for x in rows if x["blocker"]]
+    stable = bool(rows) and len(set(blockers)) <= 1 and (
+        not frictions or (max(frictions) - min(frictions)) <= 15
+    )
+
+    comparison = {
+        "title": title,
+        "runs": len(rows),
+        "rows": rows,
+        "friction_min": min(frictions) if frictions else None,
+        "friction_max": max(frictions) if frictions else None,
+        "friction_spread": round(max(frictions) - min(frictions), 1) if frictions else None,
+        "blocker_stable": bool(rows) and len(set(blockers)) <= 1,
+        "stable": stable,
+        "reading": (
+            "Stable across timelines — the same veto player and a friction spread "
+            "inside ±15. Run it once more before you act on it."
+            if stable else
+            "Unstable across timelines — the answer moves with how long you run it. "
+            "That is a finding, not a failure: read the per-run rows before deciding."
+            if rows else "No runs yet for this decision."
+        ),
+    }
+
+    if len(rows) >= 2:
+        shortest = min(rows, key=lambda x: x.get("rounds") or 0)
+        longest = max(rows, key=lambda x: x.get("rounds") or 0)
+        a, b = _final_stances(shortest["run_id"]), _final_stances(longest["run_id"])
+        comparison["stance_drift"] = {
+            k: round(b[k] - a.get(k, 0.0), 3) for k in b
+        }
+        comparison["drift_between"] = [shortest["run_id"], longest["run_id"]]
+
+    return comparison
 
 
 def _parse(ts: str):

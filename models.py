@@ -27,6 +27,9 @@ class Goal(str, Enum):
 
 
 class Window(str, Enum):
+    THIRTY_M = "30m"
+    ONE_H = "1h"
+    FOUR_H = "4h"
     SIX_H = "6h"
     TWELVE_H = "12h"
     TWENTY_FOUR_H = "24h"
@@ -34,7 +37,15 @@ class Window(str, Enum):
 
     @property
     def rounds(self) -> int:
-        return {"6h": 8, "12h": 12, "24h": 16, "48h": 20}[self.value]
+        """More time = more rounds = more positions tested, more reaction cycles.
+
+        30m is a sanity check (does anyone care?), 48h is the full read (coalitions
+        form, positions harden, the veto player's alternative gets tested).
+        """
+        return {
+            "30m": 3, "1h": 5, "4h": 8, "6h": 10,
+            "12h": 12, "24h": 16, "48h": 20,
+        }[self.value]
 
 
 class Document(BaseModel):

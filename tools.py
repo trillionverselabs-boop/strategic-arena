@@ -62,7 +62,7 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
             "properties": {
                 "title": {"type": "string", "description": "Short title for the decision."},
                 "goal": {"type": "string", "enum": ["adoption", "open_weight", "deprecation", "campaign"]},
-                "window": {"type": "string", "enum": ["6h", "12h", "24h", "48h"]},
+                "window": {"type": "string", "enum": ["30m", "1h", "4h", "6h", "12h", "24h", "48h"]},
                 "model": {
                     "type": "string",
                     "description": (

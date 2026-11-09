@@ -191,6 +191,12 @@ async def models(free: bool = False):
     }
 
 
+@router.get("/compare")
+async def compare(title: str = "", limit: int = 20):
+    """Same decision across timelines: friction spread, veto-player stability, drift."""
+    return reporting.compare_runs(title, limit)
+
+
 @router.get("/history")
 async def history(limit: int = 20):
     return reporting.list_runs(limit)
