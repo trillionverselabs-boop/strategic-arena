@@ -60,6 +60,21 @@ function GraphSvg({ graph }) {
   })
 }
 
+function Help({ text }) {
+  return jsx('span', {
+    title: text,
+    className: 'ml-1 cursor-help text-(--ui-text-tertiary)',
+    children: 'ⓘ',
+  })
+}
+
+function Field({ label, help }) {
+  return jsxs('div', { className: 'flex items-center text-xs font-medium text-(--ui-text-secondary)', children: [
+    label,
+    jsx(Help, { text: help }),
+  ]})
+}
+
 function UpfrontPage({ ctx }) {
   const [title, setTitle] = React.useState('Arete open-weight decision')
   const [decision, setDecision] = React.useState('')
@@ -117,26 +132,31 @@ function UpfrontPage({ ctx }) {
       // new entry form
       jsxs('div', { className: 'flex flex-col gap-3 rounded border border-(--ui-border) p-4', children: [
         jsx('div', { className: 'text-sm font-medium', children: 'New entry' }),
+        jsx(Field, { label: 'Title (required)', help: 'Name the decision you are predicting. Short, specific, one line — e.g. "Arete open-weight release" or "Deprecate /v1 API". Shows in run history.' }),
         jsx('input', {
           className: 'rounded border border-(--ui-border) bg-(--ui-bg) px-2 py-1 text-sm focus:border-(--ui-accent) focus:outline-none',
           placeholder: 'Title — the decision you are predicting', value: title, onChange: e => setTitle(e.target.value),
         }),
+        jsx(Field, { label: 'Decision document (required)', help: 'Paste the plan or proposal — the thing being reacted to. This is the core of the simulation. Be specific: what you are changing, launching, or removing.' }),
         jsx('textarea', {
           className: 'rounded border border-(--ui-border) bg-(--ui-bg) px-2 py-1 text-sm',
           placeholder: 'Decision document — paste the plan / proposal here…',
           rows: 5, value: decision, onChange: e => setDecision(e.target.value),
         }),
+        jsx(Field, { label: 'Evidence (optional, recommended)', help: 'Real data, quotes, numbers, sources. This is what makes stances grounded instead of invented — the single biggest driver of output quality.' }),
         jsx('textarea', {
           className: 'rounded border border-(--ui-border) bg-(--ui-bg) px-2 py-1 text-sm',
           placeholder: 'Evidence (optional) — real data, quotes, numbers…',
           rows: 3, value: evidence, onChange: e => setEvidence(e.target.value),
         }),
+        jsx(Field, { label: 'URLs (optional)', help: 'One per line: a blog post, repo README, or landing page. Each URL is fetched and treated as a real document, with the URL kept as provenance.' }),
         jsx('textarea', {
           className: 'rounded border border-(--ui-border) bg-(--ui-bg) px-2 py-1 text-sm',
           placeholder: 'URLs — a blog post, a repo README, a landing page (one per line). Fetched as documents.',
           rows: 2, value: urls, onChange: e => setUrls(e.target.value),
         }),
         jsxs('div', { className: 'flex items-center gap-2', children: [
+          jsx(Field, { label: 'Window', help: 'How far into the future to simulate. 6h = 8 rounds, 12h = 12, 24h = 16, 48h = 20. Longer windows = more rounds = slower and more thorough.' }),
           jsx('select', {
             className: 'rounded border border-(--ui-border) bg-(--ui-bg) px-2 py-1 text-sm',
             value: window, onChange: e => setWindow(e.target.value),
