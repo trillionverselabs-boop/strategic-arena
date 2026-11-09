@@ -12,6 +12,7 @@ Read this first in a new session. It is the shortest path from zero to productiv
 | Plan (versioned) | `docs/plans/2026-11-09_upfront-gap-repair.md` |
 | Positioning | `docs/POSITIONING.md` |
 | Catalog entry draft | `docs/catalog-entry.draft.yaml` |
+| **Recommendations + test protocol** | **`docs/ROADMAP.md`** (build order, acceptance tests, Phase A/B/C) |
 | Test venv | `/home/lisacore/.hermes/profiles/charlene/cache/scratch/upvenv` (pydantic, fastapi, pytest, httpx, pyyaml) |
 
 ## What is built (all pushed)
@@ -35,6 +36,9 @@ Read this first in a new session. It is the shortest path from zero to productiv
 - Never read credentials for the model catalogue — it is deliberately anonymous.
 
 ## Next steps, in order
+
+Full detail and acceptance criteria: `docs/ROADMAP.md`. The end-to-end test protocol (agent installs →
+url → results → uninstall → user installs → UI test) is at the bottom of that file.
 
 1. **Desktop test** (the gate). Install from the repo → enable (expect one `llm.model_override` consent prompt) → header must read `build 0.3.0 · ui1`. Then: recipe → sample → run `24h` → confirm Purple ocean, named veto player (never `Stakeholder N`), formatted report; inject mid-run; score a claim; re-run at `30m` and confirm the comparison panel.
 2. Capture 1–2 **real** screenshots into `assets/` and add them to `screenshots:` in the catalog entry.
