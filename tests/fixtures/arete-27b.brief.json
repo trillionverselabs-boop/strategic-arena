@@ -1,0 +1,63 @@
+{
+ "move": "We post-trained over Alibaba's Qwen3.8-27B to reinforce Western values on a Chinese-trained model.",
+ "actor": "Nous Research",
+ "claims": [
+  {
+   "text": "We built an evaluation of 803 prompts spanning seven value categories",
+   "span": "we built an evaluation of 803 prompts spanning seven value categories"
+  },
+  {
+   "text": "Arete-27B raised fact score and cut propaganda",
+   "span": "on our evaluation, arete-27b raised its fact score from 2.32 to 2.98 out of 5"
+  },
+  {
+   "text": "Training scale",
+   "span": "we fine-tuned qwen3.8-27b on about 52.8 million tokens, roughly fifty thousand samples at 64k context"
+  }
+ ],
+ "actors": [
+  {
+   "name": "Nous Research",
+   "role": "By Nous Research Introducing Arete-27B: Qwen3.8-27B Post-Trained To Reinforce Western Values",
+   "span": "by nous research introducing arete-27b: qwen3.8-27b post-trained to reinforce western values"
+  },
+  {
+   "name": "Alibaba",
+   "role": "Provider of Qwen3.8-27B base model",
+   "span": "we post-trained over alibaba's qwen3.8-27b to reinforce western values"
+  },
+  {
+   "name": "Inkling",
+   "role": "Teacher model chosen",
+   "span": "ultimately, we chose inkling as the best open model with a positive eval on what we were targeting"
+  },
+  {
+   "name": "Grok 4.7",
+   "role": "LLM judge",
+   "span": "an llm judge (grok 4.7) received the prompt, the model's answer, the required facts and a fixed rubric"
+  },
+  {
+   "name": "Nemotron 3 Ultra",
+   "role": "Considered but rejected teacher",
+   "span": "we had strongly considered using nemotron 3 ultra, but had found evidence that it too had a checkered record on china-related topics"
+  }
+ ],
+ "constraints": [
+  {
+   "text": "Open source MIT License",
+   "span": "© 2026, nous research, inc. open source mit license terms | privacy"
+  },
+  {
+   "text": "US government restrictions on Chinese AI models",
+   "span": "the us government has taken concrete steps to restrict chinese ai models"
+  },
+  {
+   "text": "Terms of use restrictions on illicit distillation",
+   "span": "to avoid any of the hassle associated with terms of use restrictions on \"illicit distillation.\""
+  }
+ ],
+ "_verification": {
+  "repaired": 0,
+  "dropped": []
+ }
+}

@@ -45,6 +45,22 @@ because fabrication has no quotes.
 
 ## Prompt note
 
-Field meaning belongs in the **JSON schema `description`**, not only in the prompt. In the first passing
-run `move` came back as the literal string `"extract"` — the model echoed the instruction verb ("extract
-its key inputs") into the field. `description` on each property fixes that class of error.
+Field meaning belongs in the **JSON schema `description`** *and* in prose, and the instruction must not
+open with an imperative verb. Two live failures pinned this down: with the prompt "Read the document and
+extract its key inputs", `move` came back as the literal string `"extract"` and `actor` as
+`"document_reader"` — the model answered with the verb it was told to perform. Defining each field on its
+own line ("move — the decision the document announces…") fixed it, and adding "(a name, not a page
+title)" to `actor` stopped it returning the `<h1>`.
+
+## Span repair, not blind retry
+
+Retrying does not fix quoting. Measured behaviour: the model paraphrases a word or two mid-quote about
+one time in five (e.g. "Grok 4.7 received the prompt…" for the document's "Each judge received the
+prompt…"). So `verify()` locates each span in the document — exact match first, then an anchor on the
+opening six words — and **rewrites the span to the document's own wording**. A span that cannot be found
+at all is **dropped and listed**, never silently kept.
+
+Final measurement on the Arete fixture: **11/11 spans verified, 0 repaired, 0 dropped, $0, 5.3K tokens.**
+
+Reproducible: `python tools/probe_free_models.py --extract tests/fixtures/arete-27b.txt`
+(fixtures are the extracted page text and the resulting brief).
