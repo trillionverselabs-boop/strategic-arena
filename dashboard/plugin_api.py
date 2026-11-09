@@ -38,6 +38,17 @@ def set_llm(llm) -> None:
 
 def _llm():
     if _LLM is None:
+        # Fall back to the package copy's bound LLM. register() binds the agent
+        # plugin's module (hermes_plugins.upfront.dashboard.plugin_api), while
+        # this file may be loaded standalone as hermes_dashboard_plugin_upfront.
+        # They are different module objects, so look across sys.modules.
+        for _name, _mod in list(sys.modules.items()):
+            if _mod is None or _mod is sys.modules.get(__name__):
+                continue
+            if _name.endswith("upfront.dashboard.plugin_api"):
+                _bound = getattr(_mod, "_LLM", None)
+                if _bound is not None:
+                    return _bound
         raise RuntimeError(
             "LLM not bound in backend. The agent plugin half must load and call "
             "plugin_api.set_llm(ctx.llm) in register(); if you only enabled the "
