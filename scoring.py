@@ -22,6 +22,21 @@ SEA = {
 }
 SEA_ORDER = ["red", "purple", "blue"]  # red on the left, blue on the right
 
+# Not on the axis: the axis is a competition scale, and this is the absence of a
+# read. Printed when blue cannot be earned — see sea_state().
+INSUFFICIENT = {
+    "level": "unknown",
+    "label": "Insufficient input",
+    "color": "#6b7280",
+    "meaning": "Nobody who could contest this was identified, so 'uncontested' "
+               "cannot be claimed. Add the parties who could stop it, or the "
+               "document that names them.",
+}
+
+# A party must be at least this able to block before their restraint counts as
+# evidence of open water.
+CAPACITY_MIN = 0.5
+
 
 def score_input(documents: List[Document]) -> Tuple[float, str, List[str]]:
     """Return (quality 0..1, confidence, suggestions). Thin input = low confidence."""
@@ -105,6 +120,44 @@ def sea_state(result: SimulationResult) -> dict:
         key, why = "blue", f"no blocking camp, friction {f:.0f}/100"
     else:
         key, why = "purple", f"friction {f:.0f}/100 with {len(against) or 'no'} blocking camp(s)"
+
+    # Blue must be earned. "Nobody objected" is not "nobody could" — the Arete run
+    # named no opponent at all and printed Blue ocean, which is an empty room
+    # described as open water. Blue is only printable with a named party who could
+    # contest it and a reason they don't.
+    if key == "blue":
+        contestable = []
+        for p in result.personas:
+            cap = getattr(p, "capacity", None)
+            if cap is not None and cap >= CAPACITY_MIN:
+                contestable.append((cap, p))
+        if not result.personas:
+            key = "insufficient"
+            why = "no party was named in the input — an empty room is not open water"
+        elif not contestable:
+            unassessed = any(getattr(p, "capacity", None) is None for p in result.personas)
+            key = "insufficient"
+            why = (
+                "no party's capacity to contest was assessed" if unassessed
+                else "no named party could have contested this"
+            )
+        else:
+            cap, strongest = max(contestable, key=lambda pair: pair[0])
+            why = (
+                f"{strongest.name} could contest this (capacity {cap:.1f}) "
+                f"and does not — friction {f:.0f}/100"
+            )
+
+    if key == "insufficient":
+        return {
+            "state": "insufficient",
+            "level": INSUFFICIENT["level"],
+            "label": INSUFFICIENT["label"],
+            "color": INSUFFICIENT["color"],
+            "meaning": INSUFFICIENT["meaning"],
+            "why": why,
+            "order": SEA_ORDER,
+        }
 
     return {
         "state": key,

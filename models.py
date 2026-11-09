@@ -66,6 +66,10 @@ class Persona(BaseModel):
     name: str
     role: str = "stakeholder"
     stance: float = Field(default=0.0, ge=-1.0, le=1.0)  # -1 against .. +1 for
+    # Ability to block or materially change the outcome, 0..1. None = not assessed,
+    # which is NOT the same as "cannot". The sea read refuses to print blue on an
+    # unassessed field — see scoring.sea_state and tests/test_blue_earned.py.
+    capacity: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     reasons: List[str] = Field(default_factory=list)     # grounded "why" — source-attributed
 
 

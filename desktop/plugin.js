@@ -180,6 +180,21 @@ function GraphSvg({ graph, height = 420 }) {
 
 function SeaAxis({ sea }) {
   if (!sea || !sea.state) return null
+  // Off-axis states (currently 'insufficient') are not a point on the competition
+  // scale — they are the absence of a read. Showing three unlit pills would read
+  // as "unclassified"; show the reason instead.
+  if (!SEA_ORDER.includes(sea.state)) {
+    return jsxs('div', { className: 'flex items-center gap-1', children: [
+      jsx('span', { className: 'mr-1 text-xs text-(--ui-text-tertiary)', children: 'competition' }),
+      jsx('span', {
+        title: sea.why || '',
+        className: 'rounded px-2 py-0.5 text-xs font-semibold text-white',
+        style: { backgroundColor: sea.color || '#6b7280' },
+        children: sea.label || 'insufficient input',
+      }),
+      sea.why && jsx('span', { className: 'ml-1 text-xs text-(--ui-text-secondary)', children: sea.why }),
+    ]})
+  }
   return jsxs('div', { className: 'flex items-center gap-1', children: [
     jsx('span', { className: 'mr-1 text-xs text-(--ui-text-tertiary)', children: 'competition' }),
     ...SEA_ORDER.map(key => {

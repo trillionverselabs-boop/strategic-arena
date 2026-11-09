@@ -11,7 +11,12 @@ def _res(friction, blocker_stance=None, camps=None):
 
 
 def test_blue_when_quiet():
-    s = sea_state(_res(20, -0.1))
+    # Blue now has to be earned: an aligned party with real capacity to block is
+    # what makes "nobody is contesting this" a finding rather than an empty room.
+    # See tests/test_blue_earned.py.
+    r = _res(20, -0.1)
+    r.personas = [Persona(name="Procurement", stance=0.5, capacity=0.8)]
+    s = sea_state(r)
     assert s["state"] == "blue"
     assert s["level"] == "low"
 

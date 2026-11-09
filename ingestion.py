@@ -16,6 +16,9 @@ to this decision (max {max_personas}). For each one give:
 - name: short display name (e.g. "Enterprise IT", "The Community")
 - role: one word (e.g. "blocker", "champion", "user", "regulator", "competitor")
 - stance: -1 (will fight this) to +1 (wants this), based ONLY on what the document says
+- capacity: 0.0-1.0, how able this party is to BLOCK or materially change the outcome
+  (budget, veto, licence, procurement rule, public position). Use 0.0 for a party
+  that has an opinion but no power. Omit the field if the document does not say.
 - reason: one sentence, with a source marker like [evidence ¶2] quoting the doc
 - source: which document type and paragraph backs this
 
@@ -23,7 +26,7 @@ Also list relationships: pairs that oppose or support each other, as [name_a, na
 
 Respond with ONLY valid JSON matching this shape:
 {{
-  "personas": [{{"name": "...", "role": "...", "stance": 0.0, "reason": "...", "source": "..."}}],
+  "personas": [{{"name": "...", "role": "...", "stance": 0.0, "capacity": 0.0, "reason": "...", "source": "..."}}],
   "relationships": [["...", "...", "opposes"]]
 }}
 
@@ -64,6 +67,7 @@ def extract_personas(
                     name=str(p.get("name", "Stakeholder")),
                     role=str(p.get("role", "stakeholder")),
                     stance=_clamp(float(p.get("stance", 0.0))),
+                    capacity=_unit(p.get("capacity")),
                     reasons=[str(p.get("reason", ""))] if p.get("reason") else [],
                 )
             )
@@ -78,6 +82,16 @@ def extract_personas(
 
 def _clamp(x: float) -> float:
     return max(-1.0, min(1.0, x))
+
+
+def _unit(x) -> float | None:
+    """0..1 capacity, or None when the document did not say. Never guessed."""
+    if x is None or x == "":
+        return None
+    try:
+        return max(0.0, min(1.0, float(x)))
+    except (TypeError, ValueError):
+        return None
 
 
 def _parse_json(raw) -> dict | None:
