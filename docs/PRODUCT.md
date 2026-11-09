@@ -114,7 +114,8 @@ decline.
 ## Build order
 
 - **R5 — Document reader.** `Brief` extraction with spans and assumptions; `upfront_run` accepts a URL and fills the form fields itself. Fixture: the real Arete page. *Acceptance: the extracted brief names Alibaba/Qwen, Nous, the eval, and the 52.8M-token figure, each with a span; a junk page yields a degraded run, not a brief.*
-- **R6 — Roster split + blue must be earned.** `stakeholder` vs `field`; sea state cannot be blue without a contestable party. *Acceptance: a run whose input names no opponent returns "insufficient input", never "blue ocean".*
+- **R6 — Roster split + blue must be earned.** *(half shipped 2026-11-09: blue must be earned is live — see
+  `docs/PROGRESS.md`; the stakeholder/field split is not built)* `stakeholder` vs `field`; sea state cannot be blue without a contestable party. *Acceptance: a run whose input names no opponent returns "insufficient input", never "blue ocean".*
 - **R7 — Field read.** Displaced/threatened/enabled parties ranked, counter-moves with timing, field claims scoreable. *Acceptance: report section renders with ≥3 ranked parties and ≥1 timed counter-move, each traceable to a span or labelled inferred.*
 - **R8 — Persona fidelity.** Role cards, information boundaries, persisted reason-action log per turn. *Acceptance: a turn's citations are a subset of that party's boundary; log is exportable.*
 - **R9 — Validation harness.** The MASS 8 failure modes run as automated checks on every run's artifacts; a failing check downgrades the report to "draft" rather than shipping it.
