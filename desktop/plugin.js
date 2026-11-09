@@ -165,7 +165,9 @@ function UpfrontPage({ ctx }) {
           jsx('button', {
             type: 'button',
             className: 'rounded bg-(--ui-accent) px-4 py-1 text-sm text-white disabled:opacity-50',
-            disabled: !decision.trim() || !!running,
+            // Run needs either a decision OR at least one URL (the URL is fetched
+            // and becomes a document, so a URL alone is enough to start a run).
+            disabled: (!decision.trim() && !urls.trim()) || !!running,
             onClick: run, children: running ? `Simulating… ${running.progress}%` : 'Run prediction',
           }),
           running?.error && jsx('div', { className: 'text-sm text-red-500', children: running.error }),
