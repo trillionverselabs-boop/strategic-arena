@@ -52,3 +52,27 @@ url → results → uninstall → user installs → UI test) is at the bottom of
 - Final product name may change after completion — display name is one line; the plugin id is expensive to change.
 - Sea-state middle is "Purple ocean" (competition: high red → medium purple → low blue, red on the left).
 - Repo must become public for catalog admission (overrides the private-by-default rule for this one repo, by user decision at submission time).
+
+## What a run will say — read this before the URL test
+
+The gap between "the backend works" and "the report is honest" is now small enough to state exactly.
+Check a run against this table instead of judging the prose.
+
+| Situation | What the report must print | If it prints something else |
+|---|---|---|
+| the document names parties, none oppose, one has assessed capacity to block | **Blue ocean**, with the party named in `why` | a bug — blue was not earned |
+| the document names no party who could contest, or nobody's capacity was assessed | **Insufficient input** (grey, off-axis) | a bug — that is the Arete failure returning |
+| documents name an opponent | red / purple by friction, unchanged | regression in `sea_state` |
+| the page yields under 150 prose chars | run marked **degraded**, no report written | fetch regression |
+
+**Verified 2026-11-09:** `tests/test_blue_earned.py` (7 cases) + `tests/test_sea_state.py`; suite 78
+green; `node --check` clean. The UI path for the off-axis state is covered by `tests/test_ui_sea.py`
+but has **not been seen in the desktop app** — same standing caveat as every visual claim here.
+
+**Still true after this fix:** the plugin reads a document for *parties named in it*. It does not yet
+read it for the field — incumbents, displaced parties, counter-moves. A document about a product
+launch will still read as a room, not a market. That is R5–R7 in `docs/PRODUCT.md`, not a bug.
+
+**Test protocol for the next URL (unchanged):** run one URL end-to-end, quote the exact
+`competition:` line from the report, then uninstall and show `find ~/.hermes -iname '*upfront*'`
+printing nothing. Do not patch code mid-run; record defects instead.

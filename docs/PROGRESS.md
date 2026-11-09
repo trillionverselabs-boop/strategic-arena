@@ -160,3 +160,27 @@ entity decode); full suite **69 passed**; `node --check` clean.
 
 **Consequence for the demo:** the earlier Arete run was graded off a page title and 3,211 coordinate
 strings. It must be re-run before any of its numbers are quoted.
+
+---
+
+## Blue must be earned (shipped 2026-11-09)
+
+The report's one remaining lie. `sea_state()` derived Blue from *the absence of objectors among named
+stakeholders*, so a document naming no opponent at all — the Arete-27B page — was printed as
+"Blue ocean": an empty room described as open water.
+
+**Rule now enforced:** blue requires a named party with an **assessed capacity to block** (≥0.5) who is
+not contesting, and the `why` names them. With no such party, or with nobody's capacity assessed, the
+state is **insufficient input** — grey, off the red/purple/blue axis, with the reason on screen.
+
+| Change | Where |
+|---|---|
+| `Persona.capacity` (0..1, `None` = not assessed) | `models.py` |
+| extraction asks for capacity, never guesses (`_unit`) | `ingestion.py` |
+| the gate + `INSUFFICIENT` state + `CAPACITY_MIN` | `scoring.py` |
+| off-axis chip showing the reason, not three unlit pills | `desktop/plugin.js` |
+| 7 cases + the legacy test that encoded the lie | `tests/test_blue_earned.py`, `tests/test_sea_state.py` |
+| UI coverage for the off-axis branch | `tests/test_ui_sea.py` |
+
+**Verified:** 78 tests passed, `node --check` clean. "Assessed as powerless" and "not assessed" are
+different facts and the code now distinguishes them — the second one can never produce blue.
