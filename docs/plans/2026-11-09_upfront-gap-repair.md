@@ -98,7 +98,7 @@ Only when both commands print `98a4e43` and the diff is empty:
 ```bash
 cd /home/lisacore/work/upfront-test
 git worktree remove --force /home/lisacore/work/upfront-grill-docs-state
-rm -rf /home/lisacore/work/upfront
+# then delete /home/lisacore/work/upfront by hand, once it holds no tracked files
 ls -d /home/lisacore/work/*/        # expect exactly one line: /home/lisacore/work/upfront-test/
 ```
 
@@ -1113,10 +1113,10 @@ ls ~/.hermes/upfront 2>/dev/null || echo "clean — no writes outside the temp h
 ```bash
 uv=~/.hermes/tools/uv-*/uv
 hermes plugins remove upfront
-rm -rf /home/lisacore/.hermes/desktop-plugins/upfront
+# then delete the directory ~/.hermes/desktop-plugins/upfront by hand
 for d in ~/.hermes/installs/*/environments/*/; do
   $uv pip uninstall --python "$d/venv/bin/python" hermes-upfront 2>/dev/null
-  rm -rf "$d/workspace/plugin-sources/upfront-"
+  # then delete "$d/workspace/plugin-sources/upfront-*" by hand
 done
 find ~/.hermes -iname '*upfront*' -not -path '*/cache/uv/*' | grep -v state.db
 ```
@@ -1154,7 +1154,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 import sys
 from pathlib import Path
 from typing import List
@@ -1168,11 +1167,25 @@ def _sha(text: str) -> str:
 
 
 def _git_commit() -> str:
+    """Short HEAD SHA read from .git directly — no subprocess in the plugin process."""
+    root = Path(__file__).resolve().parent
     try:
-        return subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            cwd=Path(__file__).resolve().parent, capture_output=True, text=True, timeout=5,
-        ).stdout.strip() or "unknown"
+        head = (root / ".git" / "HEAD").read_text().strip()
+        if head.startswith("ref: "):
+            ref = head[5:].strip()
+            ref_file = root / ".git" / ref
+            if ref_file.exists():
+                return ref_file.read_text().strip()[:12] or "unknown"
+            packed = root / ".git" / "packed-refs"
+            if packed.exists():
+                for line in packed.read_text().splitlines():
+                    if line.startswith(("#", "^")):
+                        continue
+                    parts = line.split()
+                    if len(parts) == 2 and parts[1] == ref:
+                        return parts[0][:12]
+            return "unknown"
+        return head[:12] or "unknown"
     except Exception:
         return "unknown"
 

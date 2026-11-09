@@ -306,7 +306,7 @@ From a fresh clone of this repo (Python ≥3.11):
 
 ```bash
 # 1. install dev + runtime deps
-pip install -e .[test]   # or manually: pip install pydantic fastapi pytest kuzu
+pip install -e ".[test]"   # or add the dependencies from pyproject.toml to your env
 
 # 2. run the test suite
 python -m pytest tests/ -q
