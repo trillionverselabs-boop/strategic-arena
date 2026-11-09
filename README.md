@@ -108,6 +108,21 @@ ledger shows hit rate and friction error over N runs.
 
 ## How it works
 
+```mermaid
+flowchart LR
+  A[Decision / URL] --> B[Ingest & extract]
+  B --> C[Stakeholder graph]
+  C --> D[Round-based simulation]
+  D --> E[Friction + competition read]
+  D --> F[Veto / challenge player]
+  D --> G[Best response + counter-moves]
+  E --> H[Frozen claims]
+  F --> H
+  G --> H
+  H --> I[Score later → calibration ledger]
+  I --> D
+```
+
 Under the hood it is a small, clean-room implementation of five research ideas:
 
 | Research | What it powers here |
