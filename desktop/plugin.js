@@ -420,6 +420,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
           }),
         ]}),
         jsx('div', { className: 'mt-2 text-[0.6875rem] text-(--ui-text-tertiary)', children: `${calls} model calls · ${cost}${note ? ' · ' + note : ''}` }),
+        jsx('div', { className: 'mt-1 text-[0.6875rem] text-(--ui-text-tertiary)', children: 'For a first pass: a flash-class model at 24h. Spend on 48h and a bigger model only when the decision is expensive.' }),
 
         jsx('div', { className: 'mt-4', children: jsx(WhatYouGet, {}) }),
 

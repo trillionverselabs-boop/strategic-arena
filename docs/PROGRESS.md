@@ -16,7 +16,7 @@ node --check desktop/plugin.js
 | R1 — auto-rescore at window close | shipped | 44 passed | see git log |
 | R2 — preset packs as skills | shipped | 54 passed | see git log |
 | R3 — decision record export | shipped | 60 passed | see git log |
-| R4 — model-aware presets | not started | — | — |
+| R4 — model-aware presets | shipped | 63 passed | see git log |
 
 ---
 
@@ -109,6 +109,16 @@ worked example, and the "not a prediction" boundary stated once.
 - Full suite 60 passed, `node --check` clean.
 
 **Next:** R4 — model-aware presets (one line in the form).
+
+---
+
+## R4 — model-aware run presets (shipped)
+
+One line under the cost line: *"For a first pass: a flash-class model at 24h. Spend on 48h and a
+bigger model only when the decision is expensive."* No new code path, no new state.
+
+**Verified** — `tests/test_ui_presets.py` asserts the copy is present, sits directly under the cost
+line, and that the build stamp is still `0.3.0 · ui1`; `node --check` clean; suite 63 passed.
 
 ---
 
