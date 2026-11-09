@@ -9,10 +9,10 @@ license: MIT
 homepage: https://github.com/trillionverselabs-boop/upfront-test
 tags: [strategy, simulation, stakeholders, decision-review, local-first, research]
 description: >-
-  See who can challenge your plan before you ship it. Paste a decision (or a URL) and
-  Upfront maps the players who can challenge it, their conditions, your best response,
-  and how competitive the market is — then freezes testable claims you score later.
-  Runs on your own machine. Not a prediction.
+  A rehearsal with a scorecard for high-stakes moves. Feed it a decision (or a
+  URL) and it simulates stakeholder reactions, maps coalitions, finds your best
+  response, and delivers a competitive read — plus verifiable scorecards to track
+  prediction vs. reality. Runs on your own machine. Built for Hermes Agent.
 provides_tools:
   - upfront_run
   - upfront_status
