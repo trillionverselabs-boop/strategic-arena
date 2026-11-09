@@ -1,13 +1,29 @@
-# Upfront Prediction (`upfront`)
+# Upfront (`upfront`)
 
-A **pre-launch opponent** for Hermes. Paste a decision (or drop in a URL — a blog post,
-a repo README, a landing page) and watch a living stakeholder graph react in real time.
-Upfront finds *who will fight your plan, why, and the counter-move that converts them*,
-then freezes a dated prediction you can verify later.
+**A strategic-response review, not a predictor.** Paste a decision (or drop in a URL — a
+blog post, a repo README, a landing page) and Upfront maps the players who can **veto** the
+move, the coalitions around it, your **best response**, and how **contested the ground** is.
+Then it freezes falsifiable claims you score against what actually happens.
 
 ```
-Paste a decision → stakeholder graph reacts → blocker + counter-move surfaced → prediction frozen → verify in 48h
+Your move → who can veto it → coalitions → best response → competition read → claims frozen → score them later
 ```
+
+### The competition read: red / purple / blue ocean
+
+A landscape-level read, on a **left-to-right axis**: red on the left (high competition —
+everyone fighting for the same fish), purple in the middle (medium — a real contest with
+winnable ground, the common case), blue on the right (low — open water, *this is the good
+end*). It is a different colour scale from per-stakeholder stance (red / amber / green),
+so the two never get conflated.
+
+### This is a review, not a forecast
+
+MASS's own boundary rule: LLM-driven simulation produces *pre-experimental evidence* —
+mechanism rehearsal, counterfactual contrast, risk identification. Upfront never claims to
+predict an outcome, solve a game, or find an equilibrium. What it does claim is a **scored
+track record**: every run freezes claims, every claim can be scored, and the calibration
+ledger shows hit rate and friction error over N runs.
 
 ## How it works
 
@@ -18,7 +34,7 @@ Under the hood it is a small, clean-room implementation of five research ideas:
 | **GraphRAG** (Edge et al.) | Document → stakeholder/relationship extraction; stakeholder camp clusters |
 | **Generative Agents** (Park et al.) | Each stakeholder has a memory stream, retrieval, and periodic reflection |
 | **OASIS** | The round-based simulation loop and social action types |
-| **MASS** (Hu & Shen) | Scheduling discipline + the 8 known failure modes, reported per run |
+| **MASS** (Qian et al.) | Replication manifest, scheduling discipline, and the 8 known failure modes, reported per run |
 | **CAMEL** | Role-play framing + inception-style prompt templates |
 
 Everything is local-first: the graph and every past run are stored in `~/.hermes/upfront/`
@@ -36,9 +52,13 @@ model** via `ctx.llm` — the plugin never sees or stores a credential.
   sentence in your doc), and the move that flips them.
 - **Provenance** — every stance cites the input text it came from ("grounded"), clearly
   separated from reasoning the model filled in ("speculated").
-- **A frozen prediction** — written to `~/.hermes/upfront/runs/<run_id>/log.jsonl` so you
-  can look it up in 48h and check whether the sim was right. History is the whole point:
-  a prediction you can't verify is just a story.
+- **A competition read** — **Red ocean** (high), **Purple ocean** (medium), **Blue ocean**
+  (low), with the trigger stated in words. Colour is never the only signal.
+- **Frozen claims** — 2-4 falsifiable calls per run (veto player, friction band, coalition
+  stability), written to `log.jsonl` with a **replication manifest** (model, temperature,
+  prompt hash, document hashes, code commit) so the run can be audited and re-run.
+- **A track record** — score the claims and the ledger reports claim hit rate, friction
+  error, and the sea-state mix. The hit rate is the accuracy claim; a single report is not.
 
 ### Desktop experience (left sidebar → Upfront)
 
@@ -138,6 +158,25 @@ hermes plugins enable upfront
 
 The desktop half is opt-in by design: it inventories in Capabilities → Plugins and stays
 off until you switch it on. That's the marketplace pattern — install, then enable.
+
+### When the UI looks stale (it happened — twice)
+
+The desktop app reads `desktop/plugin.js` at load. Toggling the plugin **does not** re-read
+it. The page header prints `gateway: … · build <BUILD>`; if that does not match `BUILD` in
+`desktop/plugin.js`, you are looking at an old module:
+
+1. `⌘K` → **Reload desktop plugins** (fastest), or
+2. Capabilities → Plugins → Upfront off → on, or
+3. Quit the app fully (tray → Quit) and relaunch.
+
+If a toggle hangs ~30s, a stale plugin-host child is holding the RPC: `pkill -f plugin_host_child`
+and retry. That is a Hermes process issue, not a plugin bug.
+
+### Where data lives
+
+Run history, the graph, the manifests and the calibration ledger live in the plugin's
+sanctioned data root (`plugin_data_dir("upfront")` — `<hermes home>/plugin-data/upfront/`),
+which survives plugin updates and removal and follows the active profile.
 
 ## Develop / run as a test
 
