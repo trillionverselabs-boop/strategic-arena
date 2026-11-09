@@ -126,3 +126,21 @@ The user installs the UI copy themselves; the agent must never leave an install 
 `hermes plugins validate /home/lisacore/work/upfront --install-deps` → fix all failures → remove the
 editable installs it creates → repo public → pin the 40-hex SHA in `docs/catalog-entry.draft.yaml` →
 PR to `NousResearch/hermes-agent` before **Nov 11, 5PM EST**.
+
+---
+
+## R5–R9 — the document reader (see `docs/PRODUCT.md`)
+
+R1–R4 made the tool keep its promises. R5–R9 make it *read the document*, which is the difference
+between a review tool and a strategy instrument. Full spec, paper mapping and rule constraints live in
+`docs/PRODUCT.md`; the build order is R5 (Brief extraction with spans) → R6 (stakeholder/field split +
+blue-must-be-earned) → R7 (field read) → R8 (persona fidelity, reason-action log) → R9 (MASS failure-mode
+harness).
+
+**Sequencing constraint:** the catalog PR is due Nov 11 5PM EST. Ship 0.3.x (fetch fix + blue-must-be-earned)
+first; land R5–R9 as 0.4.0 with its own SHA-bump PR.
+
+**Before that PR:** declare `python_dependencies` with floor *and* upper bound (`pydantic`, `fastapi`) —
+`plugin.yaml` currently declares none while importing both, and a reviewer will ask (rule 10). Deferred
+deliberately: it changes install topology (a managed venv appears), so it happens after the demo run,
+not before it.
