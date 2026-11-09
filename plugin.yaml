@@ -12,9 +12,7 @@ provides_tools:
   - upfront_export
 capabilities:
   - llm.model_override
-# Rules 10 — floor AND upper bound, not a bare floor on the newest release.
-# Floor chosen as the oldest release carrying the API we actually use
-# (pydantic v2 BaseModel/Field; fastapi APIRouter/HTTPException).
-python_dependencies:
-  - "pydantic>=2.0,<3"
-  - "fastapi>=0.100,<1"
+# Python dependencies live in pyproject.toml (single source of truth):
+#   pydantic>=2.6,<3 · fastapi>=0.110,<1
+# Declaring them here too would diverge on the floor, and the validator reads
+# pyproject when both exist — a duplicate is dead config a reviewer will flag.
