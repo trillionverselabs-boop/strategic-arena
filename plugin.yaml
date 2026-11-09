@@ -1,7 +1,18 @@
 name: upfront
+label: Upfront
 version: "0.3.0"
+manifest_version: 1
+kind: standalone
 requires_hermes: ">=0.23.0"
-description: "Upfront — a strategic-response review for decisions. Paste a decision (or a URL), see who can veto it, their coalitions, your best response, and how contested the ground is (red / purple / blue ocean); pick a model from the live catalogue with per-run cost shown, inject a counter-move mid-run, then score the frozen claims later. Local-first."
+author: LeMultiFox
+license: MIT
+homepage: https://github.com/trillionverselabs-boop/upfront-test
+tags: [strategy, simulation, stakeholders, decision-review, local-first, research]
+description: >-
+  See who can challenge your plan before you ship it. Paste a decision (or a URL) and
+  Upfront maps the players who can challenge it, their conditions, your best response,
+  and how competitive the market is — then freezes testable claims you score later.
+  Runs on your own machine. Not a prediction.
 provides_tools:
   - upfront_run
   - upfront_status

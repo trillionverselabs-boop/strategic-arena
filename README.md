@@ -2,14 +2,30 @@
 
 ![Upfront — strategic-response review](assets/banner.png)
 
-**A strategic-response review, not a predictor.** Paste a decision (or drop in a URL — a
-blog post, a repo README, a landing page) and Upfront maps the players who can **veto** the
-move, the coalitions around it, your **best response**, and how **contested the ground** is.
-Then it freezes falsifiable claims you score against what actually happens.
+> **See who can challenge your plan before you ship it.**
+>
+> Paste a decision — or just drop in a URL (a repo README, blog post, news
+> article, pricing page, forum thread) — and Upfront shows you the **players who
+> can challenge the move**, **their conditions**, your **best response**, and how
+> **competitive the market is** (red / purple / blue ocean). Then it freezes
+> **testable claims** you score against what actually happens — so the review
+> gets better with every run.
+>
+> **Not a prediction. Not a guarantee. A rehearsal with a scorecard.**
+
+### What "local-first" means
+
+Everything runs on **your own machine**. Your decisions, documents, and results
+stay in a folder on your computer (`~/.hermes/upfront/`). Nothing is sent to a
+cloud service, no account is required, and no data leaves unless you choose to
+fetch a URL or use your own model provider. You can unplug from the internet
+and still run a review (using a local model).
 
 ```
 Your move → who can veto it → coalitions → best response → competition read → claims frozen → score them later
 ```
+
+## At a glance
 
 | | |
 |---|---|
@@ -19,7 +35,62 @@ Your move → who can veto it → coalitions → best response → competition r
 | **Repeatable** | the same decision across 30m / 4h / 24h is compared automatically — repetition becomes evidence |
 | **Not** | a prediction, a guarantee, or a game solver |
 
-### The competition read: red / purple / blue ocean
+### What it is, in one sentence
+
+Upfront is a **strategic-response review**: it simulates how the people your
+decision affects will react, so you can see the blocking stakeholder, the
+coalitions that form, and the move that flips them — before you commit.
+
+### For developers
+
+Under the hood it is a clean-room implementation of five research ideas
+(GraphRAG, Generative Agents, OASIS, MASS, CAMEL) that runs entirely on your
+machine. No cloud graph service, no Docker, no stored credentials — see
+[How it works](#how-it-works) and the [repo layout](#repo-layout).
+
+### What it is — and what it is not
+
+**What it is:** a rehearsal. You hand it a decision, it simulates how the people
+affected by that decision are likely to react, and hands back the blocker, the
+coalitions, your best response, and a read on how competitive the market is.
+Then it writes down 2–4 testable claims and lets you score them later, so the
+review gets sharper with every run.
+
+**What it is not:** a prediction, a guarantee, a game solver, or a forecast. It
+does not tell you what *will* happen. It tells you what *could* happen and who
+can stop it — a dry run before you commit.
+
+**Example cases it handles well:**
+- **A product launch** — "We're open-weighting our model next Tuesday." Who
+  pushes back (enterprise IT, regulators, competitors), what they want, and
+  whether the ground is crowded or open.
+- **A price change** — "We're doubling the API price for existing customers."
+  Who challenges it, under what conditions they'd accept it, and your best
+  counter-move.
+- **A deprecation** — "We're removing the legacy API in 90 days." Who gets hurt,
+  how loud the pushback is, and whether the notice window is enough.
+- **An open-weight release** — "Weights ship under a permissive licence." Who
+  gains, who loses, and how competitive that space already is.
+
+### Credits and inspiration
+
+Upfront is a clean-room, smaller-footprint implementation of ideas from these
+papers and projects. We credit them because the ideas are theirs:
+
+- **GraphRAG** (Edge et al.) — document → stakeholder/relationship extraction
+- **Generative Agents** (Park et al.) — memory stream, retrieval, reflection
+- **OASIS** (Yang et al.) — round-based simulation loop and social action types
+- **MASS** (Qian et al.) — replication manifest, scheduling, failure modes
+- **CAMEL** — role-play framing and inception-style prompts
+
+**MiroFish** is a separate, larger project exploring similar territory with a
+much bigger footprint. Upfront borrows the *spirit* (simulate before you ship)
+but is a deliberately smaller, local-first tool with its own codebase. If you
+find MiroFish useful, go support it too — the two are complementary, not
+duplicates.
+
+If you believe we've used an idea of yours without credit, open an issue and we
+will fix it.
 
 A landscape-level read, on a **left-to-right axis**: red on the left (high competition —
 everyone fighting for the same fish), purple in the middle (medium — a real contest with
