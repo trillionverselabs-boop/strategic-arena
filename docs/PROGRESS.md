@@ -14,7 +14,7 @@ node --check desktop/plugin.js
 | Item | Status | Tests | Commit |
 |---|---|---|---|
 | R1 — auto-rescore at window close | shipped | 44 passed | see git log |
-| R2 — preset packs as skills | not started | — | — |
+| R2 — preset packs as skills | shipped | 54 passed | see git log |
 | R3 — decision record export | not started | — | — |
 | R4 — model-aware presets | not started | — | — |
 
@@ -48,6 +48,36 @@ node --check desktop/plugin.js
 - Full suite green, `node --check` clean.
 
 **Next:** R2 — the four preset packs as skills.
+
+---
+
+## R2 — preset packs as plugin skills (shipped)
+
+**What shipped** — four packs under `skills/`, registered via `ctx.register_skill` (resolve as
+`upfront:<name>`, never copied into `~/.hermes/skills`):
+
+| Skill | Teaches |
+|---|---|
+| `upfront-launch` | launch briefs: what to paste, evidence to demand, timeline choice |
+| `upfront-pricing` | price changes: grandfathering rule quoted verbatim, churn risk, competitor framing |
+| `upfront-deprecation` | sunsets: affected segments counted, migration burden, notice-period collisions |
+| `upfront-openweight` | licence/weights/evals: exact licence id, compliance objections, community expectations |
+
+Each 60–73 lines: when to use, what to paste, what the read must tell you, timeline, checklist,
+worked example, and the "not a prediction" boundary stated once.
+
+**Verified**
+
+- `tests/test_skills.py` (10 tests): existence, frontmatter (`name` == dir, description ≤ 1024),
+  checklist, boundary, tool named, line budget, all five skills register through `register()`,
+  `plugin.yaml` capabilities unchanged (`llm.model_override` only).
+- Test caught a real omission: pricing / deprecation / open-weight packs never named `upfront_run`;
+  added an explicit "run it with" line to each.
+- `hermes plugins doctor /home/lisacore/work/upfront` → OK: runtime discovery, manifest parsing,
+  import and registration passed; 6 tools.
+- `node --check desktop/plugin.js` clean.
+
+**Next:** R3 — decision record export.
 
 ---
 

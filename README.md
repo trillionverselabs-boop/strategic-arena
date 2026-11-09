@@ -349,6 +349,7 @@ upfront/
 │   ├── manifest.json        # {"name": "upfront", "api": "plugin_api.py"}
 │   └── plugin_api.py        # FastAPI backend at /api/plugins/upfront/
 ├── desktop/plugin.js        # desktop UI (sidebar + pane, React ESM)
+├── skills/                  # bundled preset packs + the review loop
 ├── data/presets/*.json      # arete / arete-real demo presets
 ├── tests/                   # pytest suite (fake-LLM end-to-end)
 └── src modules: models, graph, ingestion, agents, simulation, scoring,
@@ -361,4 +362,19 @@ upfront/
 - `upfront_status(run_id)` → status / progress / snapshot
 - `upfront_report(run_id)` → markdown report text
 - `upfront_history([limit])`
+- `upfront_calibration()` → the scored track record (runs, hit rate, friction error)
+- `upfront_due([as_of])` → reviews whose window closed and are still unscored
+
+## Bundled skills
+
+Registered under the plugin namespace, available in `skills_list` while Upfront is enabled:
+
+| Skill | For |
+|---|---|
+| `upfront:upfront-launch` | product/feature launches |
+| `upfront:upfront-pricing` | price changes, grandfathering, churn risk |
+| `upfront:upfront-deprecation` | sunsets, breaking changes, notice periods |
+| `upfront:upfront-openweight` | licence/weights/evals releases |
+| `upfront:upfront-review` | closing the loop: score claims at the window close |
+
 
