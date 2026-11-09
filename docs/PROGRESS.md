@@ -15,7 +15,7 @@ node --check desktop/plugin.js
 |---|---|---|---|
 | R1 — auto-rescore at window close | shipped | 44 passed | see git log |
 | R2 — preset packs as skills | shipped | 54 passed | see git log |
-| R3 — decision record export | not started | — | — |
+| R3 — decision record export | shipped | 60 passed | see git log |
 | R4 — model-aware presets | not started | — | — |
 
 ---
@@ -78,6 +78,37 @@ worked example, and the "not a prediction" boundary stated once.
 - `node --check desktop/plugin.js` clean.
 
 **Next:** R3 — decision record export.
+
+---
+
+## R3 — decision record export (shipped)
+
+**What shipped**
+
+- `reporting.export_decision(run_id, out_dir="decisions") -> str` — writes
+  `<data_root>/decisions/<slug>.md` (absolute `out_dir` honoured). Contents: title, `run:` line with
+  created_at / rounds / model / code commit, competition label + level + why, friction ± uncertainty,
+  veto player with stance, claims as a `- [ ]` checklist with ids, and a `## Verdict` section.
+- Once `mark_verified` has run, re-export fills `## Verdict` with verdict + note + per-claim ✓/✗ +
+  actual friction/error, and **rewrites the same file** — no duplicates. A second run with the same
+  title gets `-<run_id[:6]>` rather than overwriting the first record.
+- `GET /api/plugins/upfront/export/{run_id}?out_dir=` → `{run_id, path, markdown}`.
+- Tool `upfront_export(run_id, out_dir?)` → `{run_id, path}`.
+- `meta.json` now records `blocker_stance` (old records fall back to final snapshot stances).
+- `plugin.yaml` + catalog draft: `upfront_export` listed (7 tools).
+- Collateral fix in `claims.py`: the coalition claim printed `X (X, Y)`; now `The blocking camp (X, Y)`,
+  and a camp with no members can no longer raise IndexError — it is skipped.
+
+**Verified**
+
+- `tests/test_export.py` (5): file written with every claim id and the sea label; custom out_dir;
+  re-export after verify fills verdict, contains ✓ and ✗, single `# Decision:` line, same path;
+  unknown run raises `FileNotFoundError`; tool registered.
+- Manual, throwaway `HERMES_HOME`: exported `decisions/ship-the-open-weight-release.md` and read it
+  back — real output, seen above.
+- Full suite 60 passed, `node --check` clean.
+
+**Next:** R4 — model-aware presets (one line in the form).
 
 ---
 

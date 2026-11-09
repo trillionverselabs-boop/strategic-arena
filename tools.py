@@ -213,3 +213,33 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
 
     ctx.register_tool(name="upfront_due", toolset="upfront", schema=due_schema, handler=handle_due)
 
+    # ── upfront_export ───────────────────────────────────────────────
+    export_schema = {
+        "name": "upfront_export",
+        "description": (
+            "Write a review to a decision record file (`decisions/<slug>.md`) and return the path. "
+            "The file keeps the run metadata, the competition read, the frozen claims as a score "
+            "checklist, and the verdict. Re-exporting after scoring fills the verdict in place. "
+            "Use it to keep the review next to the code or the change ticket."
+        ),
+        "parameters": {"type": "object", "properties": {
+            "run_id": {"type": "string"},
+            "out_dir": {"type": "string", "default": "decisions",
+                        "description": "Directory for the record; relative paths resolve inside "
+                                       "the plugin data dir."}},
+            "required": ["run_id"]},
+    }
+
+    def handle_export(params, **kwargs):
+        from . import reporting
+        try:
+            path = reporting.export_decision(params.get("run_id", ""),
+                                             out_dir=params.get("out_dir") or "decisions")
+        except FileNotFoundError:
+            return json.dumps({"error": "run not found", "run_id": params.get("run_id", "")})
+        return json.dumps({"run_id": params.get("run_id", ""), "path": path})
+
+    ctx.register_tool(name="upfront_export", toolset="upfront",
+                      schema=export_schema, handler=handle_export)
+
+

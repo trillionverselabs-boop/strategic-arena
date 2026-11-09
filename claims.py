@@ -54,15 +54,16 @@ def build_claims(result: SimulationResult) -> List[dict]:
         "source": "input quality score",
     })
 
-    against = [c for c in result.camps if c.get("lean") == "against"]
+    against = [c for c in result.camps
+               if c.get("lean") == "against" and c.get("members")]
     if against:
         camp = max(against, key=lambda c: len(c.get("members", [])))
         members = list(camp["members"])
         claims.append({
             "id": uuid.uuid4().hex[:8],
             "kind": "coalition",
-            "claim": (f"The blocking camp led by {members[0]} "
-                      f"({', '.join(members)}) stays aligned against the decision."),
+            "claim": (f"The blocking camp ({', '.join(members)}) stays aligned "
+                      f"against the decision."),
             "expected": {"members": members},
             "source": "camp clustering",
         })

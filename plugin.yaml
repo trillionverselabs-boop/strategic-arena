@@ -9,5 +9,6 @@ provides_tools:
   - upfront_history
   - upfront_calibration
   - upfront_due
+  - upfront_export
 capabilities:
   - llm.model_override

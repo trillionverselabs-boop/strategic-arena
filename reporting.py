@@ -256,6 +256,7 @@ def save_run(result: SimulationResult, report_md: str, frozen_jsonl: str,
         "window": result.window,
         "uncertainty": result.uncertainty, "confidence": result.confidence,
         "blocker": result.blocker.name if result.blocker else None,
+        "blocker_stance": round(result.blocker.stance, 3) if result.blocker else None,
         "summary": result.summary,
         "sea_state": result.sea.get("state", ""),
         "sea_label": result.sea.get("label", ""),
@@ -356,6 +357,100 @@ def due_claims(as_of=None) -> List[dict]:
         })
     out.sort(key=lambda r: r["due_at"])
     return out
+
+
+def _slug(text: str) -> str:
+    out = []
+    for ch in (text or "").strip().lower():
+        if ch.isalnum():
+            out.append(ch)
+        elif out and out[-1] != "-":
+            out.append("-")
+    return ("".join(out).strip("-")[:60] or "decision")
+
+
+def export_decision(run_id: str, out_dir: str = "decisions") -> str:
+    """Write `decisions/<slug>.md` — the review as a file next to the code.
+
+    A review that lives only in the UI gets read once. A file gets linked from the PR,
+    diffed against reality, and re-read by whoever ships the change. Re-exporting the
+    same run rewrites that one file (with the verdict filled in once it exists) —
+    it never leaves a second copy behind.
+    """
+    d = _run_dir(run_id)
+    meta_path = d / "meta.json"
+    if not meta_path.exists():
+        raise FileNotFoundError(run_id)
+    meta = json.loads(meta_path.read_text())
+
+    claims = load_claims(run_id)
+    verified = meta.get("verified") or {}
+
+    stance = meta.get("blocker_stance")
+    if stance is None and meta.get("blocker"):
+        stance = _final_stances(run_id).get(meta["blocker"])
+
+    sea_label = meta.get("sea_label") or meta.get("sea_state") or "unread"
+    sea_level = meta.get("sea_level") or ""
+    sea_why = meta.get("sea_why") or ""
+
+    lines: List[str] = []
+    lines.append(f"# Decision: {meta.get('title', '')}")
+    bits = [f"run: {meta.get('run_id', run_id)}",
+            str(meta.get("created_at", ""))[:19].replace("T", " "),
+            f"{meta.get('rounds', '')} rounds"]
+    if meta.get("model"):
+        bits.append(f"model {meta['model']}")
+    if meta.get("code_commit"):
+        bits.append(f"commit {str(meta['code_commit'])[:12]}")
+    lines.append("- " + " · ".join(b for b in bits if b))
+    lines.append(f"- competition: {sea_label} ({sea_level})" + (f" — {sea_why}" if sea_why else ""))
+    fr = meta.get("friction")
+    fr_txt = f"{fr:.0f}/100 ±{meta.get('uncertainty', 0):.0f}" if isinstance(fr, (int, float)) else "—"
+    veto = (f"{meta['blocker']} ({stance:+.2f})" if meta.get("blocker") and isinstance(stance, (int, float))
+            else (meta.get("blocker") or "none identified"))
+    lines.append(f"- friction: {fr_txt} · veto player: {veto}")
+    if meta.get("degraded"):
+        lines.append("- **degraded run — do not act on this**")
+    lines.append("")
+    lines.append("## Claims (score these)")
+    if claims:
+        for c in claims:
+            lines.append(f"- [ ] `{c.get('id', '')}` {c.get('claim', '')}")
+    else:
+        lines.append("- _no claims were recorded_")
+    lines.append("")
+    lines.append("## Verdict")
+
+    if verified:
+        lines.append(f"**{verified.get('verdict', '')}**"
+                     + (f" — {verified['note']}" if verified.get("note") else ""))
+        hits = verified.get("hits") or {}
+        for c in claims:
+            cid = c.get("id", "")
+            if cid in hits:
+                lines.append(f"- `{cid}` {'✓' if hits[cid] else '✗'}")
+        if verified.get("actual_friction") is not None:
+            lines.append(f"- actual friction: {verified['actual_friction']}/100 "
+                         f"(error {verified.get('friction_error')})")
+    else:
+        lines.append("_unscored_ — run `upfront_due` when the window closes, score each claim, "
+                     "then re-export to fill this section.")
+
+    out_base = Path(out_dir)
+    if not out_base.is_absolute():
+        from .paths import data_root
+        out_base = data_root() / out_base
+    out_base.mkdir(parents=True, exist_ok=True)
+
+    slug = _slug(meta.get("title", ""))
+    path = out_base / f"{slug}.md"
+    if path.exists():
+        existing = path.read_text(errors="ignore")[:400]
+        if f"run: {run_id}" not in existing:
+            path = out_base / f"{slug}-{run_id[:6]}.md"   # never overwrite another run's record
+    path.write_text("\n".join(lines) + "\n")
+    return str(path)
 
 
 def mark_verified(run_id: str, verdict: str, note: str = "",

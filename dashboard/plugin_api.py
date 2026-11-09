@@ -212,6 +212,22 @@ async def due():
     return {"due": rows, "count": len(rows)}
 
 
+@router.get("/export/{run_id}")
+async def export(run_id: str, out_dir: str = "decisions"):
+    """Write the decision record to disk and return its path + markdown."""
+    try:
+        path = reporting.export_decision(run_id, out_dir=out_dir)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="run not found")
+    text = ""
+    try:
+        with open(path) as fh:
+            text = fh.read()
+    except OSError:
+        pass
+    return {"run_id": run_id, "path": path, "markdown": text}
+
+
 
 # ── helpers ──────────────────────────────────────────────────────────
 
