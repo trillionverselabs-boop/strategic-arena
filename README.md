@@ -46,7 +46,9 @@ The page is a full-center view. The **starting form** is a single card:
 
 - **Title** (single line), **Decision document** (large textarea, required),
   **Evidence (optional)** (smaller textarea), **URLs** (one per line — blog post, repo
-  README, landing page; fetched as documents).
+  README, landing page; fetched as documents). Fetched URLs are **real documents**, not
+  free-text noise: the page is fetched, converted to text, and ingested alongside
+  anything you pasted — with the URL kept as the source for provenance.
 - **Window** dropdown: `6h` / `12h` / `24h` / `48h`.
 - **Run button:** "Run prediction" (disabled until a decision is typed, or while running).
 
