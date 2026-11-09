@@ -104,3 +104,66 @@ hermes plugins enable upfront
 
 The desktop half is opt-in by design: it inventories in Capabilities → Plugins and stays
 off until you switch it on. That's the marketplace pattern — install, then enable.
+
+## Develop / run as a test
+
+From a fresh clone of this repo (Python ≥3.11):
+
+```bash
+# 1. install dev + runtime deps
+pip install -e .[test]   # or manually: pip install pydantic fastapi pytest kuzu
+
+# 2. run the test suite
+python -m pytest tests/ -q
+```
+
+Test files:
+
+- `tests/test_endtoend.py` — full sim with a fake LLM (no network, no credentials).
+- `tests/test_real_run.py` — real run against whatever `ctx.llm` Hermes provides
+  (skips when no LLM is bound; that is expected outside Hermes).
+
+Manual smoke check (also what the backend loader does):
+
+```bash
+python -c "
+import sys, importlib.util
+spec = importlib.util.spec_from_file_location('hermes_dashboard_plugin_upfront', 'dashboard/plugin_api.py')
+m = importlib.util.module_from_spec(spec)
+sys.modules['hermes_dashboard_plugin_upfront'] = m
+spec.loader.exec_module(m)
+print('router:', m.router)  # should print an APIRouter, no import errors
+"
+# note: _llm() raises until register() binds ctx.llm — that is correct behaviour.
+```
+
+If you only need to verify the plugin validates:
+
+```bash
+hermes plugins validate . --install-deps
+```
+
+## Repo layout
+
+```
+upfront/
+├── plugin.yaml              # plugin manifest (provides_tools …)
+├── __init__.py              # register(ctx): tools + ctx.llm bind
+├── pyproject.toml           # python deps: pydantic, fastapi
+├── dashboard/
+│   ├── manifest.json        # {"name": "upfront", "api": "plugin_api.py"}
+│   └── plugin_api.py        # FastAPI backend at /api/plugins/upfront/
+├── desktop/plugin.js        # desktop UI (sidebar + pane, React ESM)
+├── data/presets/*.json      # arete / arete-real demo presets
+├── tests/                   # pytest suite (fake-LLM end-to-end)
+└── src modules: models, graph, ingestion, agents, simulation, scoring,
+                 reporting, tools, engine, llm_adapter, fetch …
+```
+
+## Tools exposed
+
+- `upfront_run` → `{ run_id }`
+- `upfront_status(run_id)` → status / progress / snapshot
+- `upfront_report(run_id)` → markdown report text
+- `upfront_history([limit])`
+
