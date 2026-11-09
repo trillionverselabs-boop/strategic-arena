@@ -1,10 +1,9 @@
-# Tool registration — registers upfront_run/status/report/history as agent tools.
+# Tool registration — upfront_run/status/report/history/calibration as agent tools.
 # Handlers are thin: build a Scenario, run the engine, return JSON.
 
 from __future__ import annotations
 
 import json
-import threading
 
 from . import engine
 from .llm_adapter import LlmAdapter
@@ -12,7 +11,10 @@ from .models import Scenario
 
 
 def _scenario_from(params: dict) -> Scenario:
-    docs = params.get("documents", [])
+    docs = params.get("documents", []) or []
+    if not docs and not params.get("urls"):
+        # URL-only runs are legitimate; documents may legitimately be empty.
+        pass
     documents = [
         {"type": d.get("type", "decision"), "content": d.get("content", ""),
          "source": d.get("source", "")}
@@ -47,13 +49,13 @@ def register_tools(ctx) -> None:
     run_schema = {
         "name": "upfront_run",
         "description": (
-            "Run a stakeholder reaction simulation on a decision. Give a title and at "
-            "least one document (type=decision, content=text). Optionally add evidence "
-            "documents for better grounding, a goal (adoption/open_weight/deprecation/campaign), "
-            "and a window (6h/12h/24h/48h). Returns a run with a friction score, a "
-            "blocker (who will fight you), counter-moves, and full provenance. Runs "
-            "synchronously and returns the finished result. Use upfront_history to look "
-            "back at past runs and verify them."
+            "Run a stakeholder reaction review on a decision (a strategic-response read, not a "
+            "forecast). Give a title and at least one document (type=decision, content=text) or "
+            "one or more URLs. Optionally add evidence documents for grounding, a goal "
+            "(adoption/open_weight/deprecation/campaign), a window (6h/12h/24h/48h), and "
+            "mid-run interventions. Returns a run with friction, the veto player, coalitions, "
+            "best responses, the red/purple/blue competition read, and frozen claims you can "
+            "score later. Use upfront_calibration for the track record."
         ),
         "parameters": {
             "type": "object",
@@ -78,8 +80,24 @@ def register_tools(ctx) -> None:
                     "items": {"type": "string"},
                     "description": "URLs (a blog post, a repo README, a landing page) to fetch and treat as documents. Use this OR documents, or both.",
                 },
+                "interventions": {
+                    "type": "array",
+                    "description": (
+                        "Mid-run counter-moves to inject (the god-mode move: change one thing "
+                        "mid-simulation and watch the graph bend)."
+                    ),
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string"},
+                            "description": {"type": "string"},
+                            "inject_at_round": {"type": "integer", "default": 3},
+                        },
+                        "required": ["name", "description"],
+                    },
+                },
             },
-            "required": ["title", "documents"],
+            "required": ["title"],
         },
     }
 
@@ -90,17 +108,22 @@ def register_tools(ctx) -> None:
         return json.dumps({
             "run_id": result.run_id, "title": result.title,
             "friction": result.friction, "uncertainty": result.uncertainty,
-            "confidence": result.confidence, "blocker": result.blocker.name if result.blocker else None,
-            "counter_moves": result.counter_moves, "summary": result.summary,
+            "confidence": result.confidence,
+            "blocker": result.blocker.name if result.blocker else None,
+            "counter_moves": result.counter_moves,
+            "sea": result.sea,
+            "claims": result.claims,
+            "degraded": result.degraded,
+            "summary": result.summary,
             "personas": [{"name": p.name, "stance": round(p.stance, 2)} for p in result.personas],
         })
 
     ctx.register_tool(name="upfront_run", toolset="upfront", schema=run_schema, handler=handle_run)
 
-    # ── upfront_status / upfront_report / upfront_history ────────────
+    # ── upfront_status / report / history / calibration ─────────────
     status_schema = {
         "name": "upfront_status",
-        "description": "Check the status of a simulation run (running/done + progress).",
+        "description": "Check the status of a review run (running/done + progress).",
         "parameters": {"type": "object", "properties": {
             "run_id": {"type": "string"}}, "required": ["run_id"]},
     }
@@ -130,7 +153,7 @@ def register_tools(ctx) -> None:
 
     history_schema = {
         "name": "upfront_history",
-        "description": "List past simulation runs (most recent first) so you can verify results over time.",
+        "description": "List past review runs (most recent first) so you can verify results over time.",
         "parameters": {"type": "object", "properties": {
             "limit": {"type": "integer", "default": 20}}},
     }
@@ -140,3 +163,17 @@ def register_tools(ctx) -> None:
         return json.dumps(reporting.list_runs(params.get("limit", 20)))
 
     ctx.register_tool(name="upfront_history", toolset="upfront", schema=history_schema, handler=handle_history)
+
+    cal_schema = {
+        "name": "upfront_calibration",
+        "description": "The track record: runs, how many were scored, claim hit rate and "
+                       "friction error. Judge accuracy by this, never by a single report.",
+        "parameters": {"type": "object", "properties": {}},
+    }
+
+    def handle_calibration(params, **kwargs):
+        from . import reporting
+        return json.dumps(reporting.calibration())
+
+    ctx.register_tool(name="upfront_calibration", toolset="upfront",
+                      schema=cal_schema, handler=handle_calibration)

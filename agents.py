@@ -13,6 +13,7 @@ class StakeholderAgent:
     def __init__(self, persona: Persona):
         self.p = persona
         self.memory: List[dict] = []  # {text, importance, round}
+        self.failures = 0             # failed act() calls — surfaced, never hidden
 
     # ── memory ────────────────────────────────────────────────────────
     def observe(self, text: str, importance: float = 0.5, rnd: int = 0) -> None:
@@ -69,9 +70,9 @@ class StakeholderAgent:
                 }
         except Exception:
             pass
-        # fallback if LLM is unavailable — nudge toward the persona's own stance
-        delta = 0.05 if self.p.stance >= 0 else -0.05
-        return {"stance_delta": delta, "action": "waits", "text": ""}
+        # No model, no opinion: hold still and count it. Never drift.
+        self.failures += 1
+        return {"stance_delta": 0.0, "action": "waits", "text": ""}
 
 
 def _parse(raw) -> dict | None:

@@ -1,4 +1,4 @@
-# Ingestion — GraphRAG: documents -> stakeholders (personas) + relationships.
+# Ingestion — documents -> stakeholders (personas) + relationships.
 # The LLM extracts entities/relationships. Every extracted item carries a source
 # ref so the report can tell the user *why* the sim thinks someone is against them.
 
@@ -42,16 +42,20 @@ def _docs_block(documents: List[Document]) -> str:
 
 def extract_personas(
     documents: List[Document], llm, max_personas: int = 8
-) -> Tuple[List[Persona], List[Tuple[str, str, str]]]:
-    """documents -> (personas, relationships). llm: ctx.llm (has .complete)."""
+) -> Tuple[List[Persona], List[Tuple[str, str, str]]] | None:
+    """documents -> (personas, relationships), or None when the model call failed.
+
+    None means "we do not know" — never "nobody". The engine refuses to invent
+    stakeholders when this returns None.
+    """
     prompt = EXTRACT_PROMPT.format(max_personas=max_personas, docs=_docs_block(documents))
     try:
         raw = llm.complete(prompt)
     except Exception:
-        return [], []
+        return None
     parsed = _parse_json(raw)
     if parsed is None:
-        return [], []
+        return None
     personas: List[Persona] = []
     for p in parsed.get("personas", [])[:max_personas]:
         try:

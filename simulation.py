@@ -1,5 +1,6 @@
 # Simulation loop — OASIS-style: rounds -> observe -> retrieve -> act -> stance update.
-# Interventions inject at a round. Progress pushed via on_round for the desktop socket.
+# Interventions can be queued mid-run (the god-mode move) and are drained at the
+# start of the next round, so the graph bends while the user watches.
 
 from __future__ import annotations
 
@@ -15,9 +16,10 @@ def run_simulation(
     events_out: List[Event] | None = None,
     on_round: Callable[[Snapshot], None] | None = None,
     llm=None,
+    injection_queue: list | None = None,
 ) -> SimulationResult:
     """Run the full simulation. Returns a filled SimulationResult (scoring/reporting
-    happen downstream). events_out/snapshots are returned inside the result."""
+    happen downstream)."""
     agents: List[StakeholderAgent] = [StakeholderAgent(p) for p in personas]
     result_events: List[Event] = []
     snapshots: List[Snapshot] = []
@@ -26,14 +28,25 @@ def run_simulation(
     interventions: List[Intervention] = scenario.interventions
 
     for rnd in range(1, rounds + 1):
-        # late intervention: everyone observes it first
+        # scheduled intervention: everyone observes it first
         for iv in interventions:
             if iv.inject_at_round == rnd:
                 for a in agents:
                     a.observe(f"Intervention: {iv.name} — {iv.description}", 0.9, rnd)
                 result_events.append(
-                    Event(round=rnd, actor="<god>", action="intervention", text=f"{iv.name}: {iv.description}")
+                    Event(round=rnd, actor="<god>", action="intervention",
+                          text=f"{iv.name}: {iv.description}")
                 )
+
+        # live intervention: queued from the UI / agent while the run is in flight
+        while injection_queue:
+            iv = injection_queue.pop(0)
+            for a in agents:
+                a.observe(f"Intervention: {iv.name} — {iv.description}", 0.95, rnd)
+            result_events.append(
+                Event(round=rnd, actor="<god>", action="intervention",
+                      text=f"{iv.name}: {iv.description}")
+            )
 
         # each agent acts, seeing the current stance landscape
         stances = {a.p.name: a.p.stance for a in agents}
@@ -45,7 +58,6 @@ def run_simulation(
                 result_events.append(
                     Event(round=rnd, actor=a.p.name, action=move["action"], text=move["text"])
                 )
-            # everyone notices everyone else's move
             for other in agents:
                 if other is not a:
                     other.observe(f"{a.p.name} {move['action']}", 0.3, rnd)
@@ -68,4 +80,5 @@ def run_simulation(
         events=result_events,
         snapshots=snapshots,
         interventions_shot=[iv.name for iv in interventions],
+        llm_failures=sum(a.failures for a in agents),
     )

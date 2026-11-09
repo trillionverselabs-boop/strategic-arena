@@ -1,4 +1,4 @@
-# Upfront Prediction — backend namespace /api/plugins/upfront/
+# Upfront — backend namespace /api/plugins/upfront/
 # Mounted by the dashboard plugin loader. Exports a FastAPI APIRouter.
 # Desktop reaches these routes via ctx.rest('/...').
 #
@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 import threading
 import uuid
@@ -16,14 +17,14 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 
 _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
-_UPSTREAM = _PLUGIN_ROOT.parent  # the directory that CONTAINS the upfront package
+_UPSTREAM = _PLUGIN_ROOT.parent  # the directory that CONTAINS the plugin package
 for p in (str(_UPSTREAM), str(_PLUGIN_ROOT)):
     if p not in sys.path:
         sys.path.insert(0, p)
 
 from upfront import engine  # noqa: E402
 from upfront import reporting  # noqa: E402
-from upfront.models import Document, Intervention, Persona, Scenario  # noqa: E402
+from upfront.models import Intervention  # noqa: E402
 
 router = APIRouter()
 
@@ -38,10 +39,6 @@ def set_llm(llm) -> None:
 
 def _llm():
     if _LLM is None:
-        # Fall back to the package copy's bound LLM. register() binds the agent
-        # plugin's module (hermes_plugins.upfront.dashboard.plugin_api), while
-        # this file may be loaded standalone as hermes_dashboard_plugin_upfront.
-        # They are different module objects, so look across sys.modules.
         for _name, _mod in list(sys.modules.items()):
             if _mod is None or _mod is sys.modules.get(__name__):
                 continue
@@ -59,13 +56,12 @@ def _llm():
 
 @router.get("/health")
 async def health():
-    llm_ready = _LLM is not None
-    return {"ok": True, "plugin": "upfront", "llm_ready": llm_ready}
+    return {"ok": True, "plugin": "upfront", "llm_ready": _LLM is not None}
 
 
 @router.post("/run")
 async def run(body: dict):
-    """Start a simulation in a background thread. Returns {run_id} immediately."""
+    """Start a review in a background thread. Returns {run_id} immediately."""
     try:
         scenario = _scenario_from(body)
     except Exception as exc:
@@ -76,36 +72,52 @@ async def run(body: dict):
 
     def _work():
         try:
-            # forward each round's snapshot to our run_id so /status carries live
-            # stances the desktop renders as an updating graph
             def _on_round(snap):
                 engine._emit(run_id, "running", snap.round, scenario.rounds,
                              {k: round(v, 3) for k, v in (snap.stances or {}).items()})
-            result = engine.run_scenario_progress(scenario, _llm(), on_round=_on_round)
-            # engine mints its own run_id on completion; re-key progress under ours
+            result = engine.run_scenario_progress(
+                scenario, _llm(), on_round=_on_round, run_id=run_id
+            )
             engine._emit(run_id, "done", result.rounds, result.rounds,
                          {p.name: round(p.stance, 3) for p in result.personas})
-            # tag the persisted run so the desktop can load it by our id
-            (Path.home() / ".hermes" / "upfront" / "runs" / run_id).mkdir(parents=True, exist_ok=True)
-            import json
-            (Path.home() / ".hermes" / "upfront" / "runs" / run_id / "meta.json").write_text(json.dumps({
-                "run_id": run_id, "title": result.title, "goal": result.goal.value,
-                "created_at": result.created_at, "friction": result.friction,
-                "blocker": result.blocker.name if result.blocker else None,
-                "summary": result.summary, "engine_run_id": result.run_id,
-            }, indent=1))
-        except Exception as exc:  # pragma: no cover - surfaced via /status
+        except Exception as exc:
             engine._emit(run_id, "failed", 0, scenario.rounds)
-            engine._PROGRESS[run_id]["error"] = str(exc)
+            with engine._LOCK:
+                engine._PROGRESS[run_id]["error"] = str(exc)
 
-    t = threading.Thread(target=_work, daemon=True)
-    t.start()
+    threading.Thread(target=_work, daemon=True).start()
     return {"run_id": run_id, "status": "running"}
 
 
 @router.get("/status/{run_id}")
 async def status(run_id: str):
-    return engine.get_progress(run_id)
+    prog = dict(engine.get_progress(run_id))
+    try:
+        meta = json.loads((reporting.runs_dir() / run_id / "meta.json").read_text())
+        prog["sea"] = {
+            "state": meta.get("sea_state", ""), "label": meta.get("sea_label", ""),
+            "color": meta.get("sea_color", ""), "level": meta.get("sea_level", ""),
+            "why": meta.get("sea_why", ""),
+        }
+        prog["claims"] = meta.get("claims", 0)
+        prog["degraded"] = meta.get("degraded", False)
+    except Exception:
+        pass
+    return prog
+
+
+@router.post("/inject/{run_id}")
+async def inject(run_id: str, body: dict):
+    description = str(body.get("description", "")).strip()
+    if not description:
+        raise HTTPException(status_code=400, detail="description required")
+    iv = Intervention(
+        name=str(body.get("name", "Counter-move")),
+        description=description,
+        inject_at_round=1,  # queue position wins; the round field is informational
+    )
+    ok = engine.inject(run_id, iv)
+    return {"queued": ok, "run_id": run_id}
 
 
 @router.get("/graph/{run_id}")
@@ -114,7 +126,8 @@ async def graph(run_id: str):
     if data.get("graph"):
         return data["graph"]
     from upfront.graph import GraphStore
-    return GraphStore(engine.GRAPH_PATH).as_payload()
+    from upfront.paths import graph_path
+    return GraphStore(graph_path()).as_payload()
 
 
 @router.get("/report/{run_id}")
@@ -126,6 +139,32 @@ async def report(run_id: str, full: bool = False):
     return {"report": data[key], "full": full}
 
 
+@router.get("/claims/{run_id}")
+async def claims(run_id: str):
+    return {"claims": reporting.load_claims(run_id)}
+
+
+@router.post("/verify/{run_id}")
+async def verify(run_id: str, body: dict):
+    try:
+        return reporting.mark_verified(
+            run_id,
+            str(body.get("verdict", "")),
+            str(body.get("note", "")),
+            hits=body.get("hits") or {},
+            actual_friction=body.get("actual_friction"),
+        )
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="run not found")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@router.get("/calibration")
+async def calibration():
+    return reporting.calibration()
+
+
 @router.get("/history")
 async def history(limit: int = 20):
     return reporting.list_runs(limit)
@@ -133,14 +172,17 @@ async def history(limit: int = 20):
 
 # ── helpers ──────────────────────────────────────────────────────────
 
-def _scenario_from(body: dict) -> Scenario:
-    docs = [Document(**d) for d in body.get("documents", [])]
+def _scenario_from(body: dict):
+    from upfront.models import Document, Persona, Scenario
+
+    docs = [Document(**d) for d in body.get("documents", []) if d.get("content")]
     personas = [Persona(**p) for p in body.get("personas", [])]
     interventions = [Intervention(**iv) for iv in body.get("interventions", [])]
     return Scenario(
         title=body.get("title", "Untitled"),
         goal=body.get("goal", "adoption"),
         documents=docs,
+        urls=body.get("urls", []) or [],
         window=body.get("window", "24h"),
         model=body.get("model", "default"),
         personas=personas,

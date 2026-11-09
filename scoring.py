@@ -1,12 +1,26 @@
-# Scoring — friction score (0-100) with calibration from input quality.
-# Friction = how hard this decision will be to land. Uncertainty comes from
-# how thin the input was, NOT from the LLM's mood.
+# Scoring — friction (0-100) calibrated by input quality, the veto player, and the
+# competition read (red / purple / blue). Uncertainty comes from how thin the
+# input was, NOT from the LLM's mood.
 
 from __future__ import annotations
 
 from typing import List, Tuple
 
 from .models import Document, Persona, SimulationResult
+
+BLOCKER_THRESHOLD = -0.3
+
+# Competition axis, ordered left -> right: red (everyone fighting for the same
+# fish) -> purple (a real contest with winnable ground) -> blue (open water).
+SEA = {
+    "red":    {"level": "high",   "label": "Red ocean",    "color": "#e5484d",
+               "meaning": "everyone is fighting for the same fish"},
+    "purple": {"level": "medium", "label": "Purple ocean", "color": "#8b5cf6",
+               "meaning": "contested middle — a real fight with winnable ground"},
+    "blue":   {"level": "low",    "label": "Blue ocean",   "color": "#3b82f6",
+               "meaning": "open water — nobody is contesting this"},
+}
+SEA_ORDER = ["red", "purple", "blue"]  # red on the left, blue on the right
 
 
 def score_input(documents: List[Document]) -> Tuple[float, str, List[str]]:
@@ -36,11 +50,9 @@ def friction_score(result: SimulationResult, input_quality: float) -> Tuple[floa
     personas = result.personas
     if not personas:
         return 0.0, 20.0
-    # negative stance mass: how many people are against it, and how hard
     neg_mass = sum(1.0 for p in personas if p.stance < -0.3)
     strong_neg = sum(1.0 for p in personas if p.stance < -0.7)
     avg_stance = sum(p.stance for p in personas) / len(personas)
-    # friction: base from avg stance (inverted), plus blockers
     base = (1.0 - avg_stance) / 2.0 * 70          # 0..70
     blocker_part = min(30, neg_mass * 10 + strong_neg * 10)  # 0..30
     friction = max(0.0, min(100.0, base + blocker_part))
@@ -49,23 +61,57 @@ def friction_score(result: SimulationResult, input_quality: float) -> Tuple[floa
 
 
 def find_blocker(personas: List[Persona]) -> Persona | None:
+    """The veto player — or None when nobody is meaningfully against the move."""
     if not personas:
         return None
-    return min(personas, key=lambda p: p.stance)
+    worst = min(personas, key=lambda p: p.stance)
+    return worst if worst.stance < BLOCKER_THRESHOLD else None
 
 
 def build_counter_moves(blocker: Persona, result: SimulationResult) -> List[str]:
-    if blocker is None or blocker.stance >= -0.3:
+    if blocker is None or blocker.stance >= BLOCKER_THRESHOLD:
         return []
     moves = [
         f"Address {blocker.name}'s core objection directly before launch — it drives their stance.",
     ]
-    # widen: if a champion exists, use them to carry the message
     champions = [p for p in result.personas if p.stance > 0.5]
     if champions:
         moves.append(f"Have {champions[0].name} carry the announcement — they already lean in.")
-    # evidence-backed: cite the strongest grounded reason
     grounded = [r for r in blocker.reasons if r]
     if grounded:
         moves.append(f"Rebut the claim in: {grounded[0]} — that's their load-bearing reason.")
     return moves
+
+
+def sea_state(result: SimulationResult) -> dict:
+    """Competition read. High competition = red, medium = purple, low = blue.
+
+    Separate scale from per-stakeholder stance colour (red/amber/green) so the
+    two never get conflated: this is about the landscape, not about one player.
+    """
+    against = [c for c in result.camps if c.get("lean") == "against"]
+    hard_veto = result.blocker is not None and result.blocker.stance < -0.7
+    f = result.friction
+
+    if hard_veto or len(against) >= 2 or f >= 65:
+        if hard_veto:
+            why = f"hard veto player ({result.blocker.name} {result.blocker.stance:+.2f})"
+        elif len(against) >= 2:
+            why = f"{len(against)} blocking camps"
+        else:
+            why = f"friction {f:.0f}/100"
+        key = "red"
+    elif f < 35 and not against:
+        key, why = "blue", f"no blocking camp, friction {f:.0f}/100"
+    else:
+        key, why = "purple", f"friction {f:.0f}/100 with {len(against) or 'no'} blocking camp(s)"
+
+    return {
+        "state": key,
+        "level": SEA[key]["level"],
+        "label": SEA[key]["label"],
+        "color": SEA[key]["color"],
+        "meaning": SEA[key]["meaning"],
+        "why": why,
+        "order": SEA_ORDER,
+    }

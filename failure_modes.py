@@ -1,4 +1,6 @@
-# Failure modes — MASS (Hu & Shen) 8 naive-baseline failure modes as a quality checklist.
+# Failure modes — MASS (Qian et al., "MASS: Optimizing Multi-Agent Systems with
+# Enhanced Prompts and Topologies") 8 naive-baseline failure modes, used as a
+# quality checklist.
 # This is a real, defensible quality signal: for a given run, report which known
 # failure modes the run's structure avoided vs whether any are suspected.
 # It does NOT claim the simulation is "accurate" — that's a separate, honest no.

@@ -78,7 +78,7 @@ class Scenario(BaseModel):
 class Event(BaseModel):
     round: int
     actor: str
-    action: str       # e.g. "blocks", "supports", "shares"
+    action: str       # e.g. "blocks", "supports", "shares", "waits", "intervention"
     text: str
     source: str = ""  # provenance: which input ¶ drove this action
 
@@ -102,18 +102,25 @@ class SimulationResult(BaseModel):
     friction: float = 0.0      # 0..100
     uncertainty: float = 0.0   # ± on friction, from input quality
     confidence: str = "low"    # low / medium / high
-    blocker: Optional[Persona] = None    # the single most dangerous stakeholder
+    blocker: Optional[Persona] = None    # the single player who can veto the move
     counter_moves: List[str] = Field(default_factory=list)  # the smarter move(s)
-    camps: List[dict] = Field(default_factory=list)         # GraphRAG camp clusters
-    failure_modes: List[dict] = Field(default_factory=list) # MASS 8 failure-mode checklist
+    camps: List[dict] = Field(default_factory=list)         # coalition clusters
+    failure_modes: List[dict] = Field(default_factory=list)
     recommendation: str = ""                                # plain-language "so what do I do"
-    provenance: List[str] = Field(default_factory=list)     # "why does the sim think X" — source-attributed
-    input_quality: Dict[str, object] = Field(default_factory=dict)  # doc counts, suggestions
+    provenance: List[str] = Field(default_factory=list)
+    input_quality: Dict[str, object] = Field(default_factory=dict)
     interventions_shot: List[str] = Field(default_factory=list)
+    sea: Dict[str, object] = Field(default_factory=dict)        # red / purple / blue read
+    claims: List[dict] = Field(default_factory=list)            # frozen, scorable claims
+    verified: Dict[str, object] = Field(default_factory=dict)   # human verdict + score
+    degraded: bool = False                                      # a model call failed mid-run
+    degraded_reason: str = ""
+    llm_failures: int = 0                                       # failed act() calls
 
     @property
     def summary(self) -> str:
-        blk = f" Blocker: {self.blocker.name} (stance {self.blocker.stance:+.1f})." if self.blocker else ""
+        blk = (f" Veto player: {self.blocker.name} (stance {self.blocker.stance:+.1f})."
+               if self.blocker else " No veto player identified.")
         return (
             f"Friction {self.friction:.0f}/100 (±{self.uncertainty:.0f}, {self.confidence} confidence)."
             f"{blk} {len(self.events)} events over {self.rounds} rounds."
