@@ -156,8 +156,10 @@ The catalogue is fetched anonymously, so it never touches a credential (see rule
 What a user would want to know before installing, stated plainly:
 
 - **Network calls:** to the inference endpoint serving your active Hermes model
-  (via `ctx.llm`), and — only when you provide URLs — to fetch those URLs as text.
-  Fetched URLs are capped (http/https only, size and length limited, hard timeout).
+  (via `ctx.llm`); to the public Nous model catalogue
+  (`inference-api.nousresearch.com/v1/models`, anonymous, cached 6h) to populate the
+  model picker and its prices; and — only when you provide URLs — to fetch those URLs as
+  text. Fetched URLs are capped (http/https only, size and length limited, hard timeout).
 - **Background processes:** a simulation runs in a background thread while it streams
   progress to the desktop UI. No long-running daemon, no auto-update, no telemetry.
 - **Data:** reads and writes live only under `~/.hermes/upfront/` (graph + run history)
