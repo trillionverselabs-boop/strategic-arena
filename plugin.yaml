@@ -1,9 +1,10 @@
 name: upfront
-version: "0.1.0"
+version: "0.2.0"
 requires_hermes: ">=0.23.0"
-description: "Upfront Prediction — a pre-launch opponent. Paste a decision, watch a living stakeholder graph react; it finds the blocker, shows the counter-move, and freezes a prediction you can verify later. Local-first, runs on your active model."
+description: "Upfront — a strategic-response review for decisions. Paste a decision (or a URL), see who can veto it, their coalitions, your best response, and how contested the ground is (red / purple / blue ocean); inject a counter-move mid-run, then score the frozen claims later. Local-first, runs on your active model."
 provides_tools:
   - upfront_run
   - upfront_status
   - upfront_report
   - upfront_history
+  - upfront_calibration
