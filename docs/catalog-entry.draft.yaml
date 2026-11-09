@@ -1,20 +1,22 @@
 name: upfront
 title: Upfront
 description: >-
-  Strategic-response review for decisions — a game review, not a forecast. Paste a decision
-  (or a URL: repo README, blog post, news article, pricing page, forum thread, whitepaper) and
-  Upfront maps the players who can veto the move, the coalitions around them, the best response,
-  and how contested the ground is on a red / purple / blue competition axis. Pick a model from
-  the live Nous catalogue with the run's cost shown before you start it, inject a counter-move
-  mid-run to watch the graph bend, then score the frozen claims later — same decision across
-  30m / 4h / 24h / 48h timelines gets compared automatically so repetition becomes evidence.
-  Ships agent tools plus a Hermes Desktop page. Local-first; runs on your active model, or a
-  model you choose (needs the model-override consent).
+  Strategic-response review for decisions — a rehearsal, not a forecast. Paste a
+  decision (or a URL: repo README, blog post, news article, pricing page, forum
+  thread, whitepaper) and Upfront maps the players who can challenge the move,
+  their conditions, your best response, and how competitive the market is on a
+  red / purple / blue competition axis. Pick a model from the live Nous
+  catalogue with the run's cost shown before you start it, inject a counter-move
+  mid-run to watch the graph bend, then score the frozen claims later — same
+  decision across 30m / 4h / 24h / 48h timelines gets compared automatically so
+  repetition becomes evidence. Ships agent tools plus a Hermes Desktop page. Runs
+  on your own machine; no prediction, no cloud account required.
+
 repo: https://github.com/trillionverselabs-boop/upfront-test   # must be PUBLIC before submission
-sha: REPLACE_WITH_40_HEX_COMMIT
+sha: d357d1aff6fb4b4185223464ffd30177e4021dd7
 tier: community
 category: general
-maintainer: trillionverselabs-boop
+maintainer: LeMultiFox
 version: "0.3.0"
 requires_hermes: ">=0.23.0"
 capabilities:
@@ -28,9 +30,9 @@ capabilities:
     - upfront_export
   hooks: []
   env: []
-image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/REPLACE_WITH_40_HEX_COMMIT/assets/banner.png
+image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/d357d1aff6fb4b4185223464ffd30177e4021dd7/assets/banner.png
 screenshots:
-  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/REPLACE_WITH_40_HEX_COMMIT/assets/how-it-works.png
+  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/d357d1aff6fb4b4185223464ffd30177e4021dd7/assets/how-it-works.png
 docs_url: https://github.com/trillionverselabs-boop/upfront-test/blob/main/docs/POSITIONING.md
 readme: true
 known_issues: >-
