@@ -23,4 +23,4 @@ def test_recommendation_sits_below_the_cost_line():
 
 
 def test_build_stamp_is_the_test_protocol_one():
-    assert "build 0.3.0 · ui1" in UI.read_text().lower() or "0.3.0 · ui1" in UI.read_text()
+    assert "0.3.1 · ui2" in UI.read_text()

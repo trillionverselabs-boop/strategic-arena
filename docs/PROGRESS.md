@@ -17,6 +17,7 @@ node --check desktop/plugin.js
 | R2 — preset packs as skills | shipped | 54 passed | see git log |
 | R3 — decision record export | shipped | 60 passed | see git log |
 | R4 — model-aware presets | shipped | 63 passed | see git log |
+| R5 — desktop UI: Recent block + graphical polish | shipped | node --check + render smoke | see git log |
 
 ---
 
@@ -184,3 +185,33 @@ state is **insufficient input** — grey, off the red/purple/blue axis, with the
 
 **Verified:** 78 tests passed, `node --check` clean. "Assessed as powerless" and "not assessed" are
 different facts and the code now distinguishes them — the second one can never produce blue.
+
+
+---
+
+## Desktop UI — Recent block + graphical polish (shipped 2026-11-09)
+
+First pass over `desktop/plugin.js` at the desktop-app test gate. Two real rendering defects found by
+reading the generated SVG, plus the requested polish.
+
+**Fixes (defects, not taste)**
+
+| Defect | Cause | Fix |
+|---|---|---|
+| Graph edges invisible | `stroke="var(--ui-border)"` was set as an SVG **presentation attribute**; `var()` is invalid there, so the stroke fell back to `none` | moved to `style` (`stroke`, `strokeWidth`, `strokeDasharray`) |
+| Node labels unreadable in dark theme | `fill="var(--ui-text)"` — same problem, defaulted to black on the dark `--ui-bg` | `style: { fill: 'var(--ui-text)' }` |
+| Live graph had no edges during a run | `started()` sets `result` to null, so `result?.graph?.edges` was always `[]` — the gap-repair plan's "reuse the last edges" never had edges to reuse | remember the last run's edges in `lastEdges` state, set in `openRun()` |
+| Report leaked `**asterisks**` | the 6-rule Markdown subset had no inline handling | `inline()` splits on `**bold**` and renders `<strong>` |
+
+**Polish**
+
+- **Recent** block above **Past reviews** — the two latest runs, accent border, shared `RunRow`.
+- **Competition axis** is now a real red→purple→blue gradient bar with a marker at the active state,
+  plus the text label (colour is never the only signal).
+- **Friction bar** — taller, rounded, mid-point tick, `n/100` label.
+- **Timeline** — pill row (30m → 48h) instead of a plain `<select>`; the note follows the selection.
+- **Claim scoring** — the ✓/✗ buttons take a green/red fill when selected, not just bold.
+
+**Verified:** `node --check` clean; a headless render smoke test (stubbed `@hermes/plugin-sdk` +
+`react`) renders the page, the modal, and a finished result — asserting the SVG graph, the gradient
+axis, the styled SVG stroke/fill, the Recent block, and `<strong>` in the report. BUILD → `0.3.1 · ui2`.

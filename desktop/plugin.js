@@ -12,7 +12,7 @@ import { host, haptic, useValue, ROUTES_AREA, SIDEBAR_NAV_AREA } from '@hermes/p
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.3.0 · ui1'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.3.1 · ui2'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront'        // display only — one line to rename the product
 const GREEN = '#4caf50'
 
@@ -160,8 +160,10 @@ function GraphSvg({ graph, height = 420 }) {
         if (!a || !b) return null
         return jsx('line', {
           key: `e${i}`, x1: a.x, y1: a.y, x2: b.x, y2: b.y,
-          stroke: 'var(--ui-border)', strokeWidth: 1.5,
-          strokeDasharray: e.label === 'opposes' ? '4 3' : undefined,
+          style: {
+            stroke: 'var(--ui-border)', strokeWidth: 1.5,
+            strokeDasharray: e.label === 'opposes' ? '4 3' : undefined,
+          },
         })
       }),
       ...placed.map(n => jsxs('g', {
@@ -169,7 +171,7 @@ function GraphSvg({ graph, height = 420 }) {
         children: [
           jsx('circle', { cx: n.x, cy: n.y, r: 16, fill: stanceColor(n.stance), opacity: 0.9 }),
           jsx('text', { x: n.x, y: n.y + 30, textAnchor: 'middle', fontSize: '11',
-            fill: 'var(--ui-text)', children: n.name }),
+            style: { fill: 'var(--ui-text)' }, children: n.name }),
           jsx('text', { x: n.x, y: n.y + 3, textAnchor: 'middle', fontSize: '10', fill: '#fff',
             children: `${n.stance >= 0 ? '+' : ''}${(n.stance || 0).toFixed(1)}` }),
         ],
@@ -195,44 +197,57 @@ function SeaAxis({ sea }) {
       sea.why && jsx('span', { className: 'ml-1 text-xs text-(--ui-text-secondary)', children: sea.why }),
     ]})
   }
-  return jsxs('div', { className: 'flex items-center gap-1', children: [
-    jsx('span', { className: 'mr-1 text-xs text-(--ui-text-tertiary)', children: 'competition' }),
-    ...SEA_ORDER.map(key => {
-      const conf = SEA[key]
-      const active = sea.state === key
-      return jsx('span', {
-        key,
-        title: `${conf.label} — ${conf.meaning}`,
-        className: 'rounded px-2 py-0.5 text-xs ' + (active ? 'font-semibold text-white' : 'text-(--ui-text-tertiary)'),
-        style: active ? { backgroundColor: conf.color } : { border: '1px solid var(--ui-border)' },
-        children: conf.level,
-      })
+  const idx = SEA_ORDER.indexOf(sea.state)
+  return jsxs('div', { className: 'flex items-center gap-2', children: [
+    jsx('span', { className: 'text-xs text-(--ui-text-tertiary)', children: 'competition' }),
+    jsxs('div', {
+      className: 'relative h-2 w-36 rounded-full',
+      style: { background: 'linear-gradient(90deg, #e5484d 0%, #8b5cf6 50%, #3b82f6 100%)' },
+      children: [
+        jsx('div', {
+          className: 'absolute h-3.5 w-3.5 rounded-full border-2 border-white shadow',
+          style: {
+            top: '50%', transform: 'translateY(-50%)',
+            left: `calc(${idx / (SEA_ORDER.length - 1) * 100}% - 7px)`,
+            backgroundColor: SEA[sea.state].color,
+          },
+        }),
+      ],
     }),
-    jsx('span', { className: 'ml-1 text-xs text-(--ui-text-secondary)', children: sea.label }),
+    jsx('span', { className: 'text-xs font-medium', style: { color: SEA[sea.state].color }, children: sea.label }),
   ]})
+}
+
+function inline(text) {
+  const parts = String(text).split(/(\*\*[^*]+\*\*)/g)
+  return parts.map((part, i) => (part.startsWith('**') && part.endsWith('**') && part.length > 4
+    ? jsx('strong', { key: i, children: part.slice(2, -2) })
+    : part))
 }
 
 function Markdown({ text }) {
   const lines = String(text || '').split('\n')
   return jsx('div', { className: 'flex flex-col gap-1 text-xs', children: lines.map((ln, i) => {
     const key = `md${i}`
-    if (ln.startsWith('### ')) return jsx('div', { key, className: 'text-sm font-semibold', children: ln.slice(4) })
-    if (ln.startsWith('## ')) return jsx('div', { key, className: 'mt-2 text-sm font-semibold', children: ln.slice(3) })
-    if (ln.startsWith('# ')) return jsx('div', { key, className: 'text-lg font-semibold', children: ln.slice(2) })
-    if (ln.startsWith('> ')) return jsx('div', { key, className: 'border-l-2 pl-2 text-(--ui-text-tertiary)', children: ln.slice(2) })
-    if (ln.startsWith('- ')) return jsx('div', { key, className: 'pl-3', children: `• ${ln.slice(2)}` })
+    if (ln.startsWith('### ')) return jsx('div', { key, className: 'text-sm font-semibold', children: inline(ln.slice(4)) })
+    if (ln.startsWith('## ')) return jsx('div', { key, className: 'mt-2 text-sm font-semibold', children: inline(ln.slice(3)) })
+    if (ln.startsWith('# ')) return jsx('div', { key, className: 'text-lg font-semibold', children: inline(ln.slice(2)) })
+    if (ln.startsWith('> ')) return jsx('div', { key, className: 'border-l-2 pl-2 text-(--ui-text-tertiary)', children: inline(ln.slice(2)) })
+    if (ln.startsWith('- ')) return jsx('div', { key, className: 'pl-3', children: inline(`• ${ln.slice(2)}`) })
     if (!ln.trim()) return jsx('div', { key, className: 'h-1' })
-    return jsx('div', { key, children: ln })
+    return jsx('div', { key, children: inline(ln) })
   }) })
 }
 
 function FrictionBar({ friction, color }) {
   const pct = Math.max(0, Math.min(100, Number(friction) || 0))
+  const c = color || '#8b5cf6'
   return jsxs('div', { className: 'flex items-center gap-2', children: [
-    jsxs('div', { className: 'h-2 w-40 overflow-hidden rounded bg-(--ui-bg-secondary)', children: [
-      jsx('div', { className: 'h-full', style: { width: `${pct}%`, backgroundColor: color || '#8b5cf6' } }),
+    jsxs('div', { className: 'relative h-2.5 w-44 overflow-hidden rounded-full bg-(--ui-bg-secondary)', children: [
+      jsx('div', { className: 'h-full rounded-full', style: { width: `${pct}%`, backgroundColor: c } }),
+      jsx('div', { className: 'absolute inset-y-0 left-1/2 w-px bg-(--ui-border)' }),
     ]}),
-    jsx('span', { className: 'text-xs tabular-nums', children: `${pct.toFixed(0)}` }),
+    jsx('span', { className: 'text-xs tabular-nums text-(--ui-text-secondary)', children: `${pct.toFixed(0)}/100` }),
   ]})
 }
 
@@ -406,11 +421,16 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
           jsx(Field, {
             label: 'Timeline',
             hint: tl.note,
-            children: jsx('select', {
-              className: 'rounded border border-(--ui-border) bg-(--ui-bg-secondary) px-2 py-1.5 text-sm',
-              value: window, onChange: e => setWindow(e.target.value),
-              children: TIMELINES.map(t => jsx('option', { key: t.v, value: t.v, children: `${t.label} — ${t.rounds} rounds` })),
-            }),
+            children: jsx('div', { className: 'flex flex-wrap gap-1', children: TIMELINES.map(t => {
+              const active = t.v === window
+              return jsx('button', {
+                type: 'button', key: t.v, title: t.note,
+                className: 'rounded-full border px-2.5 py-1 text-xs ' + (active ? 'font-semibold text-white' : 'text-(--ui-text-tertiary) hover:text-(--ui-text)'),
+                style: active ? { backgroundColor: GREEN, borderColor: GREEN } : { borderColor: 'var(--ui-border)' },
+                onClick: () => setWindow(t.v),
+                children: t.label,
+              })
+            }) }),
           }),
           jsx(Field, {
             label: 'Model',
@@ -488,6 +508,23 @@ function ComparePanel({ cmp }) {
   ]})
 }
 
+// ── one run row (shared by Recent and Past reviews) ─────────────────
+
+function RunRow({ h, onOpen }) {
+  return jsxs('button', {
+    type: 'button',
+    className: 'flex w-full items-center gap-3 rounded px-1 py-1 text-left text-sm text-(--ui-text-secondary) hover:bg-(--ui-bg-secondary) hover:text-(--ui-text)',
+    onClick: () => onOpen(h.run_id, h.title),
+    children: [
+      jsx('span', { className: 'h-2 w-2 rounded-full', style: { backgroundColor: SEA[h.sea_state] ? SEA[h.sea_state].color : '#555' } }),
+      jsx('span', { className: 'flex-1 truncate', children: h.title }),
+      jsx('span', { className: 'text-xs tabular-nums', children: h.rounds ? `${h.rounds} rounds` : '' }),
+      jsx('span', { className: 'text-xs tabular-nums', children: h.friction != null ? `friction ${h.friction}` : '' }),
+      jsx('span', { className: 'text-xs', children: h.verified && h.verified.verdict ? h.verified.verdict : '' }),
+    ],
+  })
+}
+
 // ── page ──────────────────────────────────────────────────────────────
 
 function UpfrontPage({ ctx }) {
@@ -499,6 +536,7 @@ function UpfrontPage({ ctx }) {
   const [showCompare, setShowCompare] = React.useState(true)
   const [claimHits, setClaimHits] = React.useState({})
   const [injectText, setInjectText] = React.useState('')
+  const [lastEdges, setLastEdges] = React.useState([])
   const gateway = useValue(host.state.gateway)
 
   function refreshHistory() {
@@ -520,6 +558,7 @@ function UpfrontPage({ ctx }) {
       friction: meta.friction, blocker: meta.blocker, verified: meta.verified,
     })
     setClaimHits({})
+    setLastEdges(g?.edges || [])
     const t = titleHint || meta.title
     if (t) ctx.rest(`/compare?title=${encodeURIComponent(t)}`).then(setCompare).catch(() => {})
   }
@@ -563,8 +602,10 @@ function UpfrontPage({ ctx }) {
   const liveGraph = React.useMemo(() => {
     const nodes = Object.entries(running?.stances || {}).map(([name, stance]) => ({ id: name, name, stance }))
     if (!nodes.length) return null
-    return { nodes, edges: result?.graph?.edges || [] }
-  }, [running?.stances, result])
+    return { nodes, edges: lastEdges }
+  }, [running?.stances, lastEdges])
+
+  const recent = history.slice(0, 2)
 
   return jsxs('div', { className: 'flex h-full flex-col gap-4 overflow-auto p-4', children: [
     // header + the "+ New review" pill (green, like the reference button)
@@ -628,10 +669,16 @@ function UpfrontPage({ ctx }) {
         ...result.claims.map(c => jsxs('div', { key: c.id, className: 'flex items-start gap-2 text-xs', children: [
           jsx('span', { className: 'flex-1', children: c.claim }),
           jsx('button', { type: 'button',
-            className: 'rounded border border-(--ui-border) px-1 ' + (claimHits[c.id] === true ? 'font-bold' : ''),
+            className: 'rounded border px-1.5 py-0.5 text-xs',
+            style: claimHits[c.id] === true
+              ? { borderColor: '#46a758', backgroundColor: 'rgba(70,167,88,0.15)', color: '#46a758', fontWeight: 600 }
+              : { borderColor: 'var(--ui-border)', color: 'var(--ui-text-tertiary)' },
             onClick: () => setClaimHits({ ...claimHits, [c.id]: true }), children: '✓' }),
           jsx('button', { type: 'button',
-            className: 'rounded border border-(--ui-border) px-1 ' + (claimHits[c.id] === false ? 'font-bold' : ''),
+            className: 'rounded border px-1.5 py-0.5 text-xs',
+            style: claimHits[c.id] === false
+              ? { borderColor: '#e5484d', backgroundColor: 'rgba(229,72,77,0.15)', color: '#e5484d', fontWeight: 600 }
+              : { borderColor: 'var(--ui-border)', color: 'var(--ui-text-tertiary)' },
             onClick: () => setClaimHits({ ...claimHits, [c.id]: false }), children: '✗' }),
         ]})),
         jsxs('div', { className: 'flex items-center gap-2 pt-1', children: [
@@ -650,23 +697,21 @@ function UpfrontPage({ ctx }) {
         onClick: () => setShowCompare(false), children: 'hide comparison' }),
     ]}),
 
+    // recent — the two latest runs, above the full list
+    recent.length > 0 && jsxs('div', { className: 'flex flex-col gap-1 rounded border border-(--ui-accent) p-4', children: [
+      jsx('div', { className: 'flex items-center justify-between', children: [
+        jsx('div', { className: 'text-sm font-medium', children: 'Recent' }),
+        jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-tertiary)', children: 'latest 2 runs' }),
+      ]}),
+      ...recent.map(h => jsx(RunRow, { key: h.run_id, h, onOpen: openRun })),
+    ]}),
+
     // history
     jsxs('div', { className: 'flex flex-col gap-1 rounded border border-(--ui-border) p-4', children: [
       jsx('div', { className: 'text-sm font-medium', children: 'Past reviews' }),
       history.length === 0
         ? jsx('div', { className: 'text-sm text-(--ui-text-tertiary)', children: 'No runs yet — press + New review.' })
-        : history.map(h => jsxs('button', {
-            key: h.run_id, type: 'button',
-            className: 'flex w-full items-center gap-3 rounded px-1 py-1 text-left text-sm text-(--ui-text-secondary) hover:bg-(--ui-bg-secondary) hover:text-(--ui-text)',
-            onClick: () => openRun(h.run_id, h.title),
-            children: [
-              jsx('span', { className: 'h-2 w-2 rounded-full', style: { backgroundColor: SEA[h.sea_state] ? SEA[h.sea_state].color : '#555' } }),
-              jsx('span', { className: 'flex-1 truncate', children: h.title }),
-              jsx('span', { className: 'text-xs tabular-nums', children: h.rounds ? `${h.rounds} rounds` : '' }),
-              jsx('span', { className: 'text-xs tabular-nums', children: h.friction != null ? `friction ${h.friction}` : '' }),
-              jsx('span', { className: 'text-xs', children: h.verified && h.verified.verdict ? h.verified.verdict : '' }),
-            ],
-          })),
+        : history.map(h => jsx(RunRow, { key: h.run_id, h, onOpen: openRun })),
     ]}),
   ]})
 }
