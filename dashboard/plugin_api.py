@@ -76,7 +76,12 @@ async def run(body: dict):
 
     def _work():
         try:
-            result = engine.run_scenario_progress(scenario, _llm())
+            # forward each round's snapshot to our run_id so /status carries live
+            # stances the desktop renders as an updating graph
+            def _on_round(snap):
+                engine._emit(run_id, "running", snap.round, scenario.rounds,
+                             {k: round(v, 3) for k, v in (snap.stances or {}).items()})
+            result = engine.run_scenario_progress(scenario, _llm(), on_round=_on_round)
             # engine mints its own run_id on completion; re-key progress under ours
             engine._emit(run_id, "done", result.rounds, result.rounds,
                          {p.name: round(p.stance, 3) for p in result.personas})

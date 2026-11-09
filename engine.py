@@ -73,6 +73,10 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
 
     # 4. simulate
     def _cb(snap):
+        # emit live stances each round so /status carries a snapshot the desktop
+        # can render as an updating graph (the just-finished round's stances)
+        _emit(scenario.title, "running", snap.round, scenario.rounds,
+              {k: round(v, 3) for k, v in (snap.stances or {}).items()})
         if on_round:
             on_round(snap)
 

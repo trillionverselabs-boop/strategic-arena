@@ -66,7 +66,7 @@ function UpfrontPage({ ctx }) {
   const [evidence, setEvidence] = React.useState('')
   const [urls, setUrls] = React.useState('')
   const [window, setWindow] = React.useState('48h')
-  const [running, setRunning] = React.useState(null)  // {runId, progress}
+  const [running, setRunning] = React.useState(null)  // {runId, progress, round, total, stances}
   const [result, setResult] = React.useState(null)    // {report, graph}
   const [history, setHistory] = React.useState([])
   const gateway = useValue(host.state.gateway)
@@ -84,12 +84,13 @@ function UpfrontPage({ ctx }) {
       method: 'POST',
       body: { title, documents: docs, urls: urlList, window },
     })
-    setRunning({ runId: run_id, progress: 0 })
-    // poll status
+    setRunning({ runId: run_id, progress: 0, round: 0, total: 0, stances: {} })
+    // poll status; stances ride along so the graph updates live each round
     const iv = setInterval(async () => {
       const st = await ctx.rest(`/status/${run_id}`).catch(() => null)
       if (!st) return
-      setRunning({ runId: run_id, progress: st.progress || 0 })
+      setRunning({ runId: run_id, progress: st.progress || 0, round: st.round || 0,
+                   total: st.total || 0, stances: st.stances || {} })
       if (st.status === 'done') {
         clearInterval(iv)
         const [rep, g] = await Promise.all([
@@ -149,7 +150,24 @@ function UpfrontPage({ ctx }) {
           running?.error && jsx('div', { className: 'text-sm text-red-500', children: running.error }),
         ]}),
       ]}),
-      // result
+      // live in-progress graph (renders from polled stances each round)
+      running && !running.error && jsxs('div', { className: 'flex flex-col gap-2 rounded border border-(--ui-border) p-4', children: [
+        jsxs('div', { className: 'flex items-center justify-between', children: [
+          jsx('div', { className: 'text-sm font-medium', children: 'Simulation in progress' }),
+          jsx('div', { className: 'text-xs text-(--ui-text-tertiary)',
+            children: running.total ? `Round ${running.round} of ${running.total} — ${running.progress}%` : `${running.progress}%` }),
+        ]}),
+        jsxs('div', { className: 'h-2 w-full overflow-hidden rounded bg-(--ui-bg-secondary)', children: [
+          jsx('div', { className: 'h-full bg-(--ui-accent) transition-all', style: { width: `${running.progress}%` } }),
+        ]}),
+        React.useMemo(() => {
+          const nodes = Object.entries(running.stances || {}).map(([name, stance]) => (
+            { id: name, name, stance }
+          ))
+          return nodes.length ? jsx(GraphSvg, { graph: { nodes, edges: [] } }) : null
+        }, [running.stances]),
+      ]}),
+      // result (finished report + final graph)
       result && jsxs('div', { className: 'grid grid-cols-2 gap-4', children: [
         jsx(GraphSvg, { graph: result.graph }),
         jsx('pre', {
