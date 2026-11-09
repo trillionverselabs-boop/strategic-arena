@@ -128,3 +128,35 @@ line, and that the build stamp is still `0.3.0 · ui1`; `node --check` clean; su
    uninstall, proven with `find ~/.hermes -iname '*upfront*'`).
 2. Phase B: user installs via Capabilities → Plugins; header must read `build 0.3.0 · ui1`.
 3. Screenshots → `assets/`, `hermes plugins validate`, repo public, 40-hex SHA pin, catalog PR.
+
+---
+
+## Fetch fix — the Arete page (shipped, pre-Phase-A)
+
+Found by measuring the real source of nousresearch.com/arete (1.66 MB, supplied by the user) against
+`upfront.fetch`, not by reasoning about it.
+
+**Two stacked defects, measured:**
+
+| | before | after |
+|---|---|---|
+| bytes read | 200,000 (12% of page — all `<head>` + inline SVG badges) | 2,000,000 |
+| tokens the model saw | 3,230 | 1,998 |
+| SVG path-coordinate junk | 3,211 tokens (**99.4%**) | 179 (9.0%) |
+| plain words | 14 | 1,902 |
+| article prose reachable | **none** — body starts at ~1.5 MB | 12,610 chars, all body markers present |
+
+1. `MAX_BYTES = 200_000` truncated every modern marketing/blog page to its `<head>`. The cap now
+   bounds memory only; the real gate is `PROSE_MIN`.
+2. `<svg>` geometry was never stripped, so icon path data (`M178.187 0H21.8099C9.76…`) survived
+   tag-stripping as thousands of prose-shaped tokens.
+3. Guard added: a page yielding under 150 prose chars returns `None` instead of a document, so the
+   run is honestly **degraded** rather than reviewed off a title tag. Calibration: real page 9,210
+   prose chars, junk page ~20.
+4. `html.unescape` in `_clean` — `&#x27;` and `&amp;` are markup, not prose.
+
+**Verified:** `tests/test_fetch.py` 7 passed (SVG stripped, 1.5 MB body survives, junk page rejected,
+entity decode); full suite **69 passed**; `node --check` clean.
+
+**Consequence for the demo:** the earlier Arete run was graded off a page title and 3,211 coordinate
+strings. It must be re-run before any of its numbers are quoted.

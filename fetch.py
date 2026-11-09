@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import html
 import re
 import urllib.error
 import urllib.request
@@ -15,14 +16,28 @@ from typing import List
 
 from .models import Document, DocumentType
 
-MAX_BYTES = 200_000          # 200KB cap — a blog post or README, not a 50MB dump
+MAX_BYTES = 2_000_000        # 2MB cap. Was 200KB: a real Next.js post is 1.66MB of
+                             # inline SVG badges *before* the first sentence, so the old
+                             # cap read the <head> and a pile of path coordinates and
+                             # never reached the article. Cap the *prose* below, not
+                             # the page before we have found it.
 TIMEOUT_S = 20
 _UA = "hermes-upfront/0.2 (+https://github.com/NousResearch/hermes-agent)"
 
+# <svg> blocks are geometry, not text: an icon set is thousands of path
+# coordinates that survive tag-stripping as prose-shaped junk.
+_SVG_RE = re.compile(r"<svg\b[^>]*>.*?</svg>", re.DOTALL | re.IGNORECASE)
 _HTML_RE = re.compile(r"<(script|style)[^>]*>.*?</\1>", re.DOTALL | re.IGNORECASE)
 _TAG_RE = re.compile(r"<[^>]+>")
 _WS_RE = re.compile(r"\n{3,}")
 _LINE_WS = re.compile(r"[ \t]+")
+
+# A page must yield this many characters of prose before we treat it as a
+# document. Measured on the real failure: the Arete page yields 9,210 prose
+# chars once SVG is stripped, a junk page yields ~20. 150 sits an order of
+# magnitude clear of both. Below it we return None, so the run is honestly
+# degraded rather than reviewed off a title tag.
+PROSE_MIN = 150
 
 _GITHUB_REPO = re.compile(r"^https?://github\.com/([^/\s]+)/([^/\s?#]+)/?$")
 
@@ -50,10 +65,42 @@ def _get_text(url: str) -> str | None:
         return None
     if len(raw) > MAX_BYTES:
         raw = raw[:MAX_BYTES]
+    return _extract_text(raw, ctype)
+
+
+def _extract_text(raw: bytes, ctype: str = "") -> str | None:
+    """bytes -> text a model can read, or None when the page yields no prose.
+
+    Truncation happens *before* extraction only to bound memory; the real gate
+    is PROSE_MIN below, so a page whose body sits behind 1.5MB of inline SVG is
+    still read in full instead of being graded off its <head>.
+    """
     text = raw.decode("utf-8", errors="ignore")
     if "html" in ctype or text.lstrip().startswith("<"):
         text = _html_to_text(text)
-    return _clean(text)
+    text = _clean(text)
+    if _prose_chars(text) < PROSE_MIN:
+        return None
+    return text
+
+
+_COORD_RE = re.compile(r"^[MmLlHhVvCcSsQqTtAaZz0-9\.\-,;]+$")
+
+
+def _prose_chars(text: str) -> int:
+    """Characters in words that are actually words.
+
+    SVG path coordinates (`M178.187`, `21.8099C9.76`) parse as tokens but carry
+    no meaning; counting them as text is how a page of geometry passes for a
+    document.
+    """
+    total = 0
+    for w in text.split():
+        if len(w) < 3 or _COORD_RE.match(w):
+            continue
+        if sum(c.isalpha() for c in w) / len(w) >= 0.6:
+            total += len(w)
+    return total
 
 
 def fetch_url(url: str, doc_type: DocumentType = DocumentType.CONTEXT) -> Document | None:
@@ -91,6 +138,7 @@ def fetch_urls(urls: List[str]) -> List[Document]:
 
 
 def _html_to_text(html: str) -> str:
+    html = _SVG_RE.sub("\n", html)       # drop icon geometry before tags are stripped
     html = _HTML_RE.sub("\n", html)      # drop script/style bodies
     html = _TAG_RE.sub(" ", html)        # strip tags
     return html
@@ -110,6 +158,7 @@ def _drop_chrome(text: str) -> str:
 
 
 def _clean(text: str) -> str:
+    text = html.unescape(text)          # &#x27; -> ', &amp; -> & : models read prose
     lines = [_LINE_WS.sub(" ", ln).strip() for ln in text.splitlines()]
     text = "\n".join(lines)
     text = _WS_RE.sub("\n\n", text)
