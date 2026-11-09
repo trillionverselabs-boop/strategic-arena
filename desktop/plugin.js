@@ -114,11 +114,12 @@ function UpfrontPage({ ctx }) {
         jsx('div', { className: 'text-lg font-semibold', children: 'Upfront Prediction' }),
         jsx('div', { className: 'text-xs text-(--ui-text-tertiary)', children: `gateway: ${gateway}` }),
       ]}),
-      // form
+      // new entry form
       jsxs('div', { className: 'flex flex-col gap-3 rounded border border-(--ui-border) p-4', children: [
+        jsx('div', { className: 'text-sm font-medium', children: 'New entry' }),
         jsx('input', {
-          className: 'rounded border border-(--ui-border) bg-(--ui-bg) px-2 py-1 text-sm',
-          placeholder: 'Title', value: title, onChange: e => setTitle(e.target.value),
+          className: 'rounded border border-(--ui-border) bg-(--ui-bg) px-2 py-1 text-sm focus:border-(--ui-accent) focus:outline-none',
+          placeholder: 'Title — the decision you are predicting', value: title, onChange: e => setTitle(e.target.value),
         }),
         jsx('textarea', {
           className: 'rounded border border-(--ui-border) bg-(--ui-bg) px-2 py-1 text-sm',
@@ -175,21 +176,28 @@ function UpfrontPage({ ctx }) {
           children: result.report,
         }),
       ]}),
-      // history
-      history.length > 0 && jsxs('div', { className: 'flex flex-col gap-1', children: [
-        jsx('div', { className: 'text-sm font-medium', children: 'Past runs — click to reopen & verify' }),
-        ...history.map(h => jsx('button', {
-          key: h.run_id, type: 'button',
-          className: 'text-left text-sm text-(--ui-text-secondary) hover:text-(--ui-text)',
-          onClick: async () => {
-            const [rep, g] = await Promise.all([
-              ctx.rest(`/report/${h.run_id}`).catch(() => ({ report: '' })),
-              ctx.rest(`/graph/${h.run_id}`).catch(() => ({ nodes: [], edges: [] })),
-            ])
-            setResult({ report: rep.report, graph: g })
-          },
-          children: `${h.title} — friction ${h.friction ?? '—'} — ${h.blocker ? 'blocker: ' + h.blocker : 'no blocker'}`,
-        })),
+      // previous runs — always visible so users can find history
+      jsxs('div', { className: 'flex flex-col gap-1 rounded border border-(--ui-border) p-4', children: [
+        jsx('div', { className: 'text-sm font-medium', children: 'Previous runs' }),
+        history.length === 0
+          ? jsx('div', { className: 'text-sm text-(--ui-text-tertiary)',
+              children: 'No runs yet — run your first prediction above.' })
+          : [
+              jsx('div', { className: 'text-xs text-(--ui-text-tertiary)',
+                children: 'Click any run to reopen & verify its frozen prediction.' }),
+              ...history.map(h => jsx('button', {
+                key: h.run_id, type: 'button',
+                className: 'text-left text-sm text-(--ui-text-secondary) hover:text-(--ui-text)',
+                onClick: async () => {
+                  const [rep, g] = await Promise.all([
+                    ctx.rest(`/report/${h.run_id}`).catch(() => ({ report: '' })),
+                    ctx.rest(`/graph/${h.run_id}`).catch(() => ({ nodes: [], edges: [] })),
+                  ])
+                  setResult({ report: rep.report, graph: g })
+                },
+                children: `${h.title} — friction ${h.friction ?? '—'} — ${h.blocker ? 'blocker: ' + h.blocker : 'no blocker'}`,
+              })),
+            ],
       ]}),
     ],
   })
