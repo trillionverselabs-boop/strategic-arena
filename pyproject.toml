@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hermes-upfront"
+version = "0.1.0"
+description = "Upfront Prediction — pre-launch opponent. Paste a decision, watch a living stakeholder graph react."
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.6,<3",
+    "fastapi>=0.110,<1",
+]
+
+[project.entry-points."hermes_agent.plugins"]
+upfront = "upfront"
+
+[tool.setuptools]
+packages = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

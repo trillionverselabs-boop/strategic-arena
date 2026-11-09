@@ -1,0 +1,17 @@
+{
+  "title": "Should we open-weight Arete-27B?",
+  "goal": "open_weight",
+  "window": "48h",
+  "documents": [
+    {
+      "type": "decision",
+      "content": "Nous is considering open-weighting Arete-27B, our newest model. The weights would be released under a permissive license, with the full training data and eval suite published alongside. Weights go to Hugging Face on release day. We keep the hosted API free for the first 90 days to let people try it.",
+      "source": "Arete release memo"
+    },
+    {
+      "type": "evidence",
+      "content": "Enterprise IT is the biggest blocker class for cloud AI. A Q2 survey of 400 enterprise CIOs: 61% said they cannot route inference through an external API for compliance reasons. Meanwhile open-weight Llama-4 downloads tripled quarter-over-quarter, and community fine-tunes of open models now outnumber closed-model adaptations 3:1. Enterprises want the weights on-prem. The community wants the training data. Nobody wants a license that forbids commercial use.",
+      "source": "evidence"
+    }
+  ]
+}

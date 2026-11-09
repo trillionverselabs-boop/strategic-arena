@@ -1,0 +1,17 @@
+{
+  "title": "Arete-27B: open-weighting a Qwen3.8-27B fine-tuned for Western values",
+  "goal": "open_weight",
+  "window": "48h",
+  "documents": [
+    {
+      "type": "decision",
+      "content": "Nous post-trained Alibaba's Qwen3.8-27B (a Chinese open model) to reinforce Western values on it, and is releasing the result, Arete-27B, as open weights on Hugging Face. The weights, the Propaganda_Eval (803 prompts across seven value categories), and the 28,886-example training dataset (arete-data-pairs) are all published. Result: fact score rose 2.32 to 2.98/5, propaganda-containing answers fell from 22% to 1% — in line with Western models tested. No capability regression (Hermes Bench 65.60% vs base 65.77%, Terminal-Bench-2.1 70% vs 67%). The thesis: the bias layer in a Chinese-aligned model is shallow; the values in any open model are one fine-tune away; users deserve optionality in which values they work with.",
+      "source": "nousresearch.com/arete"
+    },
+    {
+      "type": "evidence",
+      "content": "The US government has taken concrete steps to restrict Chinese AI models (especially DeepSeek) from federal use, while issuing broader warnings about risks of state-aligned behavior baked into Chinese open weights. Geopolitical information in a model's context can affect code quality: studies found Chinese models produce more vulnerable code when they believe they are acting on behalf of an American entity. Nous observed refusals, deflections, and CCP-framed answers on politically sensitive topics in Qwen3.8-27B before post-training; propaganda rates in the eval: Qwen3.8-27B base 22%, DeepSeek V4.1 Flash 16%, GLM 5.3 15%, versus Western models (Mistral Large 4, Gemma 4 31B, Nemotron 3 Ultra) at 0.3-0.6%, and Arete-27B at 0.6-0.9%.",
+      "source": "nousresearch.com/arete"
+    }
+  ]
+}
