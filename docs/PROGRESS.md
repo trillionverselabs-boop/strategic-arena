@@ -457,3 +457,26 @@ included) — the earlier failure was stale duplicate `plugin-sources/upfront-*`
 earlier installs, which is exactly the residue `scripts/uninstall-clean.py` exists to clear.
 
 Suite 112 green.
+
+---
+
+## A refused model override degrades instead of failing (2026-11-09)
+
+Selecting a non-free model in the picker failed the run with a generic "the model call failed".
+Reproduced: `PluginLlmTrustError: Plugin 'upfront' cannot override the model` — the host gates
+model overrides behind `plugins.entries.<id>.llm.allow_model_override`.
+
+Verified in the source that this is a **core mismatch**, not our bug: the consent screen records
+`plugins.entries.<id>.granted_capabilities`, but `PluginLlm._resolve_trust_policy()` reads only the
+legacy booleans. Granting `llm.model_override` in the UI therefore need not open the gate.
+
+What the plugin does now: on `PluginLlmTrustError` it drops the override for the **rest of the run**
+(no failed call per round), runs on the active model, and writes a note the result page shows —
+"your model choice was not permitted by the host, so this run used your active model; to enable the
+picker set `plugins.entries.upfront.llm.allow_model_override: true`". Two tests
+(`tests/test_trust_degrade.py`).
+
+Also: the real exception now reaches the user and `desktop-debug.log`; the "answered but not JSON"
+path is named too, so a free model that rambles is distinguishable from an unreachable model.
+
+BUILD → `0.4.2 · ui8`, version 0.4.3. Suite 114 green.

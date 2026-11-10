@@ -35,6 +35,10 @@ class HostLlm:
         self._llm = plugin_llm
         self.model = model
         self.calls = 0
+        # Set when the host refuses a model override. The run then continues on
+        # the user's active model, and the note is shown back to them — a picker
+        # that silently does nothing is worse than one that says why.
+        self.override_denied_note = ""
 
     class _Result:
         def __init__(self, text: str):
@@ -50,6 +54,32 @@ class HostLlm:
             # a facade without `purpose` — same trust gate either way
             res = self._llm.complete(messages, temperature=temp, model=(model or None))
         except Exception as exc:
+            if type(exc).__name__ == "PluginLlmTrustError" and model:
+                # expected when the host has not opted this plugin into model
+                # overrides: drop the override for the rest of the run instead of
+                # paying a failed call every time, and say so once.
+                self.override_denied_note = (
+                    f"Your model choice ({model}) was not permitted by the host, so this "
+                    "run used your active model. To enable the picker, set "
+                    "plugins.entries.upfront.llm.allow_model_override: true in config.yaml."
+                )
+                try:
+                    from upfront import paths
+                    _dbg = paths.data_root() / "desktop-debug.log"
+                    _dbg.parent.mkdir(parents=True, exist_ok=True)
+                    with _dbg.open("a", encoding="utf-8") as fh:
+                        fh.write(f"{__import__('time').strftime('%Y-%m-%d %H:%M:%S')} "
+                                 f"pid={__import__('os').getpid()} model override denied; "
+                                 f"falling back to the active model\n")
+                except Exception:
+                    pass
+                res = self._llm.complete(messages, temperature=temp, purpose="upfront.review")
+                text = getattr(res, "text", None)
+                if text is None:
+                    text = res if isinstance(res, str) else ""
+                if not (text or "").strip():
+                    raise RuntimeError("the model returned an empty answer")
+                return self._Result(text)
             # surface the real reason: "the model call failed" hides a trust
             # error, an auth problem and a network problem behind one sentence
             try:

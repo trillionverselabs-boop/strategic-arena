@@ -39,7 +39,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.4.1 · ui7'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.4.2 · ui8'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
 
 const SEA = {
@@ -781,6 +781,7 @@ function UpfrontPage({ ctx }) {
       recommendation: rep.recommendation, summary: rep.summary,
       counterMoves: rep.counter_moves, personas: rep.personas,
       interventions: rep.interventions, verified: meta.verified,
+      modelNote: rep.model_note || '',
       // "your side": parties grounded in the decision document itself
       ownSide: (rep.personas || []).filter(p => (p.reasons?.[0] || '').includes('[decision')).map(p => p.name),
     })
@@ -937,6 +938,8 @@ function UpfrontPage({ ctx }) {
     // finished result — the "so what" comes first; the audit is behind a toggle
     result && jsxs('div', { className: 'flex flex-col gap-3', children: [
       jsx(VerdictCard, { result }),
+      result.modelNote && jsx(Callout, { icon: 'info', tone: 'var(--ui-accent)',
+        title: 'Model', children: result.modelNote }),
 
       jsxs('div', { className: 'grid grid-cols-2 gap-3', children: [
         jsxs(Card, { children: [

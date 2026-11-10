@@ -136,6 +136,13 @@ async def run(body: dict):
             result = engine.run_scenario_progress(
                 scenario, llm, on_round=_on_round, run_id=run_id
             )
+            # if the host refused the chosen model, say so once, next to the run
+            note = getattr(getattr(base, "_llm", None), "override_denied_note", "") or ""
+            if note:
+                try:
+                    (reporting.runs_dir() / run_id / "model-note.txt").write_text(note)
+                except Exception:
+                    pass
             engine._emit(run_id, "done", result.rounds, result.rounds,
                          {p.name: round(p.stance, 3) for p in result.personas})
         except engine.SimulationCancelled:
@@ -209,8 +216,13 @@ async def report(run_id: str, full: bool = False):
         meta = json.loads((reporting.runs_dir() / run_id / "meta.json").read_text())
     except Exception:
         pass
+    model_note = ""
+    try:
+        model_note = (reporting.runs_dir() / run_id / "model-note.txt").read_text().strip()
+    except Exception:
+        pass
     return {
-        "report": data[key], "full": full,
+        "report": data[key], "full": full, "model_note": model_note,
         "recommendation": meta.get("recommendation") or "",
         "summary": meta.get("summary") or "",
         "blocker": meta.get("blocker"),
