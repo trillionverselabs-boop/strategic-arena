@@ -23,23 +23,29 @@ for p in (str(_UPSTREAM), str(_PLUGIN_ROOT)):
         sys.path.insert(0, p)
 
 from upfront import engine  # noqa: E402
-from upfront import portal, reporting  # noqa: E402
+from upfront import llm_binding, portal, reporting  # noqa: E402
 from upfront.llm_adapter import LlmAdapter  # noqa: E402
 from upfront.models import Intervention  # noqa: E402
 
 router = APIRouter()
 
-_LLM = None
-
 
 def set_llm(llm) -> None:
-    """Bound by the agent plugin's register(ctx) — the only place ctx.llm exists."""
-    global _LLM
-    _LLM = llm
+    """Bound by the agent plugin's register(ctx) — kept for compatibility.
+
+    The binding itself lives in `upfront.llm_binding` (a process-wide holder)
+    because this file is imported standalone from its path, under a different
+    module name than the agent half: module globals here are not shared with it.
+    """
+    llm_binding.set_llm(llm)
 
 
 def _llm():
-    if _LLM is None:
+    bound = llm_binding.get_llm()
+    if bound is None:
+        # Last resort: a copy of this module imported under another name may hold
+        # a binding from an older code path. Keep it, but the holder above is the
+        # one that is actually shared.
         for _name, _mod in list(sys.modules.items()):
             if _mod is None or _mod is sys.modules.get(__name__):
                 continue
@@ -52,12 +58,12 @@ def _llm():
             "plugin_api.set_llm(ctx.llm) in register(); if you only enabled the "
             "dashboard backend, the simulation cannot call the model."
         )
-    return _LLM
+    return bound
 
 
 @router.get("/health")
 async def health():
-    return {"ok": True, "plugin": "upfront", "llm_ready": _LLM is not None}
+    return {"ok": True, "plugin": "upfront", "llm_ready": llm_binding.get_llm() is not None}
 
 
 @router.post("/run")

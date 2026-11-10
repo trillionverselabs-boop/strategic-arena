@@ -48,12 +48,16 @@ def register(ctx) -> None:
     register_tools(ctx, allow_model_override=allow_override)
     _register_skills(ctx)
 
-
+    # Bind the model where the dashboard routes can see it. The routes are a
+    # *different module object* (the dashboard loader imports plugin_api.py
+    # standalone from its path), so this goes through the process-wide holder in
+    # llm_binding rather than a module global — see that file's docstring.
     try:
-        from .dashboard import plugin_api  # type: ignore
+        from .llm_binding import set_llm
 
-        plugin_api.set_llm(LlmAdapter(ctx.llm, allow_override=allow_override))
-    except Exception:
-        # dashboard/ may not be importable as a package; the backend's
-        # set_llm is bound by the dashboard loader path instead. Non-fatal.
-        pass
+        set_llm(LlmAdapter(ctx.llm, allow_override=allow_override))
+    except Exception as exc:
+        try:
+            ctx.log(f"upfront: could not bind the model for the dashboard: {exc}")
+        except Exception:
+            pass

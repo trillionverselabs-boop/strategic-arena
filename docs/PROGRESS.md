@@ -277,3 +277,26 @@ condition (Legal) and the parties who gain. That is what the product actually do
 forecast, it is the fight before the fight.
 
 BUILD → `0.3.4 · ui5`.
+
+---
+
+## "LLM not bound in backend" — the two halves never shared the model (2026-11-09)
+
+First live run in the desktop app failed with `LLM not bound in backend. The agent plugin half
+must load and call plugin_api.set_llm(ctx.llm)`. The desktop half was fine (header read
+`build 0.3.4 · ui5`); the binding was architecturally impossible:
+
+- The agent half is imported by the agent plugin loader under one module name; `dashboard/
+  plugin_api.py` is imported **standalone from its file path** by the dashboard loader under a
+  different name. Two module objects, two separate globals — `set_llm` wrote to a copy the routes
+  never read.
+- `from .dashboard import plugin_api` also failed silently (`except Exception: pass`), so even the
+  *intended* binding never ran. That swallowed exception is why this surfaced as a runtime error
+  instead of at load time.
+
+Fix: `upfront/llm_binding.py` holds the binding in a synthetic module kept in `sys.modules` — the
+one namespace every import name shares — so whichever way either half is imported, they see the
+same object. `register(ctx)` binds through it and logs a failure instead of hiding it;
+`plugin_api._llm()` reads from it. Four tests (`tests/test_llm_binding.py`) load `plugin_api.py`
+by file path, exactly as the app does, and prove the binding crosses the import boundary.
+Suite 87 green.
