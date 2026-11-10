@@ -1,7 +1,7 @@
 # Contributing to Strategic Arena
 
-Thanks for your interest. Strategic Arena (`upfront`) is a small, local-first
-plugin; contributions are welcome.
+Thanks for your interest. Strategic Arena is a small, local-first plugin;
+contributions are welcome.
 
 The plugin id, the folder name, the tool prefixes (`upfront_*`) and the data
 directory are deliberately stable — they are what installs, the catalogue pin and
@@ -17,7 +17,10 @@ and needs an issue first.
   AGPL-3.0 and this repository is MIT, so a patch that copies from it cannot be
   merged — cite it instead.
 - **No invented numbers in the UI.** If a figure cannot be computed, it does not go
-  on the page. The tests enforce the two we had to delete.
+  on the page. One built early — a hatched "+6 coalition interaction" — was deleted
+  once the friction function turned out to be additive, and a test keeps it off the
+  page. Coalition insight is computed instead: clearing either party alone leaves the
+  other's veto standing; clearing both leaves none.
 - **Local-first stays.** Don't add cloud dependencies, telemetry, or credential
   storage. Model access goes through Hermes' `ctx.llm`.
 

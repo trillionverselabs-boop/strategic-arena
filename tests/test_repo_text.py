@@ -25,7 +25,7 @@ LICENSE = (ROOT / "LICENSE").read_text()
 
 # ── public text ────────────────────────────────────────────────────────
 def test_the_readme_is_the_product_not_the_old_one():
-    assert README.startswith("# Strategic Arena (`upfront`)")
+    assert README.startswith("# Strategic Arena\n")
     assert "Read what it means before it reads you." in README
     for banned in ("rehears", "Upfront Prediction"):
         assert banned.lower() not in README.lower(), banned
@@ -152,6 +152,23 @@ def test_the_old_framing_is_gone_from_the_public_text():
 
 def test_the_readme_points_at_the_credits():
     assert "CREDITS.md" in README
+
+
+def test_no_public_document_links_to_a_file_that_is_not_there():
+    """A CONTRIBUTING that points at a missing CODE_OF_CONDUCT hands a reviewer a
+    404 on the first page they open. Link targets are checked, not assumed."""
+    import re
+    PUBLIC = ["README.md", "CONTRIBUTING.md", "SECURITY.md", "CREDITS.md",
+              "CODE_OF_CONDUCT.md"]
+    broken = []
+    for name in PUBLIC:
+        text = (ROOT / name).read_text()
+        for target in re.findall(r"\]\(([^)#\s]+\.(?:md|png|svg))\)", text):
+            if target.startswith("http"):
+                continue
+            if not (ROOT / target).exists():
+                broken.append(f"{name} -> {target}")
+    assert not broken, broken
 
 
 def test_no_third_party_code_is_bundled():

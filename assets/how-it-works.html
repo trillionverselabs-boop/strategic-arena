@@ -4,49 +4,50 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 1200px; height: 600px; overflow: hidden; }
   body {
-    background: #0a0c10;
+    background: #0b0d10;
     background-image:
-      linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
-    background-size: 44px 44px;
-    color: #fff; padding: 48px 64px;
+      radial-gradient(120% 140% at 100% 0%, rgba(76,155,240,.08) 0%, transparent 55%),
+      linear-gradient(rgba(255,255,255,.026) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.026) 1px, transparent 1px);
+    background-size: 100% 100%, 44px 44px, 44px 44px;
+    color: #e8ecf2; padding: 44px 64px 32px;
     font-family: -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
     display: flex; flex-direction: column;
   }
-  .eyebrow { font-size: 14px; letter-spacing: .34em; text-transform: uppercase; color: #8b93a1; }
-  h1 { font-size: 44px; letter-spacing: -.01em; margin-top: 10px; }
-  .sub { font-size: 19px; color: #98a0ad; margin-top: 8px; }
-  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 34px; }
-  .card { border: 1px solid rgba(255,255,255,.14); border-radius: 14px; padding: 18px 20px;
-    background: rgba(255,255,255,.03); position: relative; }
-  .num { position: absolute; top: -13px; left: 16px; background: #0a0c10; padding: 0 8px;
-    font-size: 13px; color: #6ee7a8; letter-spacing: .1em; }
-  .card h2 { font-size: 20px; margin-bottom: 8px; }
-  .card p { font-size: 15px; line-height: 1.45; color: #a7aeb9; }
-  .arrow { position: absolute; right: -17px; top: 50%; transform: translateY(-50%);
-    color: #4b5563; font-size: 20px; z-index: 2; }
-  .foot { margin-top: auto; border-top: 1px solid rgba(255,255,255,.1); padding-top: 16px;
-    display: flex; justify-content: space-between; font-size: 15px; color: #8b93a1; }
-  .foot .r { color: #6ee7a8; letter-spacing: .12em; text-transform: uppercase; }
+  .eyebrow { font-size: 13px; letter-spacing: .32em; text-transform: uppercase; color: #7d8798; }
+  h1 { font-size: 40px; letter-spacing: -.02em; margin-top: 10px; font-weight: 700; }
+  .sub { font-size: 17px; color: #8b93a1; margin-top: 8px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 30px; }
+  .card { border: 1px solid rgba(255,255,255,.13); border-radius: 14px; padding: 16px 18px;
+    background: rgba(255,255,255,.028); position: relative; }
+  .num { position: absolute; top: -11px; left: 15px; background: #0b0d10; padding: 0 8px;
+    font-size: 12px; color: #4c9bf0; letter-spacing: .12em; font-weight: 700; }
+  .card h2 { font-size: 18px; margin-bottom: 6px; font-weight: 650; }
+  .card p { font-size: 13.5px; line-height: 1.45; color: #a7b1c0; }
+  .arrow { position: absolute; right: -14px; top: 50%; transform: translateY(-50%);
+    color: #3a424e; font-size: 18px; z-index: 2; }
+  .foot { margin-top: auto; border-top: 1px solid rgba(255,255,255,.09); padding-top: 14px;
+    display: flex; justify-content: space-between; font-size: 14px; color: #7d8798; }
+  .foot .r { color: #4c9bf0; letter-spacing: .14em; text-transform: uppercase; font-size: 13px; }
 </style></head>
 <body>
   <div>
-    <div class="eyebrow">How a review runs</div>
-    <h1>Same decision, repeated across timelines, becomes evidence.</h1>
-    <div class="sub">Every run is a rehearsal. The claims it freezes are what make it a scorecard.</div>
+    <div class="eyebrow">How a session runs</div>
+    <h1>One link in. The room it lands in, and the price of every objection.</h1>
+    <div class="sub">The medium decides who could possibly react — a README brings maintainers and security reviewers; a tweet brings the people who quote it.</div>
   </div>
 
   <div class="grid">
-    <div class="card"><div class="num">01</div><h2>Your move</h2><p>A decision memo plus evidence, or a URL — a repo README, a post, a pricing page.</p><div class="arrow">→</div></div>
-    <div class="card"><div class="num">02</div><h2>Players</h2><p>Stakeholders read out of your document, each with a stance and a quoted reason.</p><div class="arrow">→</div></div>
-    <div class="card"><div class="num">03</div><h2>Coalitions</h2><p>Who sides with whom, from the oppose/support graph — camps form and harden.</p></div>
-    <div class="card"><div class="num">04</div><h2>Who can challenge</h2><p>The party with the power to stop it, their condition, and the move that answers it.</p><div class="arrow">→</div></div>
-    <div class="card"><div class="num">05</div><h2>Competition read</h2><p>Red · purple · blue, with the reason — blue is only printed when it is earned.</p><div class="arrow">→</div></div>
-    <div class="card"><div class="num">06</div><h2>Claims, scored later</h2><p>Testable claims frozen at run time. You mark them right or wrong when the window closes.</p></div>
+    <div class="card"><div class="num">01</div><h2>Add the details</h2><p>A repo README, a blog post, a whitepaper, a case study, a release, a tweet — or the text itself.</p><div class="arrow">→</div></div>
+    <div class="card"><div class="num">02</div><h2>The lens</h2><p>Detected from the link, overridable. The medium sets the room, so nobody irrelevant gets a seat.</p><div class="arrow">→</div></div>
+    <div class="card"><div class="num">03</div><h2>The arena opens</h2><p>The parties argue — three rounds, or as many as you ask. You can inject a counter-move mid-run.</p></div>
+    <div class="card"><div class="num">04</div><h2>What it means</h2><p>The claim, what it displaces, and the opening it creates — read from your text, not templated.</p><div class="arrow">→</div></div>
+    <div class="card"><div class="num">05</div><h2>The price</h2><p>Exact Shapley per party: who carries the heat, who can veto, and what clearing both of them buys.</p><div class="arrow">→</div></div>
+    <div class="card"><div class="num">06</div><h2>The record</h2><p>Testable claims frozen with dates. You score them when the window closes — that is the track record.</p></div>
   </div>
 
   <div class="foot">
-    <div>3-pass audit: claim extraction → friction &amp; coalition mapping → strategic synthesis</div>
-    <div class="r">Upfront Prediction</div>
+    <div>same engine · any artefact · no account, no telemetry</div>
+    <div class="r">Strategic Arena</div>
   </div>
 </body></html>

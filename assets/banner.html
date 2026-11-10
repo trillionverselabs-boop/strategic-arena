@@ -4,60 +4,64 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 1200px; height: 600px; overflow: hidden; }
   body {
-    background: #0a0c10;
+    background: #0b0d10;
     background-image:
-      linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
-    background-size: 44px 44px;
-    color: #fff;
+      radial-gradient(120% 140% at 0% 0%, rgba(76,155,240,.10) 0%, transparent 55%),
+      linear-gradient(rgba(255,255,255,.026) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.026) 1px, transparent 1px);
+    background-size: 100% 100%, 44px 44px, 44px 44px;
+    color: #e8ecf2;
     font-family: -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
-    padding: 46px 64px;
+    padding: 44px 64px 34px;
     display: flex; flex-direction: column; justify-content: space-between;
   }
-  .eyebrow { font-size: 15px; letter-spacing: .34em; text-transform: uppercase; color: #8b93a1; margin-bottom: 18px; }
-  h1 { font-size: 62px; line-height: .98; letter-spacing: -.02em; font-weight: 700; }
-  h1 span { color: #6ee7a8; }
-  .tag { font-size: 28px; line-height: 1.25; color: #e6e9ee; margin-top: 22px; max-width: 760px; font-weight: 500; }
-  .tag b { color: #fff; font-weight: 650; }
-  .sub { font-size: 17px; color: #98a0ad; margin-top: 14px; }
-  .axiswrap { margin-top: 28px; width: 640px; }
-  .axislabel { display: flex; justify-content: space-between; font-size: 14px; color: #8b93a1; margin-top: 12px; letter-spacing: .06em; }
-  .axis { position: relative; height: 6px; border-radius: 3px;
-    background: linear-gradient(90deg,#e5484d 0%,#8b5cf6 50%,#3b82f6 100%); }
+  .eyebrow { font-size: 14px; letter-spacing: .32em; text-transform: uppercase; color: #7d8798; margin-bottom: 16px; }
+  .eyebrow b { color: #4c9bf0; font-weight: 700; }
+  h1 { font-size: 60px; line-height: 1.02; letter-spacing: -.025em; font-weight: 700; }
+  h1 span { color: #4c9bf0; }
+  .tag { font-size: 25px; line-height: 1.3; color: #c3ccd9; margin-top: 18px; max-width: 830px; font-weight: 500; }
+  .tag b { color: #e8ecf2; font-weight: 650; }
+  .sub { font-size: 16px; color: #8b93a1; margin-top: 12px; max-width: 900px; line-height: 1.45; }
+  .axiswrap { margin-top: 24px; width: 700px; }
+  .axis { position: relative; height: 5px; border-radius: 3px;
+    background: linear-gradient(90deg,#d9538f 0%,#d9538f 26%,#e5b54a 50%,#e5b54a 62%,#4c9bf0 88%,#4c9bf0 100%);
+    opacity: .85; }
   .dot { position: absolute; top: 50%; transform: translate(-50%,-50%); border-radius: 50%;
-    background: #fff; border: 3px solid #0a0c10; box-shadow: 0 0 0 2px rgba(255,255,255,.25); }
-  .chips { display: flex; gap: 14px; margin-top: 26px; }
-  .chip { border: 1px solid rgba(255,255,255,.16); border-radius: 12px; padding: 11px 18px;
-    font-size: 16px; color: #dfe3e8; background: rgba(255,255,255,.03); }
-  .chip b { color: #fff; display: block; font-size: 18px; margin-bottom: 3px; }
+    border: 3px solid #0b0d10; }
+  .axislabel { display: flex; justify-content: space-between; font-size: 13px; color: #7d8798; margin-top: 10px; letter-spacing: .08em; text-transform: uppercase; }
+  .chips { display: flex; gap: 12px; margin-top: 22px; }
+  .chip { flex: 1; border: 1px solid rgba(255,255,255,.13); border-radius: 12px; padding: 10px 15px;
+    font-size: 14px; color: #a7b1c0; background: rgba(255,255,255,.028); line-height: 1.35; }
+  .chip b { color: #e8ecf2; display: block; font-size: 15px; margin-bottom: 3px; font-weight: 650; }
   .foot { display: flex; justify-content: space-between; align-items: flex-end;
-    border-top: 1px solid rgba(255,255,255,.1); padding-top: 16px; margin-top: 24px; }
-  .foot .l { font-size: 15px; color: #8b93a1; letter-spacing: .04em; }
-  .foot .r { font-size: 15px; color: #6ee7a8; letter-spacing: .12em; text-transform: uppercase; }
+    border-top: 1px solid rgba(255,255,255,.09); padding-top: 14px; margin-top: 20px; }
+  .foot .l { font-size: 14px; color: #7d8798; letter-spacing: .03em; }
+  .foot .r { font-size: 13px; color: #4c9bf0; letter-spacing: .14em; text-transform: uppercase; }
 </style></head>
 <body>
   <div>
-    <div class="eyebrow">Upfront Prediction</div>
-    <h1>See who can kill<br>your plan <span>before</span><br>you ship it.</h1>
-    <div class="tag">A rehearsal with a scorecard — <b>not a prediction</b>.</div>
-    <div class="sub">Feed it a decision or a URL. It plays the room out, names who can challenge you, and writes down what it expects so you can grade it later.</div>
+    <div class="eyebrow"><b>Strategic Arena</b> &nbsp;·&nbsp; the read before you publish</div>
+    <h1>Read what it means<br><span>before it reads you.</span></h1>
+    <div class="tag">A room of the people your artefact will actually meet — with <b>a price on every objection</b>.</div>
+    <div class="sub">Give it a link. It staffs the room, runs the debate, and hands back who holds power over the outcome, what each concession buys, and a claim it will be graded on.</div>
 
     <div class="axiswrap">
       <div class="axis">
-        <div class="dot" style="left:12%; width:22px;height:22px"></div>
-        <div class="dot" style="left:38%; width:30px;height:30px"></div>
-        <div class="dot" style="left:55%; width:18px;height:18px"></div>
-        <div class="dot" style="left:81%; width:26px;height:26px"></div>
+        <div class="dot" style="left:14%; width:22px;height:22px; background:#d9538f"></div>
+        <div class="dot" style="left:40%; width:30px;height:30px; background:#d9538f"></div>
+        <div class="dot" style="left:58%; width:18px;height:18px; background:#e5b54a"></div>
+        <div class="dot" style="left:84%; width:26px;height:26px; background:#4c9bf0"></div>
       </div>
-      <div class="axislabel"><span>against it</span><span>the room, after the run</span><span>behind it</span></div>
+      <div class="axislabel"><span>will block it</span><span>undecided</span><span>behind it</span></div>
     </div>
   </div>
 
   <div>
     <div class="chips">
-      <div class="chip"><b>Who can challenge</b>named, with their conditions</div>
-      <div class="chip"><b>How competitive</b>red · purple · blue, with the trigger</div>
-      <div class="chip"><b>Testable claims</b>frozen now, scored later</div>
+      <div class="chip"><b>What it means</b>the claim, what it displaces, the opening</div>
+      <div class="chip"><b>Who decides</b>can veto · can amplify · can only complain</div>
+      <div class="chip"><b>The price</b>exact Shapley, per party</div>
+      <div class="chip"><b>The record</b>claims frozen with dates, then scored</div>
     </div>
     <div class="foot">
       <div class="l">local-first · runs on your own machine · no cloud account</div>

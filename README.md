@@ -1,4 +1,8 @@
-# Strategic Arena (`upfront`)
+# Strategic Arena
+
+**MIT** · [Credits &amp; sources](CREDITS.md) · [Security policy](SECURITY.md) ·
+[Contributing](CONTRIBUTING.md) · [Design notes](docs/UI.md) — local-first, no
+account, no telemetry.
 
 <img src="assets/logo.svg" alt="Strategic Arena logo" width="72" height="72" align="left" hspace="0" vspace="0"/>
 
@@ -17,7 +21,7 @@
 
 ### See it
 
-![The finished review — the call, the priced ledger, the frozen claims](assets/how-it-works.png)
+![How a session runs — one link in, the room it lands in, the price of every objection](assets/how-it-works.png)
 
 Two minutes, one link, no account. The demo path is the point: **open the plugin,
 land on a finished, scored session in one click** — what it meant, the call, what
@@ -28,8 +32,8 @@ each party was worth, and the claim that got graded.
        width="100%" aria-label="Strategic Arena — 60 second demo"></video>
 -->
 
-*The screen recording goes here once the last round of testing lands. Until then,
-`assets/how-it-works.png` above is the whole flow in one frame.*
+*The screen recording goes here once the last round of testing lands. Until then the
+frame above is the flow in one picture — a diagram, not a mockup of the result.*
 
 ### Why a room, not a chat
 
@@ -103,10 +107,10 @@ dialog.
 
 | | |
 |---|---|
-| **You give it** | a decision memo, or a URL (repo README · blog post · news article · pricing page · forum thread · whitepaper) |
-| **You get** | veto player, coalitions, best response, competition read (red / purple / blue), frozen claims to score |
-| **Cost** | free models available; a 48h review is ~$0.02 on a cheap paid model and the price is shown before you run |
-| **Repeatable** | the same decision across 30m / 4h / 24h is compared automatically — repetition becomes evidence |
+| **You give it** | a link (repo README · blog post · whitepaper · case study · press release · tweet) or the text itself |
+| **You get** | what it means · the room · who can stop it · the field · the price per party · frozen claims to score |
+| **Cost** | free models available; a 24h review is ~$0.02 on a cheap paid model, and the price is shown before you run |
+| **Repeatable** | two runs of the same artefact can be compared side by side (`/compare`) |
 | **Not** | a prediction, a guarantee, or a game solver |
 
 ### What it is, in one sentence
@@ -117,41 +121,18 @@ coalitions that form, and the move that flips them — before you commit.
 
 ### For developers
 
-Under the hood it is a clean-room implementation of five research ideas
-(GraphRAG, Generative Agents, OASIS, MASS, CAMEL) that runs entirely on your
-machine. No cloud graph service, no Docker, no stored credentials — see
-[How it works](#how-it-works) and the [repo layout](#repo-layout).
-
-### What it is — and what it is not
-
-**What it is:** a reception read for an artefact. You hand it a link or the text —
-a README, a post, a whitepaper, a case study, an announcement, a tweet — and it
-staffs the room that will answer it, runs the debate, and hands back the
-landscape: what it means, who is for it and who can stop it, how contested the
-ground is, and what each concession buys. Then it writes down testable claims
-with dates and lets you score them later, so the record gets sharper with every
-run.
-
-**What it is not:** a prediction, a guarantee, a game solver, or a forecast. It
-does not tell you what *will* happen. It tells you what the room is likely to do
-and who holds power over the outcome — a test before you publish.
-
-**Example cases it handles well:**
-- **A product launch** — "We're open-weighting our model next Tuesday." Who
-  pushes back (enterprise IT, regulators, competitors), what they want, and
-  whether the ground is crowded or open.
-- **A price change** — "We're doubling the API price for existing customers."
-  Who challenges it, under what conditions they'd accept it, and your best
-  counter-move.
-- **A deprecation** — "We're removing the legacy API in 90 days." Who gets hurt,
-  how loud the pushback is, and whether the notice window is enough.
-- **An open-weight release** — "Weights ship under a permissive licence." Who
-  gains, who loses, and how competitive that space already is.
+Under the hood it is a clean-room implementation of eleven research ideas — from
+GraphRAG, Generative Agents, OASIS, MASS and CAMEL to Shapley counterfactual
+credits, forecasting calibration and negotiation benchmarking — that runs entirely
+on your machine. Every source is named with an identifier and its licence status in
+[CREDITS.md](CREDITS.md). No cloud graph service, no Docker, no stored
+credentials — see [How it works](#how-it-works) and the [repo layout](#repo-layout).
 
 ### What "local-first" means
 
-Everything runs on **your own machine**. Your decisions, documents, and results
-stay in a folder on your computer (`~/.hermes/upfront/`). Nothing is sent to a
+Everything runs on **your own machine**. Your documents and results stay in the
+plugin's own data root (`<hermes home>/plugin-data/upfront/`, per-profile when
+multiplexing). Nothing is sent to a
 cloud service, no account is required, and no data leaves unless you choose to
 fetch a URL or use your own model provider. You can unplug from the internet
 and still run a review (using a local model).
@@ -594,12 +575,13 @@ hermes plugins validate . --install-deps
 ## Repo layout
 
 ```
-upfront/                     # the repository id stays `upfront`; the product is Strategic Arena
+strategic-arena/             # product: Strategic Arena · plugin id: `upfront`
 ├── plugin.yaml              # plugin manifest: label, capabilities, provides_tools
 ├── __init__.py              # register(ctx): tools + ctx.llm bind
 ├── pyproject.toml           # no deps of our own — pydantic/fastapi are Hermes core
-├── LICENSE                  # MIT (LDMA Partners — see CREDITS for the layering)
+├── LICENSE                  # MIT — copyright Lisa Martin (LeMultiFox)
 ├── CREDITS.md               # every paper we implement, with ids and licence status
+├── CODE_OF_CONDUCT.md       # short, project-specific, enforceable
 ├── README.md                # what it is, the contract, the lens, the rules we hold to
 ├── dashboard/
 │   ├── manifest.json        # {"name": "upfront", "api": "plugin_api.py"}
@@ -610,8 +592,8 @@ upfront/                     # the repository id stays `upfront`; the product is
 ├── skills/                  # bundled preset packs + the review loop
 ├── data/presets/*.json      # demo presets
 ├── assets/                  # logo, banner, how-it-works (drawn here, MIT)
-├── docs/                    # UI.md, PRODUCT.md, POSITIONING.md, PROGRESS.md, catalog draft
-├── tests/                   # pytest suite — 213 tests, fake-LLM end-to-end
+├── docs/                    # UI.md, POSITIONING.md, PROGRESS.md, DEMO-SCRIPT.md, catalog draft
+├── tests/                   # pytest suite — 217 tests, fake-LLM end-to-end
 └── src modules:
     ingestion.py   artefact → personas (+ the lens: repo/post/whitepaper/…)
     agents.py      memory stream, retrieval, reflection, one turn
