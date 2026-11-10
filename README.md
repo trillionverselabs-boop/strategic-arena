@@ -417,6 +417,11 @@ What a user would want to know before installing, stated plainly:
   override. The host may route a pick it cannot serve to your active model instead of
   refusing; the run records both the requested and the actually-served model, and the report
   says so when they differ.
+- **No third-party packages:** the plugin declares no Python dependencies and no build system
+  (`pyproject.toml` is tooling-only). `pydantic` and `fastapi` are Hermes core requirements, and
+  everything else is the standard library — which also keeps a non-interactive install (the
+  desktop app's Install from Git dialog) from stopping at a dependency-consent prompt it cannot
+  answer.
 - **Credentials:** none stored, none read. All model access goes through the
   host's own `PluginLlm` facade — the same object `ctx.llm` is built from
   (`agent.plugin_llm.PluginLlm(plugin_id="upfront")`), used by the backend routes

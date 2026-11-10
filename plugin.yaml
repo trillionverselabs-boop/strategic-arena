@@ -25,7 +25,7 @@ provides_tools:
   - upfront_export
 capabilities:
   - llm.model_override
-# Python dependencies live in pyproject.toml (single source of truth):
-#   pydantic>=2.6,<3 · fastapi>=0.110,<1
-# Declaring them here too would diverge on the floor, and the validator reads
-# pyproject when both exist — a duplicate is dead config a reviewer will flag.
+# No Python dependencies are declared, on purpose: pydantic and fastapi are
+# Hermes core requirements, and a non-empty dependency list makes a
+# non-interactive install (the desktop Install from Git / reinstall dialog)
+# refuse its consent prompt and abort. See pyproject.toml for the detail.

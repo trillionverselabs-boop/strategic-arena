@@ -1,22 +1,29 @@
-[build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
+# Upfront declares NO build and NO Python dependencies, on purpose.
+#
+# Hermes' installer treats three things in this file as "installs packages":
+# a non-empty [project].dependencies, a [build-system] table, or extras /
+# dependency groups (pm/plugin_declarations.py: `installs = ("build-system" in
+# document or ...)`). Any of them makes install ask a dependency-consent
+# question — and a NON-INTERACTIVE install (the desktop app's Install from Git /
+# reinstall dialog runs without a TTY) refuses that question, which aborts the
+# whole install with:
+#   "Plugin 'upfront' was not published: Reinstall declined:
+#    dependency install skipped (non-interactive)."
+#
+# This plugin needs no packages of its own: pydantic and fastapi are Hermes CORE
+# requirements (pydantic==2.14.1, fastapi>=0.104,<1 in hermes-agent's pyproject),
+# and everything else is the standard library. So it is a tooling-only project:
+# no [build-system], no [tool.setuptools], `dependencies = []`.
+# Add a [build-system] back only if the plugin must install a package Hermes does
+# not already ship — and accept that the desktop dialog then needs an interactive
+# dependency prompt.
 
 [project]
 name = "hermes-upfront"
-version = "0.3.0"
+version = "0.4.6"
 description = "Upfront — strategic-response review for decisions: who can veto the move, their coalitions, your best response, and how contested the ground is."
 requires-python = ">=3.11"
-dependencies = [
-    "pydantic>=2.6,<3",
-    "fastapi>=0.110,<1",
-]
-
-[project.entry-points."hermes_agent.plugins"]
-upfront = "upfront"
-
-[tool.setuptools]
-packages = []
+dependencies = []
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
