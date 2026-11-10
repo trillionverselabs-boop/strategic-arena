@@ -267,6 +267,19 @@ def save_run(result: SimulationResult, report_md: str, frozen_jsonl: str,
         "degraded": result.degraded,
         "model": (manifest or {}).get("model", ""),
         "code_commit": (manifest or {}).get("code_commit", ""),
+        # the "so what" fields the result page leads with — everything a reader
+        # needs to act, without opening the full audit
+        "recommendation": result.recommendation,
+        "blocker_capacity": (round(result.blocker.capacity, 3)
+                             if result.blocker is not None and result.blocker.capacity is not None else None),
+        "counter_moves": result.counter_moves,
+        "interventions": result.interventions_shot,
+        "personas": [
+            {"name": p.name, "role": p.role, "stance": round(p.stance, 3),
+             "capacity": p.capacity, "reasons": p.reasons}
+            for p in result.personas
+        ],
+        "camps": result.camps,
     }, indent=1))
 
 

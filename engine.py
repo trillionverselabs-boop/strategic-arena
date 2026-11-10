@@ -94,7 +94,7 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
     graph.clear()
     for p in personas:
         graph.add_node(p.name, name=p.name, kind="persona", stance=round(p.stance, 3),
-                       role=p.role, reasons=p.reasons)
+                       capacity=p.capacity, role=p.role, reasons=p.reasons)
     for a, b, lbl in relationships:
         graph.add_edge(a, b, lbl)
     if not relationships:
@@ -127,7 +127,7 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
 
     for p in result.personas:
         graph.add_node(p.name, name=p.name, kind="persona", stance=round(p.stance, 3),
-                       role=p.role, reasons=p.reasons)
+                       capacity=p.capacity, role=p.role, reasons=p.reasons)
     graph.save()
 
     # 6. score + read the landscape

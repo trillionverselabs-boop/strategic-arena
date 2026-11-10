@@ -322,3 +322,38 @@ a plain "No model available" naming the reason. Every resolution writes one line
 
 This is the floor, not the preferred path: the agent binding stays first because the host owns
 provider routing and token refresh.
+
+---
+
+## The result page answers the question, and the graph explains itself (2026-11-09)
+
+The first real user ran a full 24h review and reported: *"40 minutes and I still don't know
+what was done or provided… the numbers mean nothing, what does the graph mean."* The run itself
+was sound (`degraded False`, model path `host-config` confirmed in the debug log) — the screen
+was not. Four defects, all fixed:
+
+- **No answer at the top.** The page opened with the raw audit: Stakeholders, then a Provenance
+  section repeating it, then Key events, then ten claims. Now a `VerdictCard` leads: competition
+  read, friction with a plain-language meaning ("A quiet room…", "A fight…"), **who can challenge
+  this** with their condition and their power, and **so what do I do**. The audit moved behind
+  "show the full audit".
+- **The graph was decoration.** Nodes were a radial blob with no axis, no legend, no size cue.
+  Now: position = stance on a labelled axis (against → behind it), **size = power to stop it**,
+  a dashed ring marks **your side** (parties grounded in the decision document), and
+  **coalitions are drawn as hulls** — GraphRAG's community idea applied to the party graph, so
+  the reader sees camps form instead of dots.
+- **Inject looked dead and had no visible effect.** The button was disabled until text existed,
+  with no explanation. It is now always available, says what it does, and after a run reports the
+  impact: `Injected ✓ — Finance +0.3 · Legal +0.2`.
+- **The form promised nothing about time.** Free models are rate-limited; the user spent 30
+  minutes on a 24h review with no warning. Timelines now carry realistic free-model ETAs
+  (30m ≈ 2–5 min … 24h ≈ 15–30 min) and selecting a free model shows a Callout.
+
+**Speed.** Parties act concurrently within a round (they only read the shared stance map), and
+reflection is parallel too — 112 sequential calls become ~16 × one-call latency. Two tests
+(`tests/test_parallel.py`) prove concurrency happens and results stay correct.
+
+Backend: `/report` now returns the summary fields (recommendation, counter-moves, personas,
+interventions, camps) so the page leads with the answer; graph nodes carry `capacity`.
+
+BUILD → `0.4.0 · ui6`. Suite 95 green.

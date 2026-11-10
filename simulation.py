@@ -4,10 +4,37 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, List
 
 from .agents import StakeholderAgent
 from .models import Event, Intervention, Scenario, SimulationResult, Snapshot
+
+# Parties act independently within a round — they only read the shared stance
+# map. Running them concurrently turns a 16-round × 7-party run (112 sequential
+# model calls) into ~16 × one-call latency, which is the difference between a
+# 30-minute review and a few minutes.
+MAX_WORKERS = 8
+
+
+def _act_in_parallel(agents: List[StakeholderAgent], title: str, stances: dict,
+                     rnd: int, llm) -> list:
+    def one(a):
+        return a, a.act(title, stances, rnd, llm)
+
+    if llm is None or len(agents) <= 1:
+        return [one(a) for a in agents]
+    with ThreadPoolExecutor(max_workers=min(MAX_WORKERS, len(agents))) as pool:
+        return list(pool.map(one, agents))
+
+
+def _reflect_in_parallel(agents: List[StakeholderAgent], rnd: int, llm) -> None:
+    if llm is None or len(agents) == 1:
+        for a in agents:
+            a.reflect(llm, rnd)
+        return
+    with ThreadPoolExecutor(max_workers=min(MAX_WORKERS, len(agents))) as pool:
+        list(pool.map(lambda a: a.reflect(llm, rnd), agents))
 
 
 def run_simulation(
@@ -50,8 +77,7 @@ def run_simulation(
 
         # each agent acts, seeing the current stance landscape
         stances = {a.p.name: a.p.stance for a in agents}
-        for a in agents:
-            move = a.act(scenario.title, stances, rnd, llm)
+        for a, move in _act_in_parallel(agents, scenario.title, stances, rnd, llm):
             a.p.stance = max(-1.0, min(1.0, a.p.stance + move["stance_delta"]))
             a.observe(move["text"] or move["action"], 0.4, rnd)
             if move["text"] or move["action"] != "waits":
@@ -69,8 +95,7 @@ def run_simulation(
 
         # lightweight reflection mid-run and at end (Smallville)
         if rnd == max(1, rounds // 2) or rnd == rounds:
-            for a in agents:
-                a.reflect(llm, rnd)
+            _reflect_in_parallel(agents, rnd, llm)
 
     return SimulationResult(
         title=scenario.title,

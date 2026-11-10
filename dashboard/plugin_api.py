@@ -194,7 +194,25 @@ async def report(run_id: str, full: bool = False):
     key = "report_full" if full else "report"
     if not data.get(key):
         raise HTTPException(status_code=404, detail="run not found or not finished")
-    return {"report": data[key], "full": full}
+    # The summary card reads these without parsing the markdown; the page leads
+    # with them, the audit is behind an expander.
+    meta = {}
+    try:
+        meta = json.loads((reporting.runs_dir() / run_id / "meta.json").read_text())
+    except Exception:
+        pass
+    return {
+        "report": data[key], "full": full,
+        "recommendation": meta.get("recommendation") or "",
+        "summary": meta.get("summary") or "",
+        "blocker": meta.get("blocker"),
+        "blocker_stance": meta.get("blocker_stance"),
+        "blocker_capacity": meta.get("blocker_capacity"),
+        "counter_moves": meta.get("counter_moves") or [],
+        "personas": meta.get("personas") or [],
+        "interventions": meta.get("interventions") or [],
+        "camps": meta.get("camps") or [],
+    }
 
 
 @router.get("/claims/{run_id}")
