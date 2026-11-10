@@ -1,6 +1,6 @@
 name: upfront
 label: Upfront Prediction
-version: "0.5.3"
+version: "0.5.4"
 manifest_version: 1
 kind: standalone
 requires_hermes: ">=0.23.0"

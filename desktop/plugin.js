@@ -41,7 +41,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.5.3 · ui15'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.5.4 · ui16'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
 const TAGLINE = 'Rehearse the reaction before you commit.'
 
@@ -615,6 +615,90 @@ function MovementChart({ snapshots, height = 190 }) {
   ]})
 }
 
+
+
+// ── who's making it hot right now ─────────────────────────────────────
+// The ledger on a live room: the same arithmetic, run on the stances as they
+// stand this round. Capacity is not assessed until the room closes, so the page
+// says so instead of letting the number look more final than it is.
+function LiveWorth({ lev }) {
+  if (!lev || !lev.available) return null
+  const parties = (lev.parties || []).filter(p => Math.abs(p.value) >= 0.5)
+  if (!parties.length) return null
+  const top = [...parties].sort((a, b) => Math.abs(b.value) - Math.abs(a.value)).slice(0, 3)
+  const largest = Math.max(...top.map(p => Math.abs(p.value)), 1)
+  const hot = parties.filter(p => !p.cools && p.value > 0)
+  const heat = hot.reduce((a, p) => a + p.value, 0)
+  const cools = parties.filter(p => p.cools).reduce((a, p) => a + p.value, 0)
+  return jsxs(Card, { children: [
+    jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
+      jsx('div', { className: T.h2, children: "Who's making it hot right now" }),
+      jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`,
+        children: lev.live ? 'live estimate · capacity assumed until the room closes' : lev.method }),
+    ]}),
+    jsx('div', { className: 'mt-1.5 flex flex-col', children: top.map(pp => {
+      const tone = pp.cools ? C.for : stanceTone(pp.stance).color
+      return jsxs('div', { className: 'grid grid-cols-[minmax(0,1fr)_54px] items-center gap-2 border-b border-(--ui-stroke-tertiary) py-1 last:border-b-0', children: [
+        jsxs('div', { className: 'flex min-w-0 items-center gap-1.5', children: [
+          jsx('span', { className: 'inline-block size-1.5 shrink-0 rounded-full', style: { backgroundColor: tone } }),
+          jsx('span', { className: `truncate ${T.small}`, children: pp.name }),
+          jsx('div', {
+            className: 'h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-(--ui-bg-quaternary)',
+            children: jsx('div', {
+              className: 'h-full rounded-full',
+              style: {
+                width: `${Math.abs(pp.value) / largest * 100}%`,
+                background: pp.cools
+                  ? `repeating-linear-gradient(45deg, ${C.for}66, ${C.for}66 3px, transparent 3px, transparent 6px)`
+                  : tone,
+              },
+            }),
+          }),
+        ]}),
+        jsx('span', { className: `text-right ${T.small} ${NUM}`, style: { color: textTone(tone) },
+          children: (pp.value > 0 ? '+' : '−') + Math.abs(pp.value).toFixed(1) }),
+      ]})
+    })}),
+    hot.length > 0 && jsxs('div', { className: `${T.micro} leading-relaxed text-(--ui-text-tertiary) mt-1.5`, children: [
+      hot.map(p => p.name).join(' and '),
+      ` carry${hot.length > 1 ? '' : 's'} ${heat.toFixed(1)} of the ${lev.attributable.toFixed(1)} points above a neutral room`,
+      cools ? ` — and ${Math.abs(cools).toFixed(1)} of that comes back out on the supporters' side` : '',
+      '. Nothing moves until one of them does.',
+    ]}),
+  ]})
+}
+
+// ── when to run longer, and the standard that does the job ─────────────
+// The timeline is not a "more is better" knob. Rounds confirm positions; they
+// rarely create them. So the guidance names what longer actually buys and when
+// it is wasted, and marks the one choice that covers most decisions.
+const TIMELINE_GUIDE = {
+  '30m':  { kind: 'short', best: 'an internal commit, one decision-maker, a quick "does anyone care?"' },
+  '1h':   { kind: 'short', best: 'a fast no — you only want the veto read.' },
+  '4h':   { kind: 'short', best: 'positions form; catches the obvious blocker.' },
+  '6h':   { kind: 'short', best: 'coalitions start to show.' },
+  '12h':  { kind: 'long',  best: 'counter-moves get tested across a working day.' },
+  '24h':  { kind: 'standard', best: 'a full reaction cycle — first reaction, coalition forming, counter-moves tested.' },
+  '48h':  { kind: 'long',  best: 'a dug-in veto player you need to watch for movement.' },
+}
+
+function TimelineHint({ window }) {
+  const g = TIMELINE_GUIDE[window] || TIMELINE_GUIDE['24h']
+  const tl = TIMELINES.find(t => t.v === window) || TIMELINES[5]
+  const tag = g.kind === 'standard' ? 'standard — the default, covers most decisions'
+    : g.kind === 'long' ? 'longer than most need'
+    : 'shorter than most need'
+  return jsxs('div', { className: 'flex flex-col gap-0.5 rounded-md border border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-2.5 py-2', children: [
+    jsxs('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: [
+      `${tl.label} · ${tl.rounds} rounds · ${tl.eta} on a free model — `,
+      jsx('span', { className: 'font-semibold text-(--ui-text-tertiary)', children: tag }),
+    ]}),
+    jsx('div', { className: `${T.micro} leading-relaxed text-(--ui-text-tertiary)`,
+      children: `Best for ${g.best}.` }),
+    jsx('div', { className: `${T.micro} leading-relaxed text-(--ui-text-quaternary)`,
+      children: 'Go longer only when the parties are external (regulators, partners, press, competitors), the move is public, or a veto player is dug in — longer buys movement, not more objections. Most rooms stop moving after 8–10 rounds, and the last 4 hours cost double.' }),
+  ]})
+}
 
 // ── what each party is worth (the leverage ledger) ─────────────────────
 // A party's price is a counterfactual, so it is computed from the room's own
@@ -1542,16 +1626,19 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
               value: urls, onChange: e => setUrls(e.target.value),
             }),
           }),
-
           jsxs('div', { className: 'grid grid-cols-2 gap-3', children: [
             jsx(Field, {
               label: 'Timeline',
               hint: `${tl.note} About ${tl.eta} on a free model.`,
-              children: jsxs(Select, { value: window, onValueChange: setWindow, children: [
-                jsx(SelectTrigger, { children: jsx(SelectValue, {}) }),
-                jsx(SelectContent, { children: TIMELINES.map(t => jsx(SelectItem, {
-                  key: t.v, value: t.v, children: `${t.label} — ${t.rounds} rounds`,
-                })) }),
+              children: jsxs('div', { className: 'flex flex-col gap-1.5', children: [
+                jsxs(Select, { value: window, onValueChange: setWindow, children: [
+                  jsx(SelectTrigger, { children: jsx(SelectValue, {}) }),
+                  jsx(SelectContent, { children: TIMELINES.map(t => jsx(SelectItem, {
+                    key: t.v, value: t.v,
+                    children: `${t.label} — ${t.rounds} rounds${t.v === '24h' ? ' · recommended' : ''}`,
+                  })) }),
+                ]}),
+                jsx(TimelineHint, { window }),
               ]}),
             }),
             jsx(Field, {
@@ -1874,6 +1961,8 @@ function UpfrontPage({ ctx }) {
         ]}),
         jsx(LiveFloor, { events: running.events }),
       ]}),
+
+      jsx(LiveWorth, { lev: running.leverage }),
 
       jsxs('div', { className: 'grid gap-3 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]', children: [
       Object.keys(running.stances || {}).length > 0 && jsxs(Card, { children: [

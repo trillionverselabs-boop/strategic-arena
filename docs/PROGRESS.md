@@ -735,3 +735,44 @@ asserted (`rgb(76,155,240)`).
 **Verified:** 174 tests green; `node --check` clean; `hermes plugins validate` passes;
 waterfall, ledger, concession cards and palette rendered against real run data and
 critiqued twice before shipping. BUILD → `0.5.3 · ui15`, version 0.5.3.
+
+---
+
+## The ledger is live, and the timeline is explained (2026-11-10, last)
+
+**Cost, measured — not estimated.** The ledger is exact Shapley over `2^n` subsets,
+memoised, and it is CPU-only:
+
+| parties | subsets | per ledger | vs one round (1–2 min of model time) |
+|---|---|---|---|
+| 5 | 32 | **0.51 ms** | 0.003% |
+| 6 | 64 | 0.91 ms | 0.005% |
+| 8 | 256 | 3.23 ms | 0.02% |
+| 10 | 1024 | 12.9 ms | 0.07% |
+| 12 | 4096 | 53.9 ms | 0.27% |
+| 16 (sampled, 2000 permutations) | — | 162.6 ms | 0.8% |
+
+A round costs one model call per party. So **the ledger is free at any room size
+this product will see** — which is why it is on the live page, not only on results.
+`GET /status/{run_id}` now carries `leverage`; on a live run it is computed from the
+stances as they stand, with capacity assumed (0.5), and the card says so:
+
+> live estimate · capacity assumed until the room closes
+
+**Timeline guidance, on the selection itself.** The modal no longer offers a bare
+dropdown. It marks the standard (`24 hours — 16 rounds · recommended`), says what
+each choice is best for, and prints the rule:
+
+> Go longer only when the parties are external (regulators, partners, press,
+> competitors), the move is public, or a veto player is dug in — longer buys
+> movement, not more objections. Most rooms stop moving after 8–10 rounds, and the
+> last 4 hours cost double.
+
+**Previous reviews use the same colours** because the history rows draw from
+`stanceTone()` and `frictionBand()`, which now read the brand palette; nothing in
+the list is hardcoded. The one leftover was the heat gauge gradient, still
+green→amber→red — now the same cool→warm ramp as the room.
+
+**Verified:** 174 tests green; `node --check` clean; `validate` passes; live ledger,
+timeline hint and the recommended tag rendered and confirmed in the harness.
+BUILD → `0.5.4 · ui16`, version 0.5.4.

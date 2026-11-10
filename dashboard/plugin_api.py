@@ -246,6 +246,24 @@ async def run(body: dict):
 @router.get("/status/{run_id}")
 async def status(run_id: str):
     prog = dict(engine.get_progress(run_id))
+    # What each party is worth, live. Arithmetic only — measured 0.5ms for a
+    # 5-party room against 1-2 minutes of model time per round, so there is no
+    # reason to hide the ledger until the room closes.
+    try:
+        run = reporting.load_run(run_id)
+        if (run.get("meta") or {}).get("personas"):
+            prog["leverage"] = leverage.ledger_for_run(run)
+        else:
+            live = prog.get("stances") or {}
+            prog["leverage"] = leverage.ledger([
+                {"name": n, "stance": s, "capacity": 0.5} for n, s in live.items()
+            ]) if live else {"available": False, "why": "the room has not been read yet"}
+            prog["leverage"]["live"] = True
+            prog["leverage"]["why"] = (
+                "live estimate — capacity is assumed (0.5) until the room closes and "
+                "each party's standing to stop you is assessed")
+    except Exception as exc:
+        prog["leverage"] = {"available": False, "why": f"could not be computed: {exc}"}
     try:
         meta = json.loads((reporting.runs_dir() / run_id / "meta.json").read_text())
         prog["sea"] = {
