@@ -41,7 +41,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.5.9 · ui21'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.0 · ui22'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -1320,6 +1320,13 @@ function unblockArtefact(condition) {
   return 'the specific thing their condition names, in writing, before you ask again'
 }
 
+// The blocker's own condition, in their words — the same sentence the verdict
+// panel prints, so the condensed view cannot tell a different story.
+function conditionLine(result) {
+  const blocker = (result.personas || []).find(p => p.name === result.blocker)
+  return blocker && blocker.reasons && blocker.reasons[0] ? blocker.reasons[0] : ''
+}
+
 function verdictHeadline(result) {
   const blocker = result.blocker
   const band = frictionBand(result.friction)
@@ -1580,6 +1587,139 @@ function UpdateCard({ uiBuild, onOpenPlugins }) {
     jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
       jsx('strong', { children: 'Or drop the file in yourself: ' }),
       'replace `%USERPROFILE%\\.hermes\\desktop-plugins\\upfront\\plugin.js`. The app watches that file and reloads the page in place.',
+    ]}),
+  ]})
+}
+
+
+// ── the demo path ─────────────────────────────────────────────────────
+// A judge has about sixty seconds. The first thing they should be able to do is
+// read a finished, scored session — not fill in a form. One click from cold start
+// to: what it meant, the call, who paid for it, and the claim that was graded.
+// Everything here is real run data; nothing is staged for the demo.
+
+function demoPick(history) {
+  const done = (history || []).filter(h => h && h.friction != null)
+  if (!done.length) return null
+  // a scored session first — the whole point is that this thing can be wrong
+  return done.find(h => h.verified && h.verified.verdict) || done[0]
+}
+
+function DemoCard({ best, onOpen }) {
+  if (!best) return null
+  const scored = best.verified && best.verified.verdict
+  return jsxs(Card, { children: [
+    jsxs('div', { className: 'flex flex-wrap items-center justify-between gap-3', children: [
+      jsxs('div', { className: 'flex flex-col gap-1', children: [
+        jsx(Label, { children: 'start here — a finished session' }),
+        jsx('div', { className: T.h2, children: best.title }),
+        jsxs('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: [
+          `${best.personas ? best.personas.length : 0} parties`,
+          ` · heat ${Number(best.friction).toFixed(0)}`,
+          best.blocker ? ` · ${best.blocker} can stop it` : ' · no single blocker',
+          scored ? ` · scored “${scored}”` : ' · awaiting its window',
+        ]}),
+      ]}),
+      jsx(PrimaryAction, { onClick: () => { haptic('tap'); onOpen(best.run_id, best.title) },
+        children: 'See the finished review' }),
+    ]}),
+    jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children:
+      'The real thing, on real text: what it means, the call, what each party is worth, and the claims frozen before anyone knew the answer. Esc to come back.' }),
+  ]})
+}
+
+// The condensed read: one screen, no scrolling required. The full session is one
+// click away for anyone who wants the waterfall and the transcript.
+function DemoReview({ result, onFull, onStart, onBack, record }) {
+  const claims = (result.claims || []).slice(0, 4)
+  const lev = result.leverage && result.leverage.available ? result.leverage : null
+  const top = lev ? lev.parties.filter(p => p.value > 0.5).slice(0, 3) : []
+  const band = frictionBand(result.friction)
+  const scored = result.verified && result.verified.verdict
+  return jsxs('div', { className: 'flex flex-col gap-3', children: [
+    jsxs('div', { className: 'flex flex-wrap items-center justify-between gap-2', children: [
+      jsxs('div', { className: 'flex flex-col gap-0.5', children: [
+        jsx(Label, { children: 'a finished session' }),
+        jsx('div', { className: T.h1, children: result.title }),
+      ]}),
+      jsxs('div', { className: 'flex items-center gap-1.5', children: [
+        jsx(Button, { variant: 'ghost', size: 'xs', onClick: onBack, children: '← back' }),
+        jsx(Button, { variant: 'ghost', size: 'xs', onClick: onFull, children: 'the full session' }),
+        jsx(PrimaryAction, { onClick: onStart, children: 'Start arena session' }),
+      ]}),
+    ]}),
+
+    // 1. what it means
+    result.read && result.read.claim && jsxs('div', { className: 'rounded-xl border border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-4 py-3', children: [
+      jsx(Label, { children: 'what it means' }),
+      jsx('div', { className: `${T.body} mt-1`, children: result.read.claim }),
+      result.read.opening ? jsxs('div', { className: `${T.small} text-(--ui-text-tertiary) mt-1`, children: [
+        jsx('span', { className: 'font-semibold', children: 'The opening: ' }), result.read.opening,
+      ]}) : null,
+    ]}),
+
+    // 2. the call
+    jsxs('div', { className: 'rounded-xl border border-(--ui-stroke-tertiary) px-4 py-3', style: {
+      borderLeft: `3px solid ${band.color}` }, children: [
+      jsxs('div', { className: 'flex flex-wrap items-baseline gap-2', children: [
+        jsx('span', { className: `${T.micro} font-semibold`, style: { color: textTone(band.color) },
+          children: `${band.name} · ${Number(result.friction).toFixed(0)}/100` }),
+        result.sea ? jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: result.sea.label }) : null,
+      ]}),
+      jsx('div', { className: `${T.h1} mt-1`, style: { fontSize: '1.125rem' }, children: verdictHeadline(result) }),
+      jsxs('div', { className: 'mt-2 grid gap-2 md:grid-cols-3', children: [
+        jsxs('div', { children: [
+          jsx('div', { className: T.label + ' text-(--ui-text-quaternary)', children: 'who can stop it' }),
+          jsx('div', { className: T.small, children: result.blocker || 'nobody with standing' }),
+        ]}),
+        jsxs('div', { children: [
+          jsx('div', { className: T.label + ' text-(--ui-text-quaternary)', children: 'what they need' }),
+          jsx('div', { className: T.small, children: conditionLine(result) || '—' }),
+        ]}),
+        jsxs('div', { children: [
+          jsx('div', { className: T.label + ' text-(--ui-text-quaternary)', children: 'your best move' }),
+          jsx('div', { className: T.small, children: (result.counterMoves || [])[0] || '—' }),
+        ]}),
+      ]}),
+    ]}),
+
+    // 3. who paid for it
+    top.length > 0 && jsxs('div', { className: 'rounded-xl border border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-4 py-3', children: [
+      jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
+        jsx(Label, { children: 'what each party is worth' }),
+        jsx('span', { className: `${T.micro} ${NUM} text-(--ui-text-quaternary)`, children: lev.method }),
+      ]}),
+      jsx('div', { className: 'mt-1 grid gap-1 sm:grid-cols-3', children: top.map(pp => jsxs('div', {
+        className: 'flex items-baseline gap-1.5', children: [
+          jsx('span', { className: 'inline-block size-1.5 rounded-full', style: { backgroundColor: stanceTone(pp.stance).color } }),
+          jsx('span', { className: `${T.small} truncate`, children: pp.name }),
+          jsx('span', { className: `${T.small} ${NUM} font-semibold`, style: { color: textTone(stanceTone(pp.stance).color) },
+            children: `+${pp.value.toFixed(1)}` }),
+          pp.veto ? jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'veto' }) : null,
+        ]}) ) }),
+    ]}),
+
+    // 4. the graded claim — the part nobody else ships
+    claims.length > 0 && jsxs('div', { className: 'rounded-xl border px-4 py-3', style: {
+      borderColor: scored ? `color-mix(in srgb, ${C.for} 40%, transparent)` : 'var(--ui-stroke-tertiary)',
+      background: scored ? `color-mix(in srgb, ${C.for} 7%, transparent)` : 'transparent' }, children: [
+      jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
+        jsx(Label, { children: 'frozen before the answer was known' }),
+        scored
+          ? jsx('span', { className: `${T.small} font-semibold`, style: { color: textTone(C.for) },
+              children: `graded “${scored}”` })
+          : jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: dueAt({ created_at: result.createdAt, window: result.window }) ? `scored ${until(dueAt({ created_at: result.createdAt, window: result.window }))}` : 'opens later' }),
+      ]}),
+      jsx('div', { className: 'mt-1 flex flex-col', children: claims.map(c => jsxs('div', {
+        className: 'flex items-baseline gap-2 border-t border-(--ui-stroke-tertiary) py-1 first:border-t-0 first:pt-0',
+        children: [
+          jsx('span', { className: `${T.small} flex-1`, children: c.claim }),
+          c.probability != null ? jsx('span', { className: `${T.micro} ${NUM} text-(--ui-text-tertiary)`, children: `${Math.round(c.probability * 100)}%` }) : null,
+        ]}) ) }),
+      jsxs('div', { className: `${T.micro} text-(--ui-text-quaternary) mt-1`, children: [
+        'That is the claim we were willing to be marked on. A session you can grade beats a report you have to trust.',
+        record && record.hit_rate != null ? ` Track record: ${record.hit_rate}% on ${record.scored || 0} scored sessions.` : '',
+      ]}),
     ]}),
   ]})
 }
@@ -1850,6 +1990,7 @@ function UpfrontPage({ ctx }) {
   const [showExplainer, setShowExplainer] = React.useState(true)
   const [running, setRunning] = React.useState(null)
   const [result, setResult] = React.useState(null)
+  const [demo, setDemo] = React.useState(false)   // condensed finished-review view
   const [history, setHistory] = React.useState([])
   const [compare, setCompare] = React.useState(null)
   const [showCompare, setShowCompare] = React.useState(true)
@@ -2055,6 +2196,8 @@ function UpfrontPage({ ctx }) {
 
     // ── idle home ────────────────────────────────────────────────────
     !running && !result && jsx(Hero, { onStart: () => { haptic('tap'); setModal(true) } }),
+    !running && !result && jsx(DemoCard, { best: demoPick(history),
+      onOpen: (id, title) => { setDemo(true); openRun(id, title) } }),
     !running && !result && showExplainer && jsx(WhatYouGet, {}),
 
     // ── live run ─────────────────────────────────────────────────────
@@ -2134,7 +2277,13 @@ function UpfrontPage({ ctx }) {
     running && running.error && jsx(Callout, { icon: 'error', tone: 'var(--destructive)', title: 'Run failed', children: running.error }),
 
     // ── finished result ──────────────────────────────────────────────
-    result && jsxs('div', { className: 'flex flex-col gap-3', children: [
+    demo && result && jsx(DemoReview, {
+      result, record,
+      onBack: () => { setDemo(false); setResult(null) },
+      onFull: () => setDemo(false),
+      onStart: () => { haptic('tap'); setDemo(false); setResult(null); setModal(true) },
+    }),
+    result && !demo && jsxs('div', { className: 'flex flex-col gap-3', children: [
       jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
         jsxs('div', { className: 'flex flex-col', children: [
           jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'review' }),

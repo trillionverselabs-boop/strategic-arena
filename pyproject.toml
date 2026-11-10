@@ -20,7 +20,7 @@
 
 [project]
 name = "hermes-upfront"
-version = "0.5.9"
+version = "0.6.0"
 description = "Strategic Arena — read the landscape before it reads you: give it an artefact (README, post, whitepaper, announcement) and it returns the room that reacts, who holds power, what each condition costs, and the frozen call."
 requires-python = ">=3.11"
 dependencies = []

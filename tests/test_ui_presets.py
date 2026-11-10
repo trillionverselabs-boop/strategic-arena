@@ -23,7 +23,7 @@ def test_form_says_what_a_run_costs():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.5.9 · ui21" in UI.read_text()
+    assert "0.6.0 · ui22" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -121,7 +121,7 @@ def test_the_input_is_an_artefact_not_a_decision_form():
     # the lens is offered, and the buttons agree with each other
     assert "const KINDS = [" in js
     assert "const KIND_ROOM = {" in js
-    assert js.count("Start arena session") == 2
+    assert js.count("Start arena session") >= 2
 
 
 def test_the_result_leads_with_meaning_and_the_agreement_case():
@@ -139,6 +139,24 @@ def test_the_result_leads_with_meaning_and_the_agreement_case():
     assert js.index("jsx(OnYourSide") < js.index("jsx(HeatLedger")
     # a supporter's own words carry the argument, not a paraphrase
     assert "(p.reasons || [])[0]" in js
+
+
+def test_the_demo_path_is_one_click_from_a_cold_start():
+    """A judge has sixty seconds: the first thing they can do is read a finished,
+    scored session, not fill in a form."""
+    js = UI.read_text()
+    assert "function DemoCard(" in js
+    assert "function DemoReview(" in js
+    assert "start here — a finished session" in js
+    assert "See the finished review" in js
+    # it sits on the idle home, above the output contract
+    assert js.index("jsx(DemoCard") < js.index("jsx(WhatYouGet")
+    # the condensed view can always escape to the full session or a new one
+    assert "the full session" in js
+    # scored sessions are preferred: the point is that this thing can be wrong
+    assert "h.verified && h.verified.verdict" in js
+    # the demo carries the graded claim, not just the verdict
+    assert "frozen before the answer was known" in js
 
 
 def test_history_does_not_eat_the_page():
