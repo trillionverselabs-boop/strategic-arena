@@ -20,9 +20,9 @@ itself.
 
 **Submitted by the repository owner.** I'm Lisa — `LeMultiFox` in the Nous Research
 Discord, and `trillionverselabs-boop` is the org this repo lives in. TrillionVerse
-Labs is the studio name the work is made under; **LDMA Partners** is the entity that
-holds the copyright and signs for it. Same person behind all three, and the README
-says so plainly rather than making a reviewer work it out.
+Labs is the studio name the work is made under. The copyright is mine personally;
+**LDMA Partners** is the entity that receives prize payments where applicable. The
+README says which is which rather than making a reviewer work it out.
 
 Repo: https://github.com/trillionverselabs-boop/upfront-test
 Pinned: `<SHA>` (full 40-char commit — see the entry)
@@ -72,7 +72,8 @@ Legal moves the call from a fight to quiet ground with no veto left.
 
 ## Licensing and attribution
 
-MIT, copyright **LDMA Partners** (studio: TrillionVerse Labs; author: LeMultiFox).
+MIT, copyright **Lisa Martin (LeMultiFox)** — studio: TrillionVerse Labs; prize
+payouts where applicable: LDMA Partners.
 **`CREDITS.md` cites every paper the design
 draws on**, with identifiers — CAMEL, OASIS, MASS, GraphRAG, Generative Agents,
 Shapley Counterfactual Credits, Market Regime Council, two forecasting/Brier papers,

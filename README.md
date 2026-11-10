@@ -15,6 +15,22 @@
 >
 > **Not a prediction. Not a guarantee. A scored read of the room.**
 
+### See it
+
+![The finished review — the call, the priced ledger, the frozen claims](assets/how-it-works.png)
+
+Two minutes, one link, no account. The demo path is the point: **open the plugin,
+land on a finished, scored session in one click** — what it meant, the call, what
+each party was worth, and the claim that got graded.
+
+<!-- DEMO VIDEO — drop the file here and uncomment. Record with docs/DEMO-SCRIPT.md.
+<video src="assets/demo.mp4" poster="assets/how-it-works.png" controls muted
+       width="100%" aria-label="Strategic Arena — 60 second demo"></video>
+-->
+
+*The screen recording goes here once the last round of testing lands. Until then,
+`assets/how-it-works.png` above is the whole flow in one frame.*
+
 ### Why a room, not a chat
 
 Most AI tools act as conversational search engines. Strategic Arena runs a
@@ -630,10 +646,13 @@ Three names, three jobs, and none of them hides behind another:
 |---|---|---|
 | **LeMultiFox** | the author | the handle the community knows; credit and questions live here |
 | **TrillionVerse Labs** | the studio | the name the work is made under |
-| **LDMA Partners** | the owner | holds the copyright and the licence grant — the entity that can sign |
+| **Lisa Martin** | the copyright holder | owns this code personally; the licence grant is hers |
+| **LDMA Partners** | the payout path | receives prize and commercial payments where applicable — not the owner |
 
-If you need to contract with someone about this code, that is LDMA Partners. If you
-want to talk to the person who wrote it, that is me.
+The code is mine, personally. If a prize has to be paid to an entity, or a contract
+has to be signed, that goes through LDMA Partners; the copyright does not move
+unless there is a written assignment. I'd rather say that here than have it
+discovered in a payout form.
 
 I built it because I kept doing the same thing badly: shipping a post, a launch, a
 README, and finding out who it annoyed *after* it was public. Everything here is

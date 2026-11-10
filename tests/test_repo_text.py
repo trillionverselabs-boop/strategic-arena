@@ -104,20 +104,34 @@ def test_no_mirofish_code_is_actually_here():
     assert not hits, hits
 
 
-def test_the_licence_is_mit_and_names_the_entity_that_can_sign():
-    """Credit, studio and owner are three different things — a prize, a contract
-    or an IP assignment lands on the entity, so the licence must name it."""
+def test_the_licence_names_the_person_who_owns_it():
+    """The copyright is the author's, personally. A studio is a name, and a prize
+    entity is a payout path — neither owns the code unless something says so."""
     assert LICENSE.startswith("MIT License")
-    assert "Copyright (c) 2026 LDMA Partners" in LICENSE
-    assert "TrillionVerse Labs" in LICENSE      # the studio name, stated not implied
-    assert "LeMultiFox" in LICENSE               # the author, stated not implied
+    assert "Copyright (c) 2026 Lisa Martin (LeMultiFox)" in LICENSE
+    assert "TrillionVerse Labs" in LICENSE       # the studio, stated not implied
+    assert "LDMA Partners" in LICENSE            # the payout path, stated not implied
+    assert "not the copyright holder" in LICENSE
+    assert "written assignment" in LICENSE
 
 
 def test_credit_studio_and_owner_are_all_named_in_the_readme():
     assert "LeMultiFox" in README
     assert "TrillionVerse Labs" in README
     assert "LDMA Partners" in README
-    assert "holds the copyright" in README
+    assert "owns this code personally" in README
+
+
+def test_there_is_a_place_for_the_demo_and_a_script_to_record_it():
+    """The demo is the pitch. The slot exists before the file does, so the video
+    lands in one commit instead of a redesign."""
+    assert "### See it" in README
+    assert "assets/how-it-works.png" in README          # a frame until the video lands
+    assert "DEMO-SCRIPT.md" in README
+    script = (ROOT / "docs" / "DEMO-SCRIPT.md").read_text()
+    for beat in ("The claim", "The price", "The record", "The lens"):
+        assert beat in script, beat
+    assert "Don't hide the `n`" in script
 
 
 def test_the_readme_names_the_person_behind_it():

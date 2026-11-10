@@ -64,9 +64,10 @@ host environment. The desktop half imports only `@hermes/plugin-sdk`, `react` an
 
 ## Licence
 
-MIT. Copyright (c) 2026 **LDMA Partners**, who hold the copyright and grant the
-licence. TrillionVerse Labs is the studio name this work is made under; LeMultiFox
-is the author. A commercial or contractual question goes to LDMA Partners; a
-question about the code goes to LeMultiFox.
+MIT. Copyright (c) 2026 **Lisa Martin (LeMultiFox)**, who holds the copyright and
+grants the licence. TrillionVerse Labs is the studio name this work is made under.
+**LDMA Partners** is the entity that receives prize payouts and commercial payments
+where applicable — it is not the copyright holder, and nothing here assigns the
+work to it. A question about the code goes to LeMultiFox.
 
 See [LICENSE](LICENSE).
