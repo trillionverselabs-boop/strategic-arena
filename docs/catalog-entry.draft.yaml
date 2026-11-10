@@ -1,6 +1,6 @@
 name: upfront
 repo: https://github.com/trillionverselabs-boop/upfront-test   # must stay PUBLIC
-sha: 94d24dbe0c59e767b45d8b7903a0840b60994a57
+sha: 08eae0a4236d6e8eb17393a397f3fbe30b6e33e0
 title: Upfront Prediction
 description: >-
   See who can kill your plan before you ship it. Upfront Prediction is a
@@ -13,11 +13,11 @@ description: >-
 maintainer: LeMultiFox
 tier: community
 category: tools
-version: "0.5.0"
+version: "0.5.1"
 requires_hermes: ">=0.23.0"
-image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/94d24dbe0c59e767b45d8b7903a0840b60994a57/assets/banner.png
+image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/08eae0a4236d6e8eb17393a397f3fbe30b6e33e0/assets/banner.png
 screenshots:
-  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/94d24dbe0c59e767b45d8b7903a0840b60994a57/assets/how-it-works.png
+  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/08eae0a4236d6e8eb17393a397f3fbe30b6e33e0/assets/how-it-works.png
 platforms: []
 capabilities:
   provides_tools:
