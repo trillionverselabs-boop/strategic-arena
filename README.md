@@ -533,7 +533,7 @@ What that means in practice:
   install/update through the app, or a restart.
 - **Remote backend (app on Windows, Hermes on a Linux box).** Install the **desktop target on
   the machine running the app**: **Capabilities → Plugins → Install from Git** →
-  `trillionverselabs-boop/upfront-test`, with the **Desktop** component checked. That clones the
+  `trillionverselabs-boop/strategic-arena`, with the **Desktop** component checked. That clones the
   desktop half into the app machine's `desktop-plugins/`, exactly as a desktop-only repo would.
   The agent half stays installed on the server.
   Until that clone exists the Plugins page shows this plugin's Desktop half as

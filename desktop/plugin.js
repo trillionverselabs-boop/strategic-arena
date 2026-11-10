@@ -1636,7 +1636,7 @@ function UpdateCard({ uiBuild, onOpenPlugins }) {
     // so the update has to be the app's or the user's, never ours.
     jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
       jsx('strong', { children: 'In the app: ' }),
-      'Capabilities → Plugins → Install from Git → trillionverselabs-boop/upfront-test → tick Desktop → Install. The app copies the file and reloads it.',
+      'Capabilities → Plugins → Install from Git → trillionverselabs-boop/strategic-arena → tick Desktop → Install. The app copies the file and reloads it.',
     ]}),
     jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
       jsx('strong', { children: 'Or drop the file in yourself: ' }),

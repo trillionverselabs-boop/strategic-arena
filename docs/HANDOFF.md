@@ -6,7 +6,7 @@ Read this first in a new session. It is the shortest path from zero to productiv
 
 | | |
 |---|---|
-| Repo (private) | `https://github.com/trillionverselabs-boop/upfront-test` |
+| Repo (private) | `https://github.com/trillionverselabs-boop/strategic-arena` |
 | Local clone — **the only copy** | `/home/lisacore/work/upfront` (dir renamed so the package imports as `upfront`) |
 | Frozen backup | `https://github.com/trillionverselabs-boop/Upfront-Plugin-Original` (remote `original`) |
 | Plan (versioned) | `docs/plans/2026-11-09_upfront-gap-repair.md` |

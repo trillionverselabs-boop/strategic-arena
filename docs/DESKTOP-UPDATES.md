@@ -26,7 +26,7 @@ that was a lie, and it is why the button looked broken.
 **1. Update in the app** (preferred; the app does the copying)
 
 On the machine running the app: **Capabilities → Plugins → Install from Git** →
-`trillionverselabs-boop/upfront-test` → tick **Desktop** → Install. Then
+`trillionverselabs-boop/strategic-arena` → tick **Desktop** → Install. Then
 ⌘K → **Reload desktop plugins**. The app copies the file itself and reloads it.
 
 **2. Save the file over the copy** (fallback, one file)

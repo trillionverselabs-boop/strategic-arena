@@ -24,7 +24,7 @@ Labs is the studio name the work is made under. The copyright is mine personally
 **LDMA Partners** is the entity that receives prize payments where applicable. The
 README says which is which rather than making a reviewer work it out.
 
-Repo: https://github.com/trillionverselabs-boop/upfront-test
+Repo: https://github.com/trillionverselabs-boop/strategic-arena
 Pinned: `<SHA>` (full 40-char commit — see the entry)
 
 ## Why it is a plugin and not a prompt

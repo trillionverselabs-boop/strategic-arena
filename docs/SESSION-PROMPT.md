@@ -14,7 +14,7 @@ connects to the lisacore backend over SSH. Critical consequence: the app loads i
 (`desktop/plugin.js`) from the machine it runs on — it **cannot** copy a desktop half out of the
 remote lisacore backend. The desktop half must therefore be installed on the user's machine.
 
-**Repo.** `https://github.com/trillionverselabs-boop/upfront-test` — **PUBLIC**. Local clone (the
+**Repo.** `https://github.com/trillionverselabs-boop/strategic-arena` — **PUBLIC**. Local clone (the
 only copy): `/home/lisacore/work/upfront`, HEAD `f0a7af5`.
 
 ## The product
@@ -53,11 +53,11 @@ reality. **Not a prediction; a scored read of the room.** Local-first: it runs o
 1. `cd /home/lisacore/work/upfront && git status --short && git log --oneline -3` — expect clean at
    `f0a7af5`.
 2. Install the backend:
-   `hermes -p charlene plugins install trillionverselabs-boop/upfront-test --yes-deps --enable`
+   `hermes -p charlene plugins install trillionverselabs-boop/strategic-arena --yes-deps --enable`
    (public repo, no login). Expect one `llm.model_override` consent prompt; a non-interactive
    install fails closed on it, which is fine — the model picker then degrades to the active model.
 3. Tell the user to install the **desktop half** on their machine: Hermes desktop app →
-   **Capabilities → Plugins → Install from Git → `trillionverselabs-boop/upfront-test`** → tick
+   **Capabilities → Plugins → Install from Git → `trillionverselabs-boop/strategic-arena`** → tick
    **Desktop** → Install → **⌘K → Reload desktop plugins**.
 4. **Verify:** the header must read **`build 0.3.4 · ui5`**; the left nav must read
    **Strategic Arena**.

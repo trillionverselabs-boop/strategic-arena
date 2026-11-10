@@ -95,7 +95,7 @@ The user installs the UI copy themselves; the agent must never leave an install 
 
 ### Phase A — backend test (agent installs, tests, uninstalls)
 
-1. Agent: `hermes plugins install trillionverselabs-boop/upfront-test --yes-deps --enable`
+1. Agent: `hermes plugins install trillionverselabs-boop/strategic-arena --yes-deps --enable`
    (private repo: uses the `gh` login or `GITHUB_TOKEN` in the profile `.env`).
 2. Agent: `hermes plugins list | grep upfront` → expect `enabled`, version `0.3.0`.
 3. User supplies **one URL** (repo README, blog post, or article).
@@ -111,7 +111,7 @@ The user installs the UI copy themselves; the agent must never leave an install 
 
 ### Phase B — user installs and tests the UI
 
-1. User: desktop → Capabilities → Plugins → install `trillionverselabs-boop/upfront-test`, enable.
+1. User: desktop → Capabilities → Plugins → install `trillionverselabs-boop/strategic-arena`, enable.
    Expect **one** consent prompt for `llm.model_override`.
 2. Header must read `build 0.3.0 · ui1`. If not: ⌘K → Reload desktop plugins.
 3. Recipe → `Use a sample` → timeline `24h` → Run. Expect: competition axis (Purple), friction bar,

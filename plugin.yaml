@@ -6,7 +6,7 @@ kind: standalone
 requires_hermes: ">=0.23.0"
 author: LeMultiFox
 license: MIT
-homepage: https://github.com/trillionverselabs-boop/upfront-test
+homepage: https://github.com/trillionverselabs-boop/strategic-arena
 tags: [strategy, stakeholders, artefact-review, reception, decision-review, local-first, research]
 description: >-
   Read the landscape before it reads you. Give it a link — a repo README, a launch
