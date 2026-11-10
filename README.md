@@ -1,4 +1,4 @@
-# Upfront (`upfront`)
+# Upfront Prediction (`upfront`)
 
 ![Upfront — strategic-response review](assets/banner.png)
 

@@ -1,5 +1,5 @@
 name: upfront
-label: Upfront
+label: Upfront Prediction
 version: "0.3.0"
 manifest_version: 1
 kind: standalone

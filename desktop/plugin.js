@@ -39,8 +39,8 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.3.2 · ui3'          // bump on every UI change — how you know the app reloaded
-const PRODUCT_NAME = 'Upfront'        // display only — one line to rename the product
+const BUILD = '0.3.3 · ui4'          // bump on every UI change — how you know the app reloaded
+const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
 
 const SEA = {
   red: { label: 'Red ocean', color: '#e5484d', level: 'high', meaning: 'everyone fighting for the same fish' },

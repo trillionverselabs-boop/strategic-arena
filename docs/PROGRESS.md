@@ -236,3 +236,14 @@ reads as part of Hermes rather than a page inside it.
 **Verified:** `node --check` clean; the headless render smoke test renders the page, the
 dialog and a finished result, asserting the SVG graph, the gradient competition axis, the
 Recent block, the claim rows and `<strong>` in the report. BUILD → `0.3.2 · ui3`.
+
+---
+
+## Rename — the product is "Upfront Prediction" (2026-11-09)
+
+The display name is **Upfront Prediction** everywhere a user reads it: the sidebar nav
+(`PRODUCT_NAME`), the plugin card (`plugin.yaml` `label`), the catalog entry `title`, and
+the README title. The plugin `id` stays `upfront` — tool names, the data dir and saved
+runs' provenance do not change.
+
+BUILD → `0.3.3 · ui4`.
