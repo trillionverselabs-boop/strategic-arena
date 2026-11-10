@@ -25,6 +25,11 @@ _LOCK = threading.Lock()
 _PROGRESS: Dict[str, dict] = {}
 _RESULTS: Dict[str, SimulationResult] = {}
 _INJECT: Dict[str, list] = {}
+_CANCEL: Dict[str, bool] = {}
+
+
+class SimulationCancelled(RuntimeError):
+    """The user stopped the run. Not an error — nothing is written to history."""
 
 
 def _emit(run_key: str, status: str, round_: int = 0, total: int = 0,
@@ -35,6 +40,20 @@ def _emit(run_key: str, status: str, round_: int = 0, total: int = 0,
             "progress": round((round_ / total) * 100) if total else 0,
             "stances": stances or {},
         }
+
+
+def cancel(run_id: str) -> bool:
+    """Ask a live run to stop at the next round boundary. False when not running."""
+    with _LOCK:
+        prog = _PROGRESS.get(run_id)
+        if prog is None or prog.get("status") not in ("running",):
+            return False
+        _CANCEL[run_id] = True
+        return True
+
+
+def _cancelled(run_id: str) -> bool:
+    return bool(_CANCEL.get(run_id))
 
 
 def inject(run_id: str, intervention: Intervention) -> bool:
@@ -114,12 +133,23 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
 
     _INJECT[key] = []
     try:
+        # a cancel is honoured between rounds: the current round finishes, then
+        # the run stops. Nothing partial is ever written to history.
+        def _check_cancel(snap):
+            _cb(snap)
+            if _cancelled(key):
+                raise SimulationCancelled("cancelled by the user")
+
         result = simulation.run_simulation(
-            scenario, personas, on_round=_cb, llm=llm,
+            scenario, personas, on_round=_check_cancel, llm=llm,
             injection_queue=_INJECT[key],
         )
+    except SimulationCancelled:
+        _emit(key, "cancelled", 0, scenario.rounds)
+        raise
     finally:
         _INJECT.pop(key, None)
+        _CANCEL.pop(key, None)
 
     if run_id:
         result.run_id = run_id

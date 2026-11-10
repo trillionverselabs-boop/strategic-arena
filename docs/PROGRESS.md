@@ -378,3 +378,29 @@ and the catalog entry.
 - **Catalog entry fixed.** The draft declared `capabilities.tools` and `hooks:`; the catalog schema
   is `provides_tools` / `provides_hooks` / `provides_middleware` / `requires_env`. It also gained
   `platforms`, the new pinned SHA, version 0.4.0 and the second screenshot.
+
+---
+
+## Cancel, and text you can actually read (2026-11-09)
+
+The retest screenshot showed `build 0.3.4 · ui5` — the desktop half had never updated, so the
+run was on the old UI. Two fixes, both real:
+
+- **Cancel.** A run that takes 15–30 minutes needs an exit. `POST /cancel/{run_id}` sets a flag
+  honoured *between* rounds (the in-flight round finishes, then the run stops), the status
+  becomes `cancelled`, and **nothing partial is ever written to history** — Past reviews only
+  ever holds complete runs. The UI shows a `Cancel run` button beside the inject row and a
+  "Run cancelled" note instead of a spinner that never ends. Four tests in
+  `tests/test_cancel.py`, including the no-write guarantee.
+- **Contrast.** The user could not read the screen. The desktop's background bleed-through is a
+  setting they like, so the fix is on the text: node labels are now near-white (`#f2f4f7`), 12.5px,
+  semibold, with a dark halo (`paintOrder: stroke`) so they survive over busy backgrounds; axis
+  labels, caption, legend, progress line, "loudest objector" line and result-page reasons all moved
+  off `--ui-text-tertiary` onto `#c7cdd6`. Five more UI guards.
+
+BUILD → `0.4.1 · ui7`. Suite 101 green.
+
+**Update path (the reason the retest ran the old UI):** the desktop half lives on the user's
+machine. `plugins update` on lisacore refreshes only the backend copy. The reliable path in the
+app is **Uninstall → Install from Git** (which installs both halves at the current commit), then a
+full quit and relaunch.

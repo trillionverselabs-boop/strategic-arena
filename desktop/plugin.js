@@ -39,7 +39,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.4.0 · ui6'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.4.1 · ui7'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
 
 const SEA = {
@@ -217,7 +217,7 @@ function layoutGraph(nodes, w, h) {
 }
 
 function GraphLegend() {
-  return jsxs('div', { className: 'flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.6875rem] text-(--ui-text-secondary)', children: [
+  return jsxs('div', { className: 'flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.75rem] text-(#c7cdd6)', children: [
     jsxs('span', { className: 'flex items-center gap-1', children: [
       jsx('span', { className: 'inline-block h-2 w-2 rounded-full', style: { backgroundColor: '#e5484d' } }),
       'against it',
@@ -242,7 +242,7 @@ function GraphLegend() {
 }
 
 function GraphCaption({ text }) {
-  return jsx('div', { className: 'mb-1 text-[0.6875rem] leading-snug text-(--ui-text-tertiary)', children: text })
+  return jsx('div', { className: 'mb-1 text-[0.75rem] font-medium leading-snug text-(#c7cdd6)', children: text })
 }
 
 function GraphSvg({ graph, height = 340, ownSide = [] }) {
@@ -290,12 +290,12 @@ function GraphSvg({ graph, height = 340, ownSide = [] }) {
           style: { stroke: 'var(--ui-stroke-tertiary)', strokeWidth: 1.5 } }),
         jsx('line', { x1: w - 16, y1: height - 33, x2: w - 16, y2: height - 23,
           style: { stroke: 'var(--ui-stroke-tertiary)', strokeWidth: 1.5 } }),
-        jsx('text', { x: 40, y: height - 10, textAnchor: 'start', fontSize: '10',
-          style: { fill: 'var(--ui-text-tertiary)' }, children: 'against' }),
-        jsx('text', { x: w / 2, y: height - 10, textAnchor: 'middle', fontSize: '10',
-          style: { fill: 'var(--ui-text-tertiary)' }, children: 'neutral' }),
-        jsx('text', { x: w - 16, y: height - 10, textAnchor: 'end', fontSize: '10',
-          style: { fill: 'var(--ui-text-tertiary)' }, children: 'behind it' }),
+        jsx('text', { x: 40, y: height - 10, textAnchor: 'start', fontSize: '12', fontWeight: 600,
+          style: { fill: '#c7cdd6' }, children: 'against' }),
+        jsx('text', { x: w / 2, y: height - 10, textAnchor: 'middle', fontSize: '12', fontWeight: 600,
+          style: { fill: '#c7cdd6' }, children: 'neutral' }),
+        jsx('text', { x: w - 16, y: height - 10, textAnchor: 'end', fontSize: '12', fontWeight: 600,
+          style: { fill: '#c7cdd6' }, children: 'behind it' }),
         ...hulls.map(hl => jsxs('g', { key: `hull-${hl.key}`, children: [
           jsx('rect', { x: hl.x, y: hl.y, width: hl.w, height: hl.h, rx: 12,
             style: { fill: hl.color, opacity: 0.07, stroke: hl.color, strokeWidth: 1.2, strokeDasharray: '3 3' } }),
@@ -322,9 +322,11 @@ function GraphSvg({ graph, height = 340, ownSide = [] }) {
             jsx('text', { x: n.x, y: n.y + 3, textAnchor: 'middle', fontSize: '10', fill: '#fff',
               children: `${n.stance >= 0 ? '+' : ''}${(n.stance || 0).toFixed(1)}` }),
             jsx('text', {
-              x: n.x, y: labelBelow.has(n.id) ? n.y + n.r + 14 : n.y - n.r - 6,
-              textAnchor: 'middle', fontSize: '11',
-              style: { fill: 'var(--ui-text)' }, children: n.name,
+              x: n.x, y: labelBelow.has(n.id) ? n.y + n.r + 15 : n.y - n.r - 7,
+              textAnchor: 'middle', fontSize: '12.5', fontWeight: 600,
+              style: { fill: '#f2f4f7', paintOrder: 'stroke',
+                       stroke: 'rgba(5,7,10,.85)', strokeWidth: 3.5,
+                       strokeLinejoin: 'round' }, children: n.name,
             }),
           ],
         })),
@@ -436,7 +438,7 @@ function VerdictCard({ result }) {
       sea.meaning + ' ',
       jsx('span', { className: 'text-(--ui-text-tertiary)', children: sea.why || '' }),
     ]}),
-    result.friction != null && jsx('p', { className: 'mt-1 text-[0.6875rem] leading-snug text-(--ui-text-tertiary)',
+    result.friction != null && jsx('p', { className: 'mt-1 text-[0.75rem] leading-snug text-(#c7cdd6)',
       children: frictionMeaning(result.friction) }),
 
     // who can actually stop it — the sentence the reader came for
@@ -822,11 +824,21 @@ function UpfrontPage({ ctx }) {
         setStartedAt(null)
         refreshHistory()
         await openRun(runId)
+      } else if (st.status === 'cancelled') {
+        clearInterval(iv)
+        setRunning({ runId, progress: 0, cancelled: true })
+        setStartedAt(null)
       } else if (st.status === 'failed') {
         clearInterval(iv)
         setRunning({ runId, progress: 0, error: st.error || 'failed' })
       }
     }, 800)
+  }
+
+  async function cancelRun() {
+    if (!running) return
+    haptic('tap')
+    await ctx.rest(`/cancel/${running.runId}`, { method: 'POST' }).catch(() => {})
   }
 
   async function inject() {
@@ -888,10 +900,10 @@ function UpfrontPage({ ctx }) {
       jsxs('div', { className: 'flex items-center justify-between', children: [
         jsx('div', { className: 'text-sm font-medium',
           children: running.progress >= 100 ? 'Finishing — writing the report' : 'Review in progress' }),
-        jsx('div', { className: 'text-xs text-(--ui-text-tertiary)',
+        jsx('div', { className: 'text-xs font-medium text-(#c7cdd6)',
           children: running.total ? `Round ${running.round} of ${running.total} — ${running.progress}%` : `${running.progress}%` }),
       ]}),
-      jsxs('div', { className: 'text-[0.6875rem] text-(--ui-text-tertiary)', children: [
+      jsxs('div', { className: 'text-[0.75rem] text-(#c7cdd6)', children: [
         startedAt ? `Started ${Math.max(1, Math.round((Date.now() - startedAt) / 60000))} min ago` : '',
         loudestObjector() ? ` · loudest objector: ${loudestObjector().name} (${loudestObjector().stance >= 0 ? '+' : ''}${loudestObjector().stance.toFixed(1)})` : '',
         running.progress >= 100 ? ' · nearly there' : '',
@@ -908,11 +920,18 @@ function UpfrontPage({ ctx }) {
         }),
         jsx(Button, { onClick: inject, children: 'Inject ⚡' }),
       ]}),
-      jsx('div', { className: 'text-[0.6875rem] leading-snug text-(--ui-text-tertiary)',
-        children: 'You can change the situation at any point while it runs — announce a concession, publish something first, bring a champion forward. The dots move next round.' }),
-      injectHint && jsx('div', { className: 'text-[0.75rem] text-(--ui-warning, #f5a524)', children: injectHint }),
+      jsx('div', { className: 'flex items-center justify-between gap-2', children: [
+        jsx('div', { className: 'text-[0.75rem] leading-snug text-(--ui-text-secondary)',
+          children: 'Change the situation while it runs — announce a concession, publish something first, bring a champion forward. The dots move next round.' }),
+        jsx(Button, { size: 'xs', variant: 'outline', onClick: cancelRun, children: 'Cancel run' }),
+      ]}),
+      injectHint && jsx('div', { className: 'text-[0.75rem] text-(#f5a524)', children: injectHint }),
       injectImpact && jsx('div', { className: 'text-[0.75rem] text-(--ui-text-secondary)', children: injectImpact }),
     ]}),
+    running && running.cancelled && jsx(Callout, { icon: 'info', tone: 'var(--ui-accent)',
+      title: 'Run cancelled',
+      children: 'Stopped before it finished — nothing was written to your Past reviews, so your history only ever holds complete runs.' }),
+
     running && running.error && jsx(Callout, { icon: 'error', tone: 'var(--destructive)', title: 'Run failed', children: running.error }),
 
     // finished result — the "so what" comes first; the audit is behind a toggle
@@ -936,7 +955,7 @@ function UpfrontPage({ ctx }) {
                     style: { color: stanceColor(p.stance) },
                     children: `${p.stance >= 0 ? '+' : ''}${Number(p.stance).toFixed(2)}` }),
                 ]}),
-                p.reasons?.[0] && jsx('div', { className: 'text-[0.6875rem] leading-snug text-(--ui-text-tertiary)',
+                p.reasons?.[0] && jsx('div', { className: 'text-[0.75rem] leading-snug text-(#c7cdd6)',
                   children: p.reasons[0] }),
               ],
             })) }),
@@ -945,7 +964,7 @@ function UpfrontPage({ ctx }) {
 
       result.claims && result.claims.length > 0 && jsxs(Card, { children: [
         jsx('div', { className: 'text-sm font-medium', children: 'Score the claims — did the review call it?' }),
-        jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-tertiary)',
+        jsx('div', { className: 'text-[0.75rem] text-(#c7cdd6)',
           children: 'These were frozen when the run finished. Mark each right or wrong when the window closes — that is how the rehearsal gets better.' }),
         ...(showAllClaims ? result.claims : result.claims.slice(0, 4)).map(c => jsxs('div', { key: c.id, className: 'mt-1 flex items-start gap-2 text-xs', children: [
           jsx('span', { className: 'flex-1 text-(--ui-text-secondary)', children: c.claim }),

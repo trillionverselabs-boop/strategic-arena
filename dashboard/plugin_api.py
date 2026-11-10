@@ -138,6 +138,8 @@ async def run(body: dict):
             )
             engine._emit(run_id, "done", result.rounds, result.rounds,
                          {p.name: round(p.stance, 3) for p in result.personas})
+        except engine.SimulationCancelled:
+            engine._emit(run_id, "cancelled", 0, scenario.rounds)
         except Exception as exc:
             engine._emit(run_id, "failed", 0, scenario.rounds)
             with engine._LOCK:
@@ -162,6 +164,12 @@ async def status(run_id: str):
     except Exception:
         pass
     return prog
+
+
+@router.post("/cancel/{run_id}")
+async def cancel(run_id: str):
+    """Stop a live run at the next round boundary. Nothing partial is saved."""
+    return {"ok": engine.cancel(run_id), "run_id": run_id}
 
 
 @router.post("/inject/{run_id}")

@@ -23,7 +23,7 @@ def test_recommendation_sits_below_the_cost_line():
 
 
 def test_build_stamp_is_the_test_protocol_one():
-    assert "0.4.0 · ui6" in UI.read_text()
+    assert "0.4.1 · ui7" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -54,3 +54,19 @@ def test_free_model_slowness_is_said_out_loud():
     js = UI.read_text()
     assert "Free models are rate-limited and slow" in js
     assert "eta:" in js
+
+
+def test_cancel_is_offered_during_a_run():
+    js = UI.read_text()
+    assert "Cancel run" in js
+    assert "Run cancelled" in js
+    assert "/cancel/" in js
+
+
+def test_the_run_screen_is_readable_over_a_busy_background():
+    """Node labels carry a halo and near-white fill — the bleed-through is a
+    desktop setting the user likes, so the text has to survive on top of it."""
+    js = UI.read_text()
+    assert "paintOrder: 'stroke'" in js
+    assert "#f2f4f7" in js
+    assert "text-(#c7cdd6)" in js
