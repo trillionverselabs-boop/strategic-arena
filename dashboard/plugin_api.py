@@ -261,6 +261,32 @@ async def calibration():
     return reporting.calibration()
 
 
+@router.get("/model-access")
+async def model_access():
+    """Whether the host will honour a model chosen in the picker.
+
+    Reads exactly what the enforcer reads (`PluginLlm` → `plugins.entries.<id>.llm`),
+    so the form can warn before a run instead of the user discovering it after.
+    Never returns credentials — this is a boolean about a permission.
+    """
+    allowed = False
+    allowed_models: list[str] = []
+    try:
+        from hermes_cli.config import load_config_readonly
+
+        plugins_cfg = (load_config_readonly() or {}).get("plugins") or {}
+        entry = ((plugins_cfg.get("entries") or {}).get("upfront") or {})
+        llm_cfg = entry.get("llm") or {}
+        allowed = bool(llm_cfg.get("allow_model_override"))
+        raw = llm_cfg.get("allowed_models")
+        if isinstance(raw, (list, tuple)):
+            allowed_models = [str(x) for x in raw]
+    except Exception:
+        pass
+    return {"allowed": allowed, "allowed_models": allowed_models,
+            "config_key": "plugins.entries.upfront.llm.allow_model_override"}
+
+
 @router.get("/models")
 async def models(free: bool = False):
     """Live Nous model catalogue with per-million-token prices (public, no creds)."""

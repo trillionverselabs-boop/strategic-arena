@@ -39,7 +39,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.4.2 · ui8'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.4.3 · ui9'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
 
 const SEA = {
@@ -506,9 +506,14 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
   const [models, setModels] = React.useState([])
   const [modelId, setModelId] = React.useState('')
   const [freeOnly, setFreeOnly] = React.useState(false)
+  const [modelAccess, setModelAccess] = React.useState(null)
   const [note, setNote] = React.useState('')
   const [busy, setBusy] = React.useState(false)
   const [error, setError] = React.useState('')
+
+  React.useEffect(() => {
+    ctx.rest('/model-access').then(setModelAccess).catch(() => setModelAccess(null))
+  }, [])
 
   React.useEffect(() => {
     ctx.rest('/models').then(r => {
@@ -522,7 +527,9 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
   const visibleModels = freeOnly ? models.filter(m => m.free) : models
   const chosen = models.find(m => m.id === modelId)
   const perCall = chosen ? (700 / 1e6) * chosen.prompt_per_m + (120 / 1e6) * chosen.completion_per_m : 0
-  const cost = !chosen ? 'your active model' : chosen.free ? 'FREE' : `~$${(calls * perCall).toFixed(3)} at list price`
+  const cost = !chosen ? 'your active model'
+    : modelAccess && !modelAccess.allowed ? 'FREE (active model — choice not granted)'
+    : chosen.free ? 'FREE' : `~$${(calls * perCall).toFixed(3)} at list price`
   const hasInput = decision.trim().length > 0 || urls.trim().length > 0
 
   function applyRecipe(r) {
@@ -648,7 +655,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
             }),
             jsx(Field, {
               label: 'Model',
-              hint: 'Leave on active model to use whatever Hermes already runs. Free models cost nothing but have rate limits.',
+              hint: 'Leave on active model to use whatever Hermes already runs. Choosing a specific model is a host permission — without it the run uses your active model.',
               children: jsxs('div', { className: 'flex flex-col gap-1', children: [
                 jsxs(Select, { value: modelId || 'active', onValueChange: v => setModelId(v === 'active' ? '' : v), children: [
                   jsx(SelectTrigger, { children: jsx(SelectValue, {}) }),
@@ -667,6 +674,12 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
               ]}),
             }),
           ]}),
+
+          // the host gates model choice — warn BEFORE the run, not after it fails
+          chosen && modelAccess && !modelAccess.allowed && jsx(Callout, { icon: 'info',
+            tone: 'var(--ui-accent)',
+            title: 'The host has not granted model choice',
+            children: `This run will use your active model instead of ${chosen.name}. To let the picker choose, add "${modelAccess.config_key}: true" to config.yaml (a host permission, not a plugin setting).` }),
 
           // free models are the default here and they are SLOW — say so before
           // the user commits 30 minutes to a 24h review with no explanation

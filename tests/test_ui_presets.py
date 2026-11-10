@@ -23,7 +23,7 @@ def test_recommendation_sits_below_the_cost_line():
 
 
 def test_build_stamp_is_the_test_protocol_one():
-    assert "0.4.2 · ui8" in UI.read_text()
+    assert "0.4.3 · ui9" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -70,3 +70,11 @@ def test_the_run_screen_is_readable_over_a_busy_background():
     assert "paintOrder: 'stroke'" in js
     assert "#f2f4f7" in js
     assert "text-(#c7cdd6)" in js
+
+
+def test_the_form_warns_before_a_run_that_model_choice_is_gated():
+    js = UI.read_text()
+    assert "The host has not granted model choice" in js
+    assert "/model-access" in js
+    assert "config_key" in js
+    assert "Choosing a specific model is a host permission" in js

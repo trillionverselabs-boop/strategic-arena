@@ -480,3 +480,22 @@ Also: the real exception now reaches the user and `desktop-debug.log`; the "answ
 path is named too, so a free model that rambles is distinguishable from an unreachable model.
 
 BUILD → `0.4.2 · ui8`, version 0.4.3. Suite 114 green.
+
+---
+
+## The form says what the host will actually do (2026-11-09)
+
+Model choice was gated by the host and nobody found out until the run failed. Now it is stated
+before you commit:
+
+- **`GET /model-access`** reads exactly what the enforcer reads (`plugins.entries.upfront.llm`)
+  and returns a boolean plus the config key — no credentials, just a permission.
+- **The form warns when the picker will be ignored**: "The host has not granted model choice —
+  this run will use your active model instead of <model>. To let the picker choose, add
+  `plugins.entries.upfront.llm.allow_model_override: true` to config.yaml (a host permission,
+  not a plugin setting)."
+- The **cost line** tells the truth too: `FREE (active model — choice not granted)` instead of
+  quoting a price for a model that will not run.
+- The model field's own hint says it up front.
+
+BUILD → `0.4.3 · ui9`, version 0.4.4. Suite 115 green.
