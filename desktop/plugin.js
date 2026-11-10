@@ -41,9 +41,13 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.5.4 · ui16'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.5.5 · ui17'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
 const TAGLINE = 'Rehearse the reaction before you commit.'
+// The room has a name, and the name is the vocabulary: a session opens a
+// Strategic Arena, the Arena debates, the Arena closes and writes the call.
+const ARENA = 'Strategic Arena'
+const SESSION = 'session'
 
 // ── one type scale, used everywhere ───────────────────────────────────
 // Inside SVG, `fontFamily: 'inherit'` picks up the app's own font, so the
@@ -85,15 +89,19 @@ function PrimaryAction({ children, className, style, ...rest }) {
 // rose and blue are close in luminance, so a colour-blind reader loses nothing.
 const BRAND = {
   blue: '#4c9bf0',        // the accent, and "behind it"
-  blueDeep: '#2b6fc2',
-  blueSoft: 'rgba(62,146,232,.12)',
 }
+// Three meanings and a grey ramp. Violet used to mark "your side" and the
+// interventions — a fourth hue doing a job that a word and a ring already do,
+// and the one thing that made a page of charts read as a rainbow. Retired.
 const C = {
   against: '#d9538f',   // will block — rose, the warm end of the ramp
   hold: '#e5b54a',      // undecided / conditional
-  for: BRAND.blue,      // behind it
-  own: '#9b7be0',       // the parties your own document names
+  for: BRAND.blue,      // behind it, the primary action, and your own side
   ink: '#e8ecf2',       // label text on a canvas
+  grey: '#7d8798',      // the neutral floor, and a quiet room
+  // violet survives for exactly one job: the "purple ocean" badge on the field
+  // read. It never colours a party, so it never sits in the same chart as a
+  // stance and cannot muddy the ramp.
   halo: 'rgba(6,8,12,.86)',
 }
 const SEA = {
@@ -366,7 +374,7 @@ function powerWord(cap) {
 
 function frictionBand(f) {
   const n = Number(f) || 0
-  if (n < 20) return { name: 'A quiet room', color: '#6b7280',
+  if (n < 20) return { name: 'A quiet room', color: C.grey,
     why: 'Most of the people who matter are behind this — or nobody with power has engaged. That is good, and it is also why the frozen claims matter more than the score: quiet rooms can hide indifference.' }
   if (n < 45) return { name: 'Winnable ground', color: C.for,
     why: 'Somebody objects, but nobody is dug in. This is the band where a single good counter-move changes the outcome.' }
@@ -519,7 +527,7 @@ function RoomBoard({ nodes, previous, ownSide, blocker, deltas }) {
             jsxs('div', { className: `flex items-center gap-1 ${T.micro}`, children: [
               jsx('span', { style: { color: tone.color }, children: tone.word }),
               isBlocker ? jsx('span', { className: 'font-semibold', style: { color: C.against }, children: '· can stop it' }) : null,
-              own.has(n.name) ? jsx('span', { style: { color: C.own }, children: '· your side' }) : null,
+              own.has(n.name) ? jsx('span', { style: { color: C.for }, children: '· your side' }) : null,
             ]}),
           ]}),
           jsxs('div', { className: 'flex flex-1 flex-col gap-1.5 pt-1.5', children: [
@@ -737,9 +745,8 @@ function HeatWaterfall({ lev }) {
   const max = Math.max(...rows.map(r => Math.max(r.from, r.to))) * 1.02 || 1
   const H = top * 2 + rows.length * rowH
   const x = v => labelW + (v / max) * plotW
-  const NEUTRAL_INK = '#7d8798'   // the floor is nobody's colour — a grey
   const toneOf = r => r.kind === 'total' ? C.ink
-    : r.kind === 'base' ? NEUTRAL_INK
+    : r.kind === 'base' ? C.grey
     : r.kind === 'down' ? C.for : r.tone
   return jsxs('svg', { viewBox: `0 0 ${W} ${H}`, className: 'w-full', style: { fontFamily: 'inherit' },
     children: [
@@ -1001,7 +1008,7 @@ function QuoteLine({ e, tone }) {
   return jsxs('div', { className: 'flex gap-2.5 py-1.5', children: [
     jsxs('div', { className: 'flex w-[8.5rem] shrink-0 flex-col', children: [
       jsx('span', { className: `truncate ${T.micro} font-semibold`, title: e.actor,
-        style: isGod ? { color: C.own } : undefined,
+        style: isGod ? { color: C.for } : undefined,
         children: isGod ? 'You' : e.actor }),
       jsx('span', { className: `${T.micro}`, style: { color: verbTone || 'var(--ui-text-quaternary)' },
         children: ACTION_WORD[e.action] || e.action }),
@@ -1043,7 +1050,7 @@ function Transcript({ events, rounds, openRound }) {
 
 const ACTION_TONE = {
   blocks: C.against, supports: C.for, shares: C.hold,
-  waits: C.hold, intervention: C.own,
+  waits: C.hold, intervention: C.for,
 }
 
 // The two voices that decide the room, quoted. A stance word without the
@@ -1080,10 +1087,10 @@ function LiveFloor({ events }) {
       const isGod = e.actor === '<god>'
       return jsxs('div', { className: 'flex gap-2.5', children: [
         jsx('span', { className: 'mt-1.5 inline-block size-1.5 shrink-0 rounded-full',
-          style: { backgroundColor: isGod ? C.own : 'var(--ui-accent)' } }),
+          style: { backgroundColor: isGod ? C.for : 'var(--ui-accent)' } }),
         jsxs('div', { className: 'flex flex-1 flex-col', children: [
           jsxs('div', { className: 'flex items-baseline gap-1.5', children: [
-            jsx('span', { className: `${T.micro} font-semibold`, style: isGod ? { color: C.own } : undefined,
+            jsx('span', { className: `${T.micro} font-semibold`, style: isGod ? { color: C.for } : undefined,
               children: isGod ? 'You' : e.actor }),
             jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: ACTION_WORD[e.action] || e.action }),
           ]}),
@@ -1143,7 +1150,7 @@ function Scorecard({ result, claimHits, setClaimHits, onVerify, record, due }) {
   const dueDate = result.createdAt ? dueAt({ created_at: result.createdAt, window: result.window }) : ''
   const isDue = dueDate ? Date.parse(dueDate) <= Date.now() : false
   const scored = result.verified && result.verified.verdict
-  return jsxs(Card, { tone: C.own, children: [
+  return jsxs(Card, { tone: C.for, children: [
     jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
       jsx('div', { className: T.h2, children: 'The call, frozen' }),
       jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
@@ -1346,12 +1353,12 @@ function Hero({ onStart }) {
       jsxs('div', { className: 'flex flex-col gap-1.5', children: [
         jsx('h1', { className: `${T.display} max-w-[40rem]`, children: TAGLINE }),
         jsx('p', { className: `max-w-[44rem] ${T.body} text-(--ui-text-secondary)`,
-          children: 'Paste a decision — a launch note, a price change, a memo, or a URL. Upfront gathers the people who will react to it into one room, lets them argue for as many rounds as you ask for, and hands back the call: who can stop you, what they need, and the move that gets you past them.' }),
+          children: `Paste a decision — a launch note, a price change, a memo, or a URL. Upfront opens a ${ARENA}: the people who will react to it, drawn from your own text, arguing for as many rounds as you ask. What comes back is the call — who can stop you, what they need, and the move that gets you past them.` }),
         jsx('p', { className: `max-w-[44rem] ${T.small} text-(--ui-text-tertiary)`,
           children: 'Every party and every condition comes from the text you paste — nothing is invented. It is a rehearsal, not a forecast.' }),
       ]}),
       jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
-        jsx(PrimaryAction, { onClick: onStart, className: 'h-9 px-3.5 text-[0.875rem]', children: 'Rehearse a decision' }),
+        jsx(PrimaryAction, { onClick: onStart, className: 'h-9 px-3.5 text-[0.875rem]', children: 'Open a session' }),
         jsx('span', { className: `${T.micro} text-(--ui-text-tertiary)`,
           children: 'Three rounds takes about two minutes on a free model — a cheap way to find out whether anyone cares.' }),
       ]}),
@@ -1425,7 +1432,7 @@ function RunLine({ h, onOpen }) {
       jsx('span', { className: `w-[3.5rem] shrink-0 text-right ${T.micro} ${NUM} text-(--ui-text-quaternary)`,
         children: h.friction != null ? `${Number(h.friction).toFixed(0)}` : '—' }),
       jsx('span', { className: `w-[4.5rem] shrink-0 text-right ${T.micro}`,
-        style: due ? { color: C.own } : undefined,
+        style: due ? { color: C.for } : undefined,
         children: h.verified && h.verified.verdict ? h.verified.verdict : (due ? 'to score' : '') }),
       jsx('span', { className: `w-[3.5rem] shrink-0 text-right ${T.micro} text-(--ui-text-quaternary)`, children: ago(h.created_at) }),
       jsx(Codicon, { name: 'chevron-right', size: '0.75rem', className: 'shrink-0 text-(--ui-text-quaternary)' }),
@@ -1557,7 +1564,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
       className: 'w-[min(42rem,94vw)] max-w-none overflow-visible',
       children: [
         jsxs(DialogHeader, { children: [
-          jsx(DialogTitle, { children: 'New review' }),
+          jsx(DialogTitle, { children: `New ${ARENA} session` }),
           jsx(DialogDescription, { children: 'Describe the move; Upfront rehearses the response to it.' }),
         ]}),
 
@@ -1922,7 +1929,7 @@ function UpfrontPage({ ctx }) {
         }),
         jsx(PrimaryAction, {
           onClick: () => { haptic('tap'); setModal(true) },
-          children: '+ New review',
+          children: '+ New arena session',
         }),
       ]}),
     ]}),
@@ -1941,9 +1948,11 @@ function UpfrontPage({ ctx }) {
       jsxs('div', { className: 'flex flex-col gap-2.5 rounded-xl border border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) p-4', children: [
         jsxs('div', { className: 'flex flex-wrap items-end justify-between gap-2', children: [
           jsxs('div', { className: 'flex flex-col gap-0.5', children: [
-            jsx(Label, { children: 'roundtable in session' }),
+            jsx(Label, { children: `${ARENA} · live` }),
             jsx('div', { className: T.h1,
-              children: running.progress >= 100 ? 'Closing the roundtable — writing the call' : 'The roundtable is arguing' }),
+              children: running.progress >= 100
+                ? `Closing the ${ARENA} — writing the call`
+                : `The ${ARENA} is in session` }),
           ]}),
           jsxs('div', { className: 'flex flex-col items-end gap-0.5', children: [
             jsx('div', { className: `${T.small} font-medium ${NUM}`,
@@ -2029,7 +2038,7 @@ function UpfrontPage({ ctx }) {
 
       jsx(HeatLedger, { lev: result.leverage }),
 
-      result.modelFallback && jsx(Callout, { icon: 'warning', tone: '#f5a524',
+      result.modelFallback && jsx(Callout, { icon: 'warning', tone: C.hold,
         title: 'The model you picked was not used', children: result.modelFallback }),
 
       // the room: board first (who stands where), then the words (why)
