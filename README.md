@@ -273,24 +273,36 @@ stays free for the first 90 days so people can try it before committing.
 
 Evidence:
 Q2 survey of 400 enterprise CIOs: 61% said they cannot route inference through an external API
-for compliance reasons. Open-weight model downloads tripled quarter over quarter, and community
-fine-tunes now outnumber closed-model adaptations 3:1. Enterprises want weights on-prem; the
-community wants the training data; nobody wants a licence that forbids commercial use.
+for compliance reasons, and open-weight model downloads tripled quarter over quarter. Community
+fine-tunes now outnumber closed-model adaptations 3:1. Finance has reservations: it wants the
+90-day free API window capped at a fixed budget before it will sign off. Two enterprise resellers
+have asked for a protection clause, which they call a fixable detail rather than a veto. Legal needs
+the two vendor data licences cleared before the training set can be published.
 ```
+
+The example is written to show a real fight, not a room where everyone agrees: one party with a
+lever and a condition, one fixable complaint, one compliance condition, and the people who gain.
+That is what a rehearsal is for.
 
 4. **Pick a timeline** (`24 hours` is the recommended default) and a model — the form prints
    `176 model calls · ~$0.02 at list price` (or `FREE`) before you commit.
-5. **Run review.** You get, in this order: a competition read, the friction bar, the veto player,
-   the stakeholder graph, the report, and 2–4 **frozen claims** to score later.
+5. **Run review.** You get, in this order: a competition read, the friction bar, the challenge
+   player, the stakeholder graph, the report, and 2–4 **frozen claims** to score later.
 
-A real run on the example above (deterministic test model):
+A real run on the example above (live model, 16 rounds):
 
 ```text
-Friction : 47.3 / 100  (±3.0, high confidence)
-Sea      : Purple ocean — competition medium (friction 47/100 with 1 blocking camp)
-Veto     : Enterprise IT (−0.70) — cannot route inference through an external API
-Claims   : 4  → veto_player · friction_band · coalition · extracted
+Friction : 46 / 100  (±3, high confidence)
+Sea      : Red ocean — competition high (2 blocking camps)
+Challenge: Legal (−0.50, capacity 0.9) — needs the two vendor data licences cleared
+           before the training set can be published
+Claims   : 11  → binding_constraint · friction_band · blocking_camp · extracted
 ```
+
+The colour moves between **Purple** and **Red** between runs — the model's read of who will fight
+is not a coin flip you can fix in copy, and pretending otherwise is what makes a prediction
+product a lie. What is stable is that the players are named, their capacity to stop the move is
+stated, and their conditions are printed as sentences you can act on.
 
 6. **Run it again at a different timeline** (`30m`, `4h`, `24h`) — the comparison panel appears
    under the result and tells you whether the read is stable across timelines or moves with how

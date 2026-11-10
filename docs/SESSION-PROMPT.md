@@ -67,9 +67,9 @@ reality. **Not a prediction; a rehearsal.** Local-first: it runs on your own mac
    - the input form and the output page have **graphical parts** — stakeholder graph, friction bar,
      red→purple→blue competition axis, claims with ✓/✗ scoring;
    - the **Recent** block shows the two most recent runs above the full Past reviews list;
-   - a run end-to-end: recipe → sample → 24h → a Purple-ocean read, a **named** challenge player
-     (never `Stakeholder N`), a formatted report; inject mid-run; score a claim; re-run at 30m and
-     check the comparison panel.
+   - a run end-to-end: recipe → sample → 24h → a contested read (Purple, or Red when a hard veto
+     player appears), a **named** challenge player (never `Stakeholder N`), a formatted report;
+     inject mid-run; score a claim; re-run at 30m and check the comparison panel.
 6. Report findings, fix what's broken, push.
 7. When the test is done: **uninstall completely** (backend + desktop half) and prove it with
    `find ~/.hermes -iname '*upfront*'`.
