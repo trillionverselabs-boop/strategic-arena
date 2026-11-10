@@ -41,9 +41,9 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.5.6 · ui18'          // bump on every UI change — how you know the app reloaded
-const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
-const TAGLINE = 'Find out who can stop you — before you commit.'
+const BUILD = '0.5.7 · ui19'          // bump on every UI change — how you know the app reloaded
+const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
+const TAGLINE = 'Read the landscape before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
 // Strategic Arena, the Arena debates, the Arena closes and writes the call.
 const ARENA = 'Strategic Arena'
@@ -304,7 +304,7 @@ function Wordmark({ size = 40 }) {
     jsx(Mark, { size }),
     jsxs('div', { className: 'flex flex-col', children: [
       jsx('div', { className: 'text-[0.9375rem] font-semibold leading-none tracking-[-0.01em]', children: PRODUCT_NAME }),
-      jsx('div', { className: cn(T.label, 'mt-1 text-(--ui-text-quaternary)'), children: 'strategic arena' }),
+      jsx('div', { className: cn(T.label, 'mt-1 text-(--ui-text-quaternary)'), children: 'the read before you publish' }),
     ]}),
   ]})
 }
@@ -1353,7 +1353,7 @@ function Hero({ onStart }) {
       jsxs('div', { className: 'flex flex-col gap-1.5', children: [
         jsx('h1', { className: `${T.display} max-w-[40rem]`, children: TAGLINE }),
         jsx('p', { className: `max-w-[44rem] ${T.body} text-(--ui-text-secondary)`,
-          children: `Paste a decision — a launch note, a price change, a memo, or a URL. Upfront opens a ${ARENA}: the people who will react to it, drawn from your own text, arguing for as many rounds as you ask. What comes back is the call — who can stop you, what they need, and the move that gets you past them.` }),
+          children: `Paste a link or the text itself — a README, a launch post, a whitepaper, a case study, a press release, a tweet. ${PRODUCT_NAME} opens a ${ARENA}: the people and organisations who will actually react, drawn from your own text, arguing for as many rounds as you ask. What comes back is the landscape — who has real power over the outcome, what it costs to move them, and how contested the ground already is.` }),
         jsx('p', { className: `max-w-[44rem] ${T.small} text-(--ui-text-tertiary)`,
           children: 'Every party and every condition comes from the text you paste — nothing is invented. It is a test, not a forecast.' }),
       ]}),
@@ -1377,11 +1377,12 @@ function Hero({ onStart }) {
 function WhatYouGet() {
   return jsxs('div', { className: 'flex flex-col gap-2', children: [
     jsx(Label, { children: 'what comes back' }),
-    jsxs('div', { className: 'grid gap-2 md:grid-cols-4', children: [
-      jsx(GetTile, { title: 'Who can stop you', body: 'The one party with the power to block it — and how much power that is.' }),
-      jsx(GetTile, { title: 'What they need', body: 'The condition each objector would accept, quoted from your own document.' }),
-      jsx(GetTile, { title: 'Your best move', body: 'The counter-move that converts the blocker instead of fighting them.' }),
-      jsx(GetTile, { title: 'A scorecard', body: 'Claims frozen at run time. Score them when the window closes — that is our record, not our opinion.' }),
+    jsxs('div', { className: 'grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5', children: [
+      jsx(GetTile, { title: 'The room', body: 'Who actually reacts: customers, competitors, partners, and the marketplace that would list you — named, drawing on your own text.' }),
+      jsx(GetTile, { title: 'Who decides', body: 'The parties with real power over the outcome — the ones who can veto it, the ones who can amplify it, and the ones who can only complain.' }),
+      jsx(GetTile, { title: 'The field', body: 'How contested the ground already is, and whether you will be read as a new category, another entrant, or noise.' }),
+      jsx(GetTile, { title: 'The price', body: 'What each concession buys, computed from the room: settle Finance and Legal and the call goes from a fight to quiet ground.' }),
+      jsx(GetTile, { title: 'The record', body: 'Claims frozen at run time, scored when the window closes. That is our record, not our opinion.' }),
     ]}),
     jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`,
       children: 'Not a forecast and not a guarantee. A dry run finds the fight before you are in it, and writes down its calls so you can grade them.' }),
@@ -1565,7 +1566,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
       children: [
         jsxs(DialogHeader, { children: [
           jsx(DialogTitle, { children: `New ${ARENA} session` }),
-          jsx(DialogDescription, { children: 'Describe the move; Upfront puts it in front of the room that will answer it.' }),
+          jsx(DialogDescription, { children: 'Paste a link or the text — a README, a post, a whitepaper, an announcement. It goes in front of the room that will answer it.' }),
         ]}),
 
         jsxs('div', { className: 'flex max-h-[min(72vh,44rem)] flex-col gap-3 overflow-y-auto pr-0.5', children: [
@@ -1625,7 +1626,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
           }),
 
           jsx(Field, {
-            label: 'URLs (optional — one per line)',
+            label: 'Links (one per line — README, post, whitepaper, announcement)',
             hint: `Each line is fetched as a real document, with the URL kept as provenance. Good sources: ${URL_TYPES.join(' · ')}.`,
             children: jsx(Textarea, {
               className: 'min-h-10',
@@ -1734,7 +1735,7 @@ function ComparePanel({ cmp }) {
 
 function UpfrontPage({ ctx }) {
   const [modal, setModal] = React.useState(false)
-  const [showExplainer, setShowExplainer] = React.useState(false)
+  const [showExplainer, setShowExplainer] = React.useState(true)
   const [running, setRunning] = React.useState(null)
   const [result, setResult] = React.useState(null)
   const [history, setHistory] = React.useState([])
@@ -1925,7 +1926,7 @@ function UpfrontPage({ ctx }) {
       jsxs('div', { className: 'flex items-center gap-2', children: [
         jsx(Button, {
           variant: 'ghost', size: 'xs', onClick: () => setShowExplainer(v => !v),
-          children: showExplainer ? 'hide overview' : 'what is this?',
+          children: showExplainer ? 'hide what you get' : 'what you get',
         }),
         jsx(PrimaryAction, {
           onClick: () => { haptic('tap'); setModal(true) },

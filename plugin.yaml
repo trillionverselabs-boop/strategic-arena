@@ -1,6 +1,6 @@
 name: upfront
-label: Upfront Prediction
-version: "0.5.6"
+label: Strategic Arena
+version: "0.5.7"
 manifest_version: 1
 kind: standalone
 requires_hermes: ">=0.23.0"
@@ -9,12 +9,13 @@ license: MIT
 homepage: https://github.com/trillionverselabs-boop/upfront-test
 tags: [strategy, simulation, stakeholders, decision-review, local-first, research]
 description: >-
-  See who can kill your plan before you ship it. Open a Strategic Arena: feed it
-  a decision or a URL and it puts the people who will react into one room, names
-  who can challenge the move and on what conditions, prices each party's leverage
-  against the room's own friction, finds your best response, and reads how
-  competitive the market is — then freezes testable claims you grade later, so
-  the record gets sharper every time. Runs on your own machine; no cloud account.
+  Read the landscape before it reads you. Give it a link — a repo README, a launch
+  post, a whitepaper, a case study, an announcement, a tweet — and Strategic Arena
+  puts the people and organisations who will actually react into one room: who has
+  real power over the outcome, what each condition costs to meet, how contested the
+  ground already is, and what the market will read you as. Then it freezes testable
+  claims with dates, and scores them, so the record gets sharper every time. Runs
+  on your own machine; no cloud account.
 provides_tools:
   - upfront_run
   - upfront_status

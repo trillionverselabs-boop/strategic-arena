@@ -52,6 +52,24 @@ the artefact it points at). Then the room in order, **what each party is standin
 on** (the provenance graph: cited spans → parties), the movement chart, the
 transcript grouped by round, and the scorecard.
 
+## What the product gives (the output contract)
+
+The input is an **artefact**, not a decision form: a link or the text itself — a repo
+README, a launch post, a whitepaper, a case study, a press release, a tweet. The
+output is a **landscape read**, defined once and shown on the first screen:
+
+| # | Comes back | Means |
+|---|---|---|
+| 1 | **The room** | who actually reacts — customers, competitors, partners, the marketplace that would list you — named, from your own text |
+| 2 | **Who decides** | the parties with real power over the outcome: who can veto it, who can amplify it, who can only complain |
+| 3 | **The field** | how contested the ground already is, and whether you will be read as a new category, another entrant, or noise |
+| 4 | **The price** | what each concession buys, computed from the room (settle Finance and Legal and the call goes from a fight to quiet ground) |
+| 5 | **The record** | claims frozen at run time with dates, scored when the window closes |
+
+The contract is the home page's spine, not a tooltip: it renders by default and each
+tile names one output. "Who can stop you" survives inside tile 2 — it is the sharpest
+case of "power over the outcome", not the whole product.
+
 ## Palette
 
 | role | hex | meaning |
