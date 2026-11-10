@@ -11,16 +11,24 @@
 
 from __future__ import annotations
 
+# The host's auxiliary default is 30 seconds. That is fine for a title or a
+# one-line summary and hopeless for a review call on a free, rate-limited model
+# — the first extraction times out, the recovery ladder finds no fallback and
+# the run dies as "the model call failed". A review call is allowed to take
+# minutes: there are only a few dozen of them per run.
+DEFAULT_CALL_TIMEOUT_S = 180.0
+
 
 class LlmAdapter:
     """Wraps ctx.llm and exposes complete(prompt: str) -> str."""
 
     def __init__(self, ctx_llm, temperature: float = 0.6, model: str | None = None,
-                 allow_override: bool = False):
+                 allow_override: bool = False, timeout: float | None = DEFAULT_CALL_TIMEOUT_S):
         self._llm = ctx_llm
         self.temperature = temperature
         self.model = model or "default"
         self.allow_override = allow_override
+        self.timeout = timeout
 
     def _kwargs(self) -> dict:
         kwargs = {"temperature": self.temperature}
@@ -30,14 +38,15 @@ class LlmAdapter:
 
     def complete(self, prompt: str) -> str:
         messages = [{"role": "user", "content": prompt}]
+        extra = {} if self.timeout is None else {"timeout": self.timeout}
         if self.allow_override and self.model not in (None, "", "default"):
             try:
                 result = self._llm.complete(messages, model=self.model,
-                                            temperature=self.temperature)
+                                            temperature=self.temperature, **extra)
             except Exception:
-                result = self._llm.complete(messages, temperature=self.temperature)
+                result = self._llm.complete(messages, temperature=self.temperature, **extra)
         else:
-            result = self._llm.complete(messages, temperature=self.temperature)
+            result = self._llm.complete(messages, temperature=self.temperature, **extra)
         if isinstance(result, str):
             return result
         return getattr(result, "text", "") or ""

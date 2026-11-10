@@ -44,15 +44,20 @@ class HostLlm:
         def __init__(self, text: str):
             self.text = text
 
-    def complete(self, messages, temperature=None, model=None, **kwargs):
+    def complete(self, messages, temperature=None, model=None, timeout=None, **kwargs):
         self.calls += 1
         temp = 0.6 if temperature is None else temperature
+        # timeout=None keeps the host's own default (30s) — the adapter always
+        # passes its own, because 30s is far too short for a rate-limited model.
+        extra = {} if timeout is None else {"timeout": timeout}
         try:
             res = self._llm.complete(messages, temperature=temp,
-                                     model=(model or None), purpose="upfront.review")
+                                     model=(model or None), purpose="upfront.review",
+                                     **extra)
         except TypeError:
             # a facade without `purpose` — same trust gate either way
-            res = self._llm.complete(messages, temperature=temp, model=(model or None))
+            res = self._llm.complete(messages, temperature=temp, model=(model or None),
+                                     **extra)
         except Exception as exc:
             if type(exc).__name__ == "PluginLlmTrustError" and model:
                 # expected when the host has not opted this plugin into model
@@ -64,7 +69,7 @@ class HostLlm:
                     "plugins.entries.upfront.llm.allow_model_override: true in config.yaml."
                 )
                 try:
-                    from upfront import paths
+                    from . import paths
                     _dbg = paths.data_root() / "desktop-debug.log"
                     _dbg.parent.mkdir(parents=True, exist_ok=True)
                     with _dbg.open("a", encoding="utf-8") as fh:
@@ -73,7 +78,8 @@ class HostLlm:
                                  f"falling back to the active model\n")
                 except Exception:
                     pass
-                res = self._llm.complete(messages, temperature=temp, purpose="upfront.review")
+                res = self._llm.complete(messages, temperature=temp,
+                                         purpose="upfront.review", **extra)
                 text = getattr(res, "text", None)
                 if text is None:
                     text = res if isinstance(res, str) else ""
@@ -83,13 +89,14 @@ class HostLlm:
             # surface the real reason: "the model call failed" hides a trust
             # error, an auth problem and a network problem behind one sentence
             try:
-                from upfront import paths
+                from . import paths
                 _dbg = paths.data_root() / "desktop-debug.log"
                 _dbg.parent.mkdir(parents=True, exist_ok=True)
                 with _dbg.open("a", encoding="utf-8") as fh:
                     fh.write(f"{__import__('time').strftime('%Y-%m-%d %H:%M:%S')} "
                              f"pid={__import__('os').getpid()} model call failed: "
-                             f"{type(exc).__name__}: {exc}\n")
+                             f"{type(exc).__name__}: {exc}\n"
+                             f"{__import__('traceback').format_exc()}\n")
             except Exception:
                 pass
             raise

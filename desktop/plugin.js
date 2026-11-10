@@ -39,7 +39,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.4.3 · ui9'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.4.5 · ui10'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
 
 const SEA = {
@@ -770,8 +770,28 @@ function UpfrontPage({ ctx }) {
   const [injectHint, setInjectHint] = React.useState('')
   const [injectImpact, setInjectImpact] = React.useState('')
   const [startedAt, setStartedAt] = React.useState(null)
+  const [uiBuild, setUiBuild] = React.useState(null)
+  const [reloading, setReloading] = React.useState(false)
   const injectBaseline = React.useRef(null)
   const gateway = useValue(host.state.gateway)
+
+  // which build this window actually runs, vs the one installed — the app loads
+  // its own copy of this file, so "I updated the plugin" and "this window shows
+  // the new build" are two different things and the user should not have to guess
+  React.useEffect(() => {
+    ctx.rest(`/ui?build=${encodeURIComponent(BUILD)}`).then(setUiBuild).catch(() => setUiBuild(null))
+  }, [])
+
+  async function reloadUi() {
+    haptic('tap')
+    setReloading(true)
+    try {
+      await ctx.rest(`/ui/refresh?build=${encodeURIComponent(BUILD)}`, { method: 'POST' })
+    } catch (_) {}
+    // the page reload re-runs the app's plugin scan, which is what reads the
+    // freshly published copy back in
+    window.location.reload()
+  }
 
   function refreshHistory() {
     ctx.rest('/history').then(setHistory).catch(() => {})
@@ -895,17 +915,37 @@ function UpfrontPage({ ctx }) {
 
   return jsxs('div', { className: 'flex h-full flex-col gap-3 overflow-auto p-4', children: [
     // header
-    jsxs('div', { className: 'flex items-center justify-between', children: [
+    jsxs('div', { className: 'flex items-center justify-between gap-3', children: [
       jsxs('div', { className: 'flex flex-col', children: [
         jsx('div', { className: 'text-lg font-semibold', children: PRODUCT_NAME }),
-        jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-tertiary)',
-          children: `strategic-response review · gateway: ${gateway} · build ${BUILD}` }),
+        jsxs('div', { className: 'flex items-center gap-2 text-[0.6875rem] text-(--ui-text-tertiary)', children: [
+          jsx('span', { children: `strategic-response review · gateway: ${gateway}` }),
+          jsx(Badge, { variant: 'outline',
+            children: uiBuild && uiBuild.installed && uiBuild.installed !== BUILD
+              ? `build ${BUILD} → ${uiBuild.installed} installed`
+              : `build ${BUILD}` }),
+        ]}),
       ]}),
-      jsx(Button, {
-        onClick: () => { haptic('tap'); setModal(true) },
-        children: '+ New review',
-      }),
+      jsxs('div', { className: 'flex items-center gap-2', children: [
+        jsx(Button, {
+          variant: 'outline', size: 'xs', disabled: reloading, onClick: reloadUi,
+          title: 'Re-read the installed plugin UI and reload this page',
+          children: reloading ? 'Reloading…' : 'Reload UI',
+        }),
+        jsx(Button, {
+          onClick: () => { haptic('tap'); setModal(true) },
+          children: '+ New review',
+        }),
+      ]}),
     ]}),
+
+    uiBuild && !uiBuild.up_to_date && jsx(Callout, { icon: 'info', tone: 'var(--ui-accent)',
+      title: 'A newer build of this page is installed',
+      children: jsxs('div', { className: 'flex flex-col gap-2', children: [
+        jsx('span', { children: uiBuild.hint }),
+        jsx('span', { className: 'text-(--ui-text-tertiary)',
+          children: 'Press Reload UI — it republishes the installed copy and refreshes this page. If the page still shows the old build, use ⌘K → "Reload desktop plugins".' }),
+      ]}) }),
 
     modal && jsx(NewReviewModal, { ctx, onClose: () => setModal(false), onStarted: started }),
 

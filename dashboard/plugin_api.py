@@ -3,12 +3,22 @@
 # Desktop reaches these routes via ctx.rest('/...').
 #
 # The dashboard loader imports this file standalone (not as part of the agent
-# plugin package), so we put the plugin root on sys.path and import the engine
-# modules by name. The engine + these routes run in the gateway process.
+# plugin package), so the package has to be brought in by hand. It is loaded by
+# *spec* — deliberately NOT by putting the plugin directory on `sys.path`.
+#
+# Why: this plugin ships a top-level `tools.py`, and Hermes itself has a
+# top-level `tools` package. With the plugin root on `sys.path`, every
+# `import tools.*` inside the host resolved to `upfront/tools.py` instead —
+# `agent/gemini_schema.py` → `tools.schema_sanitizer` then died with
+# "attempted relative import with no known parent package", which surfaced to
+# the user as "Run failed: the model call failed". A plugin may never shadow a
+# host module, so sys.path is left exactly as the host set it.
 
 from __future__ import annotations
 
+import importlib.util
 import json
+import re
 import sys
 import threading
 import uuid
@@ -17,10 +27,36 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 
 _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
-_UPSTREAM = _PLUGIN_ROOT.parent  # the directory that CONTAINS the plugin package
-for p in (str(_UPSTREAM), str(_PLUGIN_ROOT)):
-    if p not in sys.path:
-        sys.path.insert(0, p)
+_PKG = "upfront"
+
+
+def _load_package():
+    """Import the plugin package from this directory set without touching sys.path."""
+    existing = sys.modules.get(_PKG)
+    if existing is not None:
+        try:
+            same_dir = Path(getattr(existing, "__file__", "") or "").resolve().parent == _PLUGIN_ROOT
+        except OSError:
+            same_dir = False
+        if same_dir:
+            return existing
+    spec = importlib.util.spec_from_file_location(
+        _PKG, _PLUGIN_ROOT / "__init__.py", submodule_search_locations=[str(_PLUGIN_ROOT)]
+    )
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load the {_PKG} package from {_PLUGIN_ROOT}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[_PKG] = module
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        if sys.modules.get(_PKG) is module:
+            sys.modules.pop(_PKG, None)
+        raise
+    return module
+
+
+_load_package()
 
 from upfront import engine  # noqa: E402
 from upfront import llm_binding, portal, reporting  # noqa: E402
@@ -100,6 +136,26 @@ def _llm():
     return _resolve_llm()[0]
 
 
+def _copy_context_thread(fn):
+    """Run *fn* on a worker thread inside THIS request's context.
+
+    A bare ``threading.Thread`` starts with an empty context, so anything the
+    host bound for the request — the profile secret scope above all — is gone by
+    the time the run calls a model. That fails only for routes that resolve
+    credentials through the secret scope (a picked model that has to be routed
+    to a provider), which is why "run failed" showed up only for some models.
+    Copying the context carries the binding across the thread boundary.
+    """
+    import contextvars
+
+    ctx = contextvars.copy_context()
+
+    def _runner():
+        ctx.run(fn)
+
+    return _runner
+
+
 @router.get("/health")
 async def health():
     try:
@@ -152,7 +208,7 @@ async def run(body: dict):
             with engine._LOCK:
                 engine._PROGRESS[run_id]["error"] = str(exc)
 
-    threading.Thread(target=_work, daemon=True).start()
+    threading.Thread(target=_copy_context_thread(_work), daemon=True).start()
     return {"run_id": run_id, "status": "running"}
 
 
@@ -259,6 +315,84 @@ async def verify(run_id: str, body: dict):
 @router.get("/calibration")
 async def calibration():
     return reporting.calibration()
+
+
+# ── desktop UI build tracking ─────────────────────────────────────────
+
+_BUILD_RE = re.compile(r"^\s*const\s+BUILD\s*=\s*'([^']*)'", re.M)
+PLUGIN_NAME = "upfront"
+
+
+def _read_build(path: Path) -> str:
+    """The BUILD constant inside a desktop plugin.js, or '' when unreadable."""
+    try:
+        match = _BUILD_RE.search(path.read_text(encoding="utf-8", errors="replace"))
+    except OSError:
+        return ""
+    return (match.group(1).strip() if match else "")
+
+
+def _published_path() -> Path | None:
+    """Where the app actually loads this plugin's UI from (the app-level root).
+
+    The app-level root is ``<hermes home>/desktop-plugins/``; the app copies a
+    unified package's ``desktop/`` half there and refreshes it on its plugin
+    scan. Only the public ``hermes_constants`` root is used — a plugin must not
+    reach into host internals to write that folder.
+    """
+    try:
+        from hermes_constants import get_default_hermes_root
+
+        return get_default_hermes_root() / "desktop-plugins" / PLUGIN_NAME / "plugin.js"
+    except Exception:
+        return None
+
+
+def _ui_status(running: str) -> dict:
+    source = _read_build(_PLUGIN_ROOT / "desktop" / "plugin.js")
+    published = ""
+    try:
+        pub = _published_path()
+        published = _read_build(pub) if pub else ""
+    except Exception:
+        pass
+    up_to_date = bool(source) and running == source
+    published_current = bool(published) and published == source
+    return {
+        "running": running,
+        "installed": source,
+        "published": published,
+        "up_to_date": up_to_date,
+        "published_current": published_current,
+        "hint": ("" if up_to_date else
+                 f"This window is running build {running or 'unknown'} but build {source or 'unknown'} "
+                 "is installed. Reload the page to pick it up."),
+    }
+
+
+@router.get("/ui")
+async def ui_status(build: str = ""):
+    """The build this window runs vs the build on disk, so a stale window says so.
+
+    The app loads the desktop half from its own copy in `<hermes home>/desktop-plugins/`,
+    which is refreshed on the app's plugin scan — so "I just updated the plugin" and
+    "my window shows the new build" are two different things. The header asks this
+    route instead of making the user guess.
+    """
+    return _ui_status(build)
+
+
+@router.post("/ui/refresh")
+async def ui_refresh(build: str = ""):
+    """Confirm a reload: the app's own plugin scan republishes the desktop half.
+
+    The plugin writes nothing here — the app-level ``desktop-plugins/`` folder is
+    the app's to own, and it re-copies a unified package's ``desktop/`` half every
+    time the loader asks for that root (which a page reload does). This endpoint
+    just reports the same build readback, so the UI can say what it is about to
+    show and fall back to the app's own rescan command if it is wrong.
+    """
+    return _ui_status(build)
 
 
 @router.get("/model-access")
