@@ -32,6 +32,37 @@ class SimulationCancelled(RuntimeError):
     """The user stopped the run. Not an error — nothing is written to history."""
 
 
+def _norm(model_id: str) -> str:
+    """Canonical form for comparing a requested model with the served one."""
+    text = (model_id or "").strip().lower().lstrip("~")
+    for suffix in (":batch", ":us"):
+        if text.endswith(suffix):
+            text = text[: -len(suffix)]
+    return text
+
+
+def _vendor(model_id: str) -> str:
+    """``deepseek/x`` -> ``deepseek``. Empty when the id has no vendor prefix."""
+    text = _norm(model_id)
+    return text.split("/", 1)[0] if "/" in text else ""
+
+
+def _same_model_family(requested: str, served: str) -> bool:
+    """True when *served* is the requested model, or its concrete form.
+
+    ``~deepseek/deepseek-flash-latest`` is the catalogue's "latest" alias: the host
+    resolves it to a concrete DeepSeek build (``deepseek/deepseek-v4.1-flash-1017``)
+    and reports that. That is the pick working, not a substitution, so the vendor
+    decides. A vendor mismatch — or a requested id with no vendor at all — falls
+    back to a full-string compare, which is what catches a model the host could not
+    serve and quietly replaced with the active one.
+    """
+    req_vendor, srv_vendor = _vendor(requested), _vendor(served)
+    if req_vendor and srv_vendor:
+        return req_vendor == srv_vendor
+    return _norm(requested) == _norm(served)
+
+
 def _emit(run_key: str, status: str, round_: int = 0, total: int = 0,
           stances: dict | None = None) -> None:
     with _LOCK:
@@ -182,6 +213,22 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
     result.claims = build_claims(result)
 
     # 7. degradation must be visible, never silent
+    result.served_model = getattr(llm, "served_model", "") or ""
+    result.served_provider = getattr(llm, "served_provider", "") or ""
+    result.model_fallback_note = getattr(llm, "fallback_note", "") or ""
+    # The host does NOT raise when it cannot serve the picked model: it routes
+    # the call to whatever is active and reports that model back. So the only
+    # honest check is requested-vs-served, done here rather than trusted to an
+    # exception that never comes.
+    requested = (getattr(llm, "model", "") or "").strip()
+    served = (result.served_model or "").strip()
+    if requested and requested != "default" and served and not _same_model_family(requested, served):
+        if not result.model_fallback_note:
+            result.model_fallback_note = (
+                f"You picked {requested}, but this run was served by {served} "
+                f"({result.served_provider or 'unknown provider'}). The host routes an "
+                "unusable model to your active model instead of refusing it."
+            )
     total_calls = max(1, scenario.rounds * max(1, len(result.personas)))
     if result.llm_failures:
         result.degraded = True
@@ -206,6 +253,9 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
     report_md = reporting.write_report(result)
     full_md = reporting.write_full_report(result)
     frozen = reporting.write_frozen_log(result, manifest=manifest)
+    manifest["model_requested"] = getattr(llm, "model", "") or ""
+    manifest["model_served"] = result.served_model
+    manifest["model_served_provider"] = result.served_provider
     reporting.save_run(result, report_md, frozen, graph.as_payload(result.camps),
                        full_md, manifest=manifest)
 

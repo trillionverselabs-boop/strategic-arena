@@ -408,6 +408,15 @@ What a user would want to know before installing, stated plainly:
 - **Data:** reads and writes live only under `~/.hermes/upfront/` (graph + run history)
   plus the plugin's own package files. Nothing leaves the machine except the inference
   and URL-fetch calls above.
+- **UI build readback:** `GET /ui` reads this plugin's own `desktop/plugin.js` and the
+  app-level copy at `<hermes home>/desktop-plugins/upfront/plugin.js` — a read *outside* the
+  plugin's data directory, but of this plugin's own file only — so the header can tell you the
+  window is stale. `POST /ui/refresh` writes nothing anywhere; the **Reload UI** button simply
+  reloads the page, and the app's own plugin scan is what re-copies the desktop half.
+- **Model routing:** a picked model is passed to the host's `PluginLlm` as a host-gated
+  override. The host may route a pick it cannot serve to your active model instead of
+  refusing; the run records both the requested and the actually-served model, and the report
+  says so when they differ.
 - **Credentials:** none stored, none read. All model access goes through the
   host's own `PluginLlm` facade — the same object `ctx.llm` is built from
   (`agent.plugin_llm.PluginLlm(plugin_id="upfront")`), used by the backend routes
@@ -433,12 +442,14 @@ off until you switch it on. That's the marketplace pattern — install, then ena
 ### When the UI looks stale (it happened — twice)
 
 The desktop app reads `desktop/plugin.js` at load. Toggling the plugin **does not** re-read
-it. The page header prints `gateway: … · build <BUILD>`; if that does not match `BUILD` in
-`desktop/plugin.js`, you are looking at an old module:
+it, so "I updated the plugin" and "this window shows the new build" are two different things.
+The header prints a build badge — `build <BUILD>` when it matches the file on disk, or
+`build <running> → <installed> installed` when it does not, plus a callout explaining it.
 
-1. `⌘K` → **Reload desktop plugins** (fastest), or
-2. Capabilities → Plugins → Upfront off → on, or
-3. Quit the app fully (tray → Quit) and relaunch.
+1. **Reload UI** in the header (reloads the page, so the app re-runs its plugin scan), or
+2. `⌘K` → **Reload desktop plugins** (fastest), or
+3. Capabilities → Plugins → Upfront off → on, or
+4. Quit the app fully (tray → Quit) and relaunch.
 
 If a toggle hangs ~30s, a stale plugin-host child is holding the RPC: `pkill -f plugin_host_child`
 and retry. That is a Hermes process issue, not a plugin bug.

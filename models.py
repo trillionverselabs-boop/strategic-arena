@@ -140,6 +140,12 @@ class SimulationResult(BaseModel):
     degraded: bool = False                                      # a model call failed mid-run
     degraded_reason: str = ""
     llm_failures: int = 0                                       # failed act() calls
+    # what ACTUALLY served the run, as reported by the host — the requested
+    # model is not proof: a refused or unreachable override degrades to the
+    # active model, and only the host knows which one answered.
+    served_model: str = ""
+    served_provider: str = ""
+    model_fallback_note: str = ""
 
     @property
     def summary(self) -> str:

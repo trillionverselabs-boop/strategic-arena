@@ -266,6 +266,10 @@ def save_run(result: SimulationResult, report_md: str, frozen_jsonl: str,
         "claims": len(result.claims),
         "degraded": result.degraded,
         "model": (manifest or {}).get("model", ""),
+        "model_requested": (manifest or {}).get("model_requested", ""),
+        "model_served": result.served_model,
+        "model_served_provider": result.served_provider,
+        "model_fallback_note": result.model_fallback_note,
         "code_commit": (manifest or {}).get("code_commit", ""),
         # the "so what" fields the result page leads with — everything a reader
         # needs to act, without opening the full audit

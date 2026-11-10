@@ -29,6 +29,10 @@ class LlmAdapter:
         self.model = model or "default"
         self.allow_override = allow_override
         self.timeout = timeout
+        # what the host actually served, and why it may not be the model asked for
+        self.served_provider = ""
+        self.served_model = ""
+        self.fallback_note = ""
 
     def _kwargs(self) -> dict:
         kwargs = {"temperature": self.temperature}
@@ -43,10 +47,19 @@ class LlmAdapter:
             try:
                 result = self._llm.complete(messages, model=self.model,
                                             temperature=self.temperature, **extra)
-            except Exception:
+            except Exception as exc:
+                # Degrade rather than lose the run — but SAY SO. A silent
+                # fallback is how "the picker works" came to be believed while
+                # every run was quietly on the active model.
+                self.fallback_note = (
+                    f"{self.model} could not be reached ({type(exc).__name__}: {exc}); "
+                    "this run used your active model instead."
+                )
                 result = self._llm.complete(messages, temperature=self.temperature, **extra)
         else:
             result = self._llm.complete(messages, temperature=self.temperature, **extra)
+        self.served_provider = getattr(result, "provider", "") or ""
+        self.served_model = getattr(result, "model", "") or ""
         if isinstance(result, str):
             return result
         return getattr(result, "text", "") or ""

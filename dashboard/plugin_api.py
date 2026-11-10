@@ -194,6 +194,10 @@ async def run(body: dict):
             )
             # if the host refused the chosen model, say so once, next to the run
             note = getattr(getattr(base, "_llm", None), "override_denied_note", "") or ""
+            # ...and if the adapter fell back to the active model, say that too
+            fb = getattr(llm, "fallback_note", "") or ""
+            if fb and fb not in note:
+                note = (note + " " + fb).strip()
             if note:
                 try:
                     (reporting.runs_dir() / run_id / "model-note.txt").write_text(note)
@@ -279,6 +283,10 @@ async def report(run_id: str, full: bool = False):
         pass
     return {
         "report": data[key], "full": full, "model_note": model_note,
+        "model_requested": meta.get("model_requested") or meta.get("model") or "",
+        "model_served": meta.get("model_served") or "",
+        "model_served_provider": meta.get("model_served_provider") or "",
+        "model_fallback_note": meta.get("model_fallback_note") or "",
         "recommendation": meta.get("recommendation") or "",
         "summary": meta.get("summary") or "",
         "blocker": meta.get("blocker"),

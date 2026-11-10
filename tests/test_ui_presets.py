@@ -23,7 +23,7 @@ def test_recommendation_sits_below_the_cost_line():
 
 
 def test_build_stamp_is_the_test_protocol_one():
-    assert "0.4.5 · ui10" in UI.read_text()
+    assert "0.4.6 · ui11" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():

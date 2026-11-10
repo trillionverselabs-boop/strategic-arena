@@ -39,7 +39,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.4.5 · ui10'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.4.6 · ui11'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
 
 const SEA = {
@@ -815,6 +815,9 @@ function UpfrontPage({ ctx }) {
       counterMoves: rep.counter_moves, personas: rep.personas,
       interventions: rep.interventions, verified: meta.verified,
       modelNote: rep.model_note || '',
+      modelRequested: rep.model_requested || '',
+      modelServed: rep.model_served || '',
+      modelFallback: rep.model_fallback_note || '',
       // "your side": parties grounded in the decision document itself
       ownSide: (rep.personas || []).filter(p => (p.reasons?.[0] || '').includes('[decision')).map(p => p.name),
     })
@@ -993,6 +996,13 @@ function UpfrontPage({ ctx }) {
       jsx(VerdictCard, { result }),
       result.modelNote && jsx(Callout, { icon: 'info', tone: 'var(--ui-accent)',
         title: 'Model', children: result.modelNote }),
+      (result.modelRequested || result.modelServed) && jsx('div', {
+        className: 'text-[0.6875rem] text-(--ui-text-tertiary)',
+        children: `Model: ${result.modelRequested || 'active model'}${result.modelServed && result.modelServed !== result.modelRequested ? ` — served by ${result.modelServed}` : ''}`,
+      }),
+      result.modelFallback && jsx(Callout, { icon: 'warning', tone: '#f5a524',
+        title: 'The model you picked was not used',
+        children: result.modelFallback }),
 
       jsxs('div', { className: 'grid grid-cols-2 gap-3', children: [
         jsxs(Card, { children: [

@@ -35,14 +35,19 @@ class HostLlm:
         self._llm = plugin_llm
         self.model = model
         self.calls = 0
+        # the last answer's real destination, as the host reported it
+        self.last_provider = ""
+        self.last_model = ""
         # Set when the host refuses a model override. The run then continues on
         # the user's active model, and the note is shown back to them — a picker
         # that silently does nothing is worse than one that says why.
         self.override_denied_note = ""
 
     class _Result:
-        def __init__(self, text: str):
+        def __init__(self, text: str, provider: str = "", model: str = ""):
             self.text = text
+            self.provider = provider
+            self.model = model
 
     def complete(self, messages, temperature=None, model=None, timeout=None, **kwargs):
         self.calls += 1
@@ -85,7 +90,10 @@ class HostLlm:
                     text = res if isinstance(res, str) else ""
                 if not (text or "").strip():
                     raise RuntimeError("the model returned an empty answer")
-                return self._Result(text)
+                provider = getattr(res, "provider", "") or ""
+                model = getattr(res, "model", "") or ""
+                self.last_provider, self.last_model = provider, model
+                return self._Result(text, provider, model)
             # surface the real reason: "the model call failed" hides a trust
             # error, an auth problem and a network problem behind one sentence
             try:
@@ -105,7 +113,10 @@ class HostLlm:
             text = res if isinstance(res, str) else ""
         if not (text or "").strip():
             raise RuntimeError("the model returned an empty answer")
-        return self._Result(text)
+        provider = getattr(res, "provider", "") or ""
+        model = getattr(res, "model", "") or ""
+        self.last_provider, self.last_model = provider, model
+        return self._Result(text, provider, model)
 
 
 def build_host_llm(model: str = "") -> HostLlm:
