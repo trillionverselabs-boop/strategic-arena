@@ -63,3 +63,22 @@ def test_unbound_raises_the_operator_message():
     with pytest.raises(RuntimeError) as err:
         api._llm()
     assert "agent plugin half" in str(err.value)
+
+
+def test_register_binds_the_host_model_for_the_routes():
+    """The whole chain: register(ctx) -> routes can call the model."""
+    from unittest.mock import MagicMock
+
+    import upfront as plugin_pkg
+    from upfront.llm_adapter import LlmAdapter
+
+    ctx = MagicMock()
+    ctx.has_capability.return_value = False
+    ctx.llm = MagicMock()
+
+    plugin_pkg.register(ctx)
+
+    api = _load_api_standalone("upfront_api_register_probe")
+    bound = api._llm()
+    assert isinstance(bound, LlmAdapter)
+    assert bound._llm is ctx.llm
