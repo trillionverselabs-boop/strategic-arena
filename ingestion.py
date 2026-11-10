@@ -13,6 +13,11 @@ from .models import Document, Persona
 # denied the model override" instead of "the model call failed".
 LAST_ERROR = ""
 
+# What the extraction understood the artefact to *say*, in three plain lines. Same
+# model call, one more key — the page needs "what does this mean" answered by the
+# reader of the text, not assembled by a template afterwards.
+LAST_READ: dict = {}
+
 # ── the lens ──────────────────────────────────────────────────────────
 # Reception depends on the medium. A README is judged by maintainers deciding
 # whether to merge and security reviewers deciding whether to allow the install;
@@ -106,12 +111,22 @@ what happens next (max {max_personas}). For each one give:
   party only once; do not repeat a reason in different words.
 - source: which document type and paragraph backs this
 
+Also write the READ: what this artefact actually says, in plain words, using only
+what is in it.
+- claim: one sentence — the central promise or assertion being made
+- displaces: one sentence — what it replaces, undercuts or competes with (or "" if
+  it claims no ground)
+- opening: one sentence — the opportunity it creates for a reader who wants to
+  build on it (or "" if there is none)
+Each must be grounded in the text; no marketing adjectives, no advice.
+
 Also list relationships: pairs that oppose or support each other, as [name_a, name_b, label].
 
 Respond with ONLY valid JSON matching this shape:
 {{
   "personas": [{{"name": "...", "role": "...", "stance": 0.0, "capacity": 0.0,
                 "reasons": ["... [evidence ¶2]", "... [decision ¶1]"], "source": "..."}}],
+  "read": {{"claim": "...", "displaces": "...", "opening": "..."}},
   "relationships": [["...", "...", "opposes"]]
 }}
 
@@ -160,6 +175,8 @@ def extract_personas(
         LAST_ERROR = ("the model answered but not as JSON the plugin could read "
                       f"(got: {str(raw)[:160]!r})")
         return None
+    global LAST_READ
+    LAST_READ = _read(parsed.get("read"))
     personas: List[Persona] = []
     for p in parsed.get("personas", [])[:max_personas]:
         try:
@@ -179,6 +196,22 @@ def extract_personas(
         if isinstance(r, (list, tuple)) and len(r) >= 3:
             rels.append((str(r[0]), str(r[1]), str(r[2])))
     return personas, rels
+
+
+def _read(raw) -> dict:
+    """The three-line interpretation, or {} when the model did not give one.
+
+    Empty is honest: the page hides the block rather than printing a template that
+    pretends to have understood something.
+    """
+    if not isinstance(raw, dict):
+        return {}
+    out = {}
+    for key in ("claim", "displaces", "opening"):
+        val = str(raw.get(key) or "").strip()
+        if val:
+            out[key] = val
+    return out if out.get("claim") else {}
 
 
 def _reasons(p: dict) -> List[str]:

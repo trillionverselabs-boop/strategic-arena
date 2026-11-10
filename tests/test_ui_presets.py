@@ -23,7 +23,7 @@ def test_form_says_what_a_run_costs():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.5.8 · ui20" in UI.read_text()
+    assert "0.5.9 · ui21" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -122,6 +122,23 @@ def test_the_input_is_an_artefact_not_a_decision_form():
     assert "const KINDS = [" in js
     assert "const KIND_ROOM = {" in js
     assert js.count("Start arena session") == 2
+
+
+def test_the_result_leads_with_meaning_and_the_agreement_case():
+    """'What it means' comes before the verdict; the supporters are priced too."""
+    js = UI.read_text()
+    assert "function WhatItMeans(" in js
+    assert "function OnYourSide(" in js
+    assert "'What it means'" in js
+    assert "What's already on your side" in js
+    assert "points of cooling" in js
+    # meaning first, then the call, then the good news, then the friction math:
+    # a reader needs their baseline support before the arithmetic of what it costs
+    assert js.index("jsx(WhatItMeans") < js.index("jsx(VerdictPanel")
+    assert js.index("jsx(VerdictPanel") < js.index("jsx(OnYourSide")
+    assert js.index("jsx(OnYourSide") < js.index("jsx(HeatLedger")
+    # a supporter's own words carry the argument, not a paraphrase
+    assert "(p.reasons || [])[0]" in js
 
 
 def test_history_does_not_eat_the_page():

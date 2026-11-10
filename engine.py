@@ -211,6 +211,8 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
         result.run_id = run_id
     result.window = scenario.window.value
     result.kind = result.kind or kind
+    if not result.read:
+        result.read = dict(ingestion.LAST_READ)
 
     for p in result.personas:
         graph.add_node(p.name, name=p.name, kind="persona", stance=round(p.stance, 3),

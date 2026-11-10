@@ -334,6 +334,8 @@ async def report(run_id: str, full: bool = False):
         "model_fallback_note": meta.get("model_fallback_note") or "",
         "recommendation": meta.get("recommendation") or "",
         "summary": meta.get("summary") or "",
+        "kind": meta.get("kind") or "",
+        "read": meta.get("read") or {},
         "blocker": meta.get("blocker"),
         "blocker_stance": meta.get("blocker_stance"),
         "blocker_capacity": meta.get("blocker_capacity"),

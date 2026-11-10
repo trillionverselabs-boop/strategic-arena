@@ -41,7 +41,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.5.8 · ui20'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.5.9 · ui21'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -646,6 +646,81 @@ function MovementChart({ snapshots, height = 190 }) {
 }
 
 
+
+
+// ── what it means ──────────────────────────────────────────────────────
+// The first thing a reader wants is not "who objects" — it is "what does this
+// actually say, and what does that open for me". Three lines, written by the
+// reader of the text during extraction, quoted rather than templated here.
+const KIND_LABEL = {
+  repo: 'a repository README', post: 'a blog post', whitepaper: 'a paper or spec',
+  case_study: 'a case study', press: 'a press release', tweet: 'a social post',
+  decision: 'an internal decision',
+}
+
+function WhatItMeans({ read, kind }) {
+  if (!read || !read.claim) return null
+  const lines = [
+    ['the claim', read.claim],
+    ['what it displaces', read.displaces],
+    ['the opening', read.opening],
+  ].filter(l => l[1])
+  return jsxs(Card, { children: [
+    jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
+      jsx('div', { className: T.h2, children: 'What it means' }),
+      kind && KIND_LABEL[kind]
+        ? jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: `read as ${KIND_LABEL[kind]}` })
+        : null,
+    ]}),
+    jsx('div', { className: 'mt-1.5 grid gap-2 md:grid-cols-3', children: lines.map(([label, text]) =>
+      jsxs('div', { className: 'flex flex-col gap-0.5', children: [
+        jsx('div', { className: `${T.label} text-(--ui-text-quaternary)`, children: label }),
+        jsx('div', { className: `${T.body} text-(--ui-text-secondary)`, children: text }),
+      ]})) }),
+  ]})
+}
+
+// ── what's already on your side ────────────────────────────────────────
+// An objection is only half the room. The parties who are for you are cooling it
+// — and their reasons are the arguments you are allowed to make, in their words.
+function OnYourSide({ personas, lev }) {
+  const priced = new Map(((lev && lev.parties) || []).map(p => [p.name, p]))
+  const forUs = (personas || [])
+    .filter(p => Number(p.stance) >= 0.3)
+    .sort((a, b) => Number(b.stance) - Number(a.stance))
+  if (!forUs.length) return null
+  const cooling = forUs.reduce((a, p) => {
+    const row = priced.get(p.name)
+    return a + (row && row.cools ? row.value : 0)
+  }, 0)
+  return jsxs(Card, { children: [
+    jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
+      jsx('div', { className: T.h2, children: "What's already on your side" }),
+      cooling < 0
+        ? jsx('span', { className: `${T.small} ${NUM}`, style: { color: textTone(C.for) },
+            children: `${Math.abs(cooling).toFixed(1)} points of cooling` })
+        : null,
+    ]}),
+    jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`,
+      children: 'These parties pull friction out of the room. Their reason is the argument you are allowed to make — in their words, not yours.' }),
+    jsx('div', { className: 'mt-1.5 grid gap-0 sm:grid-cols-2', children: forUs.map(p => {
+      const row = priced.get(p.name)
+      const said = (p.reasons || [])[0] || ''
+      return jsxs('div', { className: 'flex flex-col gap-0.5 border-t border-(--ui-stroke-tertiary) py-1.5 first:border-t-0 first:pt-0', children: [
+        jsxs('div', { className: 'flex flex-wrap items-baseline gap-1.5', children: [
+          jsx('span', { className: 'inline-block size-1.5 rounded-full', style: { backgroundColor: C.for } }),
+          jsx('span', { className: `${T.small} font-medium`, children: p.name }),
+          jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'behind it' }),
+          row && row.cools
+            ? jsx('span', { className: `${T.micro} ${NUM}`, style: { color: textTone(C.for) },
+                children: `${row.value.toFixed(1)} heat` })
+            : null,
+        ]}),
+        said ? jsx('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: said }) : null,
+      ]})
+    }) }),
+  ]})
+}
 
 // ── who's making it hot right now ─────────────────────────────────────
 // The ledger on a live room: the same arithmetic, run on the stances as they
@@ -1829,6 +1904,7 @@ function UpfrontPage({ ctx }) {
     ])
     setResult({
       runId, report: rep.report, graph: g, claims: cl.claims || [], leverage: lev,
+      read: rep.read || {}, kind: rep.kind || '', 
       events: ev.events || [], snapshots: ev.snapshots || [],
       sea: meta.sea_state ? { state: meta.sea_state, label: meta.sea_label, color: meta.sea_color,
                              why: meta.sea_why, meaning: SEA[meta.sea_state] ? SEA[meta.sea_state].meaning : '' } : null,
@@ -2072,7 +2148,11 @@ function UpfrontPage({ ctx }) {
         ]}),
       ]}),
 
+      jsx(WhatItMeans, { read: result.read, kind: result.kind }),
+
       jsx(VerdictPanel, { result }),
+
+      jsx(OnYourSide, { personas: result.personas, lev: result.leverage }),
 
       jsx(HeatLedger, { lev: result.leverage }),
 

@@ -101,6 +101,37 @@ def test_a_single_reason_still_works():
     assert personas[0].reasons == ["needs the licences cleared [evidence ¶2]"]
 
 
+def test_the_read_is_three_grounded_lines():
+    """What it means is asked of the text, not templated afterwards."""
+    rec = Recorder({
+        "personas": [], "relationships": [],
+        "read": {"claim": "A 27B open-weight model with a Western values layer.",
+                 "displaces": "Closed frontier models for regulated buyers.",
+                 "opening": "A local weights layer anyone can test and retune."},
+    })
+    ingestion.extract_personas(docs(), rec)
+    assert ingestion.LAST_READ["claim"].startswith("A 27B")
+    assert "regulated buyers" in ingestion.LAST_READ["displaces"]
+    assert ingestion.LAST_READ["opening"]
+
+
+def test_a_missing_read_is_empty_not_invented():
+    """No read → the block hides. A template that pretends to understand is worse
+    than an absent block."""
+    rec = Recorder({"personas": [], "relationships": []})
+    ingestion.extract_personas(docs(), rec)
+    assert ingestion.LAST_READ == {}
+    assert ingestion._read({"displaces": "x", "opening": "y"}) == {}   # no claim, no read
+    assert ingestion._read("nonsense") == {}
+
+
+def test_the_prompt_names_the_three_read_questions():
+    rec = Recorder()
+    ingestion.extract_personas(docs(), rec, kind="repo")
+    for k in ("claim:", "displaces:", "opening:"):
+        assert k in rec.prompt
+
+
 def test_the_prompt_asks_for_a_cited_reason_per_line():
     """Depth is asked for, not assumed: two independent reasons beat one long one."""
     rec = Recorder()

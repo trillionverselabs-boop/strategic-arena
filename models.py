@@ -142,6 +142,7 @@ class SimulationResult(BaseModel):
     events: List[Event] = Field(default_factory=list)
     snapshots: List[Snapshot] = Field(default_factory=list)
     kind: str = ""             # the lens this room was read under (repo/post/...)
+    read: dict = Field(default_factory=dict)  # {claim, displaces, opening}
     friction: float = 0.0      # 0..100
     uncertainty: float = 0.0   # ± on friction, from input quality
     confidence: str = "low"    # low / medium / high
