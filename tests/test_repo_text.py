@@ -104,16 +104,26 @@ def test_no_mirofish_code_is_actually_here():
     assert not hits, hits
 
 
-def test_the_licence_is_mit_and_names_the_owner():
+def test_the_licence_is_mit_and_names_the_entity_that_can_sign():
+    """Credit, studio and owner are three different things — a prize, a contract
+    or an IP assignment lands on the entity, so the licence must name it."""
     assert LICENSE.startswith("MIT License")
-    assert "TrillionVerse Labs" in LICENSE
+    assert "Copyright (c) 2026 LDMA Partners" in LICENSE
+    assert "TrillionVerse Labs" in LICENSE      # the studio name, stated not implied
+    assert "LeMultiFox" in LICENSE               # the author, stated not implied
+
+
+def test_credit_studio_and_owner_are_all_named_in_the_readme():
+    assert "LeMultiFox" in README
+    assert "TrillionVerse Labs" in README
+    assert "LDMA Partners" in README
+    assert "holds the copyright" in README
 
 
 def test_the_readme_names_the_person_behind_it():
     """Attribution is the hiring surface: a handle the community knows, and the
     studio it belongs to. A stealth company with no handle reads as nobody."""
     assert "LeMultiFox" in README
-    assert "TrillionVerse Labs" in README
     assert "discord" in README.lower()
     # the author fields a catalogue reviewer reads must be the same person
     assert "author: LeMultiFox" in MANIFEST

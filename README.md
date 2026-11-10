@@ -582,7 +582,7 @@ upfront/                     # the repository id stays `upfront`; the product is
 ├── plugin.yaml              # plugin manifest: label, capabilities, provides_tools
 ├── __init__.py              # register(ctx): tools + ctx.llm bind
 ├── pyproject.toml           # no deps of our own — pydantic/fastapi are Hermes core
-├── LICENSE                  # MIT (TrillionVerse Labs)
+├── LICENSE                  # MIT (LDMA Partners — see CREDITS for the layering)
 ├── CREDITS.md               # every paper we implement, with ids and licence status
 ├── README.md                # what it is, the contract, the lens, the rules we hold to
 ├── dashboard/
@@ -622,8 +622,18 @@ upfront/                     # the repository id stays `upfront`; the product is
 ## Who built this
 
 **LeMultiFox** — the handle I use in the [Nous Research Discord](https://discord.gg/nousresearch),
-where this plugin was built and where I answer questions about it. A
-**TrillionVerse Labs** project: same person, one studio, one name you can check.
+where this plugin was built and where I answer questions about it.
+
+Three names, three jobs, and none of them hides behind another:
+
+| | | |
+|---|---|---|
+| **LeMultiFox** | the author | the handle the community knows; credit and questions live here |
+| **TrillionVerse Labs** | the studio | the name the work is made under |
+| **LDMA Partners** | the owner | holds the copyright and the licence grant — the entity that can sign |
+
+If you need to contract with someone about this code, that is LDMA Partners. If you
+want to talk to the person who wrote it, that is me.
 
 I built it because I kept doing the same thing badly: shipping a post, a launch, a
 README, and finding out who it annoyed *after* it was public. Everything here is
