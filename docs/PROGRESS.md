@@ -300,3 +300,25 @@ same object. `register(ctx)` binds through it and logs a failure instead of hidi
 `plugin_api._llm()` reads from it. Four tests (`tests/test_llm_binding.py`) load `plugin_api.py`
 by file path, exactly as the app does, and prove the binding crosses the import boundary.
 Suite 87 green.
+
+---
+
+## The routes can now reach the model without the agent half (2026-11-09)
+
+After the `sys.modules` holder fix, a **freshly restarted** desktop backend still failed with
+`LLM not bound in backend`. That settles the architecture question: `register(ctx)` and the
+FastAPI routes are not guaranteed to share a process, and no in-process trick — module global,
+`sys.modules` holder, registry — crosses a process boundary.
+
+`upfront/host_llm.py` gives the routes their own way to the model: it reads the provider, base URL
+and rotating agent key from this machine's own `~/.hermes` (on every run — the key rotates) and
+speaks `POST {base}/chat/completions` with **stdlib only**, so no `openai` SDK version can break
+it. `_resolve_llm()` order: agent binding → agent copy under another name → local host config →
+a plain "No model available" naming the reason. Every resolution writes one line to
+`<plugin-data>/desktop-debug.log` with the pid, so "Run failed" is diagnosable in one read.
+
+**Verified for real:** `build_host_llm()` resolved `reflection/beam-1.0-501b-a23b:free` on
+`inference-api.nousresearch.com` and returned a live completion. Suite 89 green.
+
+This is the floor, not the preferred path: the agent binding stays first because the host owns
+provider routing and token refresh.

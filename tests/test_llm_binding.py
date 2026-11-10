@@ -15,6 +15,13 @@ import pytest
 
 from upfront import llm_binding
 
+class HostLlmStub:
+    """Minimal stand-in for host_llm.HostLlm (same call shape)."""
+
+    def complete(self, messages, temperature=None, model=None, **kwargs):
+        return "stub"
+
+
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 API_FILE = PLUGIN_ROOT / "dashboard" / "plugin_api.py"
 
@@ -57,12 +64,33 @@ def test_compat_set_llm_still_binds_the_same_holder():
     assert api._llm() is sentinel
 
 
-def test_unbound_raises_the_operator_message():
-    api = _load_api_standalone("upfront_api_unbound_probe")
+def test_unbound_falls_back_to_the_local_provider(monkeypatch):
+    """No agent binding in this process must not mean 'no run' — use local config."""
+    from upfront import host_llm
+
+    class Fake(HostLlmStub):
+        pass
+
+    monkeypatch.setattr(host_llm, "build_host_llm", lambda *a, **k: Fake())
+    api = _load_api_standalone("upfront_api_fallback_probe")
+    llm_binding.clear_llm()
+    bound, source = api._resolve_llm()
+    assert source == "host-config"
+    assert bound.complete("hi") == "stub"
+
+
+def test_no_model_at_all_raises_a_plain_message(monkeypatch):
+    from upfront import host_llm
+
+    def boom(*a, **k):
+        raise RuntimeError("no model credentials found")
+
+    monkeypatch.setattr(host_llm, "build_host_llm", boom)
+    api = _load_api_standalone("upfront_api_nomodel_probe")
     llm_binding.clear_llm()
     with pytest.raises(RuntimeError) as err:
         api._llm()
-    assert "agent plugin half" in str(err.value)
+    assert "No model available" in str(err.value)
 
 
 def test_register_binds_the_host_model_for_the_routes():

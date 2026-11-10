@@ -27,7 +27,27 @@ from upfront import llm_binding, portal, reporting  # noqa: E402
 from upfront.llm_adapter import LlmAdapter  # noqa: E402
 from upfront.models import Intervention  # noqa: E402
 
+import os  # noqa: E402
+import time  # noqa: E402
+
 router = APIRouter()
+
+
+def _debug(msg: str) -> None:
+    """One line per model resolution, in the profile's data dir (survives updates).
+
+    Cheap, and it turns "Run failed" into a diagnosis: whether the agent half was
+    bound in *this* process, or whether we fell back to the local provider config.
+    """
+    try:
+        from upfront import paths
+
+        path = paths.data_root() / "desktop-debug.log"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as fh:
+            fh.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} pid={os.getpid()} {msg}\n")
+    except Exception:
+        pass
 
 
 def set_llm(llm) -> None:
@@ -40,30 +60,53 @@ def set_llm(llm) -> None:
     llm_binding.set_llm(llm)
 
 
-def _llm():
+def _resolve_llm():
+    """(adapter, source) — the host binding if this process has it, else the floor.
+
+    The holder only works when `register(ctx)` ran in the same process as these
+    routes. In the desktop deployment it may not have, and no in-process trick
+    crosses a process boundary — so fall back to building the model from the
+    credentials this machine already has. Never leave the user staring at
+    "LLM not bound" when a run is perfectly possible.
+    """
     bound = llm_binding.get_llm()
-    if bound is None:
-        # Last resort: a copy of this module imported under another name may hold
-        # a binding from an older code path. Keep it, but the holder above is the
-        # one that is actually shared.
-        for _name, _mod in list(sys.modules.items()):
-            if _mod is None or _mod is sys.modules.get(__name__):
-                continue
-            if _name.endswith("upfront.dashboard.plugin_api"):
-                _bound = getattr(_mod, "_LLM", None)
-                if _bound is not None:
-                    return _bound
+    if bound is not None:
+        return bound, "agent"
+
+    # A copy of this module imported under another name may hold an old binding.
+    for _name, _mod in list(sys.modules.items()):
+        if _mod is None or _mod is sys.modules.get(__name__):
+            continue
+        if _name.endswith("upfront.dashboard.plugin_api"):
+            _bound = getattr(_mod, "_LLM", None)
+            if _bound is not None:
+                return _bound, "agent-copy"
+
+    try:
+        from upfront.host_llm import build_host_llm
+
+        built = LlmAdapter(build_host_llm(), allow_override=True)
+        _debug("model source=host-config (agent half not bound in this process)")
+        return built, "host-config"
+    except Exception as exc:
+        _debug(f"model source=none ({exc})")
         raise RuntimeError(
-            "LLM not bound in backend. The agent plugin half must load and call "
-            "plugin_api.set_llm(ctx.llm) in register(); if you only enabled the "
-            "dashboard backend, the simulation cannot call the model."
+            "No model available. The agent plugin half is not loaded in this process "
+            f"and the local provider credentials could not be used: {exc}"
         )
-    return bound
+
+
+def _llm():
+    return _resolve_llm()[0]
 
 
 @router.get("/health")
 async def health():
-    return {"ok": True, "plugin": "upfront", "llm_ready": llm_binding.get_llm() is not None}
+    try:
+        _, source = _resolve_llm()
+    except Exception as exc:
+        return {"ok": False, "plugin": "upfront", "llm_ready": False, "detail": str(exc)}
+    return {"ok": True, "plugin": "upfront", "llm_ready": True, "source": source}
 
 
 @router.post("/run")
