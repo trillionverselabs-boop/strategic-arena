@@ -247,3 +247,33 @@ the README title. The plugin `id` stays `upfront` — tool names, the data dir a
 runs' provenance do not change.
 
 BUILD → `0.3.3 · ui4`.
+
+---
+
+## The challenge player is the one who can stop you, not the one who shouts loudest (2026-11-09)
+
+Found in a real backend run before the desktop test: a price-rise document named `Enterprise IT`
+(role blocker, capacity 0.9, stance −1.00) *and* `Free tier users` (stance −1.00, capacity 0.0).
+The report named **Free tier users** as the veto player — the angriest party, not the one with a
+lever. "Who can challenge" is stance x power, and the old `find_blocker` only looked at stance.
+
+- `find_blocker` now ranks negative stakeholders by `stance x capacity` (unassessed capacity gets
+  0.5 — unknown is not zero). `Enterprise IT` wins that run; `Free tier users` no longer does.
+- `sea_state` only calls a hard veto when the blocker both dislikes the move (`< -0.7`) **and**
+  has capacity `>= 0.5`. Anger without a lever now reads as friction, not as a veto.
+- `sea_state` also counts a coalition as a *blocking camp* only when someone in it can actually
+  stop the move (dislike `< -0.3` **and** capacity `>= 0.5`). A room with Finance against and a
+  couple of resellers asking for a fixable detail was printing Red on "2 blocking camps"; that is a
+  contest with winnable ground, which is Purple. Unknown camp members still count as a fight —
+  never guess a fight is harmless.
+- Possessive fix in the best-response copy: `Enterprise Resellers'` rather than `Resellers's`.
+- Five tests added (`tests/test_scoring.py`); suite 83 green.
+
+**Sample rewritten for the demo.** The sample had drifted into a document where every named party
+supported the move, so the demo produced "Blue ocean — nobody is contesting this": the weakest
+possible rehearsal. It now carries one party with a lever and conditions (Finance wants the free
+window capped), one fixable complaint (resellers ask for a protection clause), one compliance
+condition (Legal) and the parties who gain. That is what the product actually does — it is not a
+forecast, it is the fight before the fight.
+
+BUILD → `0.3.4 · ui5`.

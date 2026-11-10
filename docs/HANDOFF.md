@@ -40,7 +40,7 @@ Read this first in a new session. It is the shortest path from zero to productiv
 Full detail and acceptance criteria: `docs/ROADMAP.md`. The end-to-end test protocol (agent installs →
 url → results → uninstall → user installs → UI test) is at the bottom of that file.
 
-1. **Desktop test** (the gate). Install from the repo → enable (expect one `llm.model_override` consent prompt) → header must read `build 0.3.3 · ui4`. Then: recipe → sample → run `24h` → confirm Purple ocean, named veto player (never `Stakeholder N`), formatted report; inject mid-run; score a claim; re-run at `30m` and confirm the comparison panel.
+1. **Desktop test** (the gate). Install from the repo → enable (expect one `llm.model_override` consent prompt) → header must read `build 0.3.4 · ui5`. Then: recipe → sample → run `24h` → confirm Purple ocean, named veto player (never `Stakeholder N`), formatted report; inject mid-run; score a claim; re-run at `30m` and confirm the comparison panel.
 2. Capture 1–2 **real** screenshots into `assets/` and add them to `screenshots:` in the catalog entry.
 3. `hermes plugins validate /home/lisacore/work/upfront --install-deps` — fix every failure; then remove the editable installs (handoff §5.2).
 4. Decide the **name** (deferred by the user; display name is one constant `PRODUCT_NAME`; the id stays `upfront`).

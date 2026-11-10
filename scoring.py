@@ -75,19 +75,40 @@ def friction_score(result: SimulationResult, input_quality: float) -> Tuple[floa
     return round(friction, 1), uncertainty
 
 
+def _power(persona: Persona) -> float:
+    """How much this party's stance actually matters: dislike x ability to stop it.
+
+    "Who can challenge" is not "who is angriest". A vocal party with no lever moves
+    the read far less than a quiet party who controls the budget or the licence.
+    Unassessed capacity gets the benefit of the doubt (0.5) — unknown is not zero.
+    """
+    cap = getattr(persona, "capacity", None)
+    return 0.5 if cap is None else max(0.0, min(1.0, float(cap)))
+
+
 def find_blocker(personas: List[Persona]) -> Persona | None:
     """The veto player — or None when nobody is meaningfully against the move."""
     if not personas:
         return None
-    worst = min(personas, key=lambda p: p.stance)
-    return worst if worst.stance < BLOCKER_THRESHOLD else None
+    negative = [p for p in personas if p.stance < BLOCKER_THRESHOLD]
+    if not negative:
+        return None
+    # Most *effective* objection first: a -1.0 with capacity 0 cannot stop anything,
+    # while a -0.6 with capacity 0.9 is the person you actually have to talk to.
+    return min(negative, key=lambda p: p.stance * _power(p))
+
+
+def _poss(name: str) -> str:
+    """Singular possessive that survives names already ending in s."""
+    n = (name or "they").strip()
+    return f"{n}'" if n.lower().endswith("s") else f"{n}'s"
 
 
 def build_counter_moves(blocker: Persona, result: SimulationResult) -> List[str]:
     if blocker is None or blocker.stance >= BLOCKER_THRESHOLD:
         return []
     moves = [
-        f"Address {blocker.name}'s core objection directly before launch — it drives their stance.",
+        f"Address {_poss(blocker.name)} core objection directly before launch — it drives their stance.",
     ]
     champions = [p for p in result.personas if p.stance > 0.5]
     if champions:
@@ -98,6 +119,23 @@ def build_counter_moves(blocker: Persona, result: SimulationResult) -> List[str]
     return moves
 
 
+def _camp_is_a_fight(camp: dict, personas: List[Persona]) -> bool:
+    """Does this coalition actually have someone who can stop the move?
+
+    A camp is a cluster of people, and a cluster of mild complainers is not a fight.
+    We resolve its members to the personas we know; if none of them has both the
+    dislike and the lever, it does not count as a blocking camp. When a member's
+    stance or capacity is unknown we assume it blocks — never guess that a fight
+    is harmless.
+    """
+    names = set(camp.get("members") or [])
+    members = [p for p in personas if p.name in names]
+    if not members:
+        return True
+    return any(p.stance < BLOCKER_THRESHOLD and _power(p) >= CAPACITY_MIN
+               for p in members)
+
+
 def sea_state(result: SimulationResult) -> dict:
     """Competition read. High competition = red, medium = purple, low = blue.
 
@@ -105,21 +143,25 @@ def sea_state(result: SimulationResult) -> dict:
     two never get conflated: this is about the landscape, not about one player.
     """
     against = [c for c in result.camps if c.get("lean") == "against"]
-    hard_veto = result.blocker is not None and result.blocker.stance < -0.7
+    # A hard veto needs both dislike and a lever. Anger without capacity is noise.
+    hard_veto = (result.blocker is not None
+                 and result.blocker.stance < -0.7
+                 and _power(result.blocker) >= CAPACITY_MIN)
+    blocking_camps = [c for c in against if _camp_is_a_fight(c, result.personas)]
     f = result.friction
 
-    if hard_veto or len(against) >= 2 or f >= 65:
+    if hard_veto or len(blocking_camps) >= 2 or f >= 65:
         if hard_veto:
             why = f"hard veto player ({result.blocker.name} {result.blocker.stance:+.2f})"
-        elif len(against) >= 2:
-            why = f"{len(against)} blocking camps"
+        elif len(blocking_camps) >= 2:
+            why = f"{len(blocking_camps)} blocking camps"
         else:
             why = f"friction {f:.0f}/100"
         key = "red"
-    elif f < 35 and not against:
+    elif f < 35 and not blocking_camps:
         key, why = "blue", f"no blocking camp, friction {f:.0f}/100"
     else:
-        key, why = "purple", f"friction {f:.0f}/100 with {len(against) or 'no'} blocking camp(s)"
+        key, why = "purple", f"friction {f:.0f}/100 with {len(blocking_camps) or 'no'} blocking camp(s)"
 
     # Blue must be earned. "Nobody objected" is not "nobody could" — the Arete run
     # named no opponent at all and printed Blue ocean, which is an empty room

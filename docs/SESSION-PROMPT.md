@@ -59,7 +59,7 @@ reality. **Not a prediction; a rehearsal.** Local-first: it runs on your own mac
 3. Tell the user to install the **desktop half** on their machine: Hermes desktop app →
    **Capabilities → Plugins → Install from Git → `trillionverselabs-boop/upfront-test`** → tick
    **Desktop** → Install → **⌘K → Reload desktop plugins**.
-4. **Verify:** the header must read **`build 0.3.3 · ui4`**; the left nav must read
+4. **Verify:** the header must read **`build 0.3.4 · ui5`**; the left nav must read
    **Upfront Prediction**.
 5. **UI test with the user** (full protocol in `docs/ROADMAP.md`):
    - the plugin card in Capabilities → Plugins is readable by both developers and business people,

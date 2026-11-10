@@ -39,7 +39,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.3.3 · ui4'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.3.4 · ui5'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
 
 const SEA = {
@@ -122,6 +122,9 @@ const SOURCE_GUIDE = [
   ['Whitepaper / PDF', 'enterprise and regulatory framing'],
 ]
 
+// The sample is the demo. It has to show a real fight with a winnable middle, not a
+// room where everyone agrees: one party who can stop it, two with conditions, and the
+// people who gain. That is what "rehearsal" means on screen.
 const SAMPLE = {
   title: 'Open-weight Arete-27B',
   decision:
@@ -130,10 +133,12 @@ const SAMPLE = {
     'API stays free for the first 90 days so people can try it before committing.',
   evidence:
     'Q2 survey of 400 enterprise CIOs: 61% said they cannot route inference through an external ' +
-    'API for compliance reasons. Open-weight model downloads tripled quarter over quarter, and ' +
-    'community fine-tunes now outnumber closed-model adaptations 3:1. Enterprises want weights ' +
-    'on-prem; the community wants the training data; nobody wants a licence that forbids ' +
-    'commercial use.',
+    'API for compliance reasons, and open-weight model downloads tripled quarter over quarter. ' +
+    'Community fine-tunes now outnumber closed-model adaptations 3:1. Finance has reservations: it ' +
+    'wants the 90-day free API window capped at a fixed budget before it will sign off. Two ' +
+    'enterprise resellers have asked for a protection clause, which they call a fixable detail ' +
+    'rather than a veto. Legal needs the two vendor data licences cleared before the training set ' +
+    'can be published.',
 }
 
 // ── atoms (the Kanban board's shared chrome) ──────────────────────────
