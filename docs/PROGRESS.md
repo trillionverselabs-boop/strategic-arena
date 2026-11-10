@@ -499,3 +499,52 @@ before you commit:
 - The model field's own hint says it up front.
 
 BUILD → `0.4.3 · ui9`, version 0.4.4. Suite 115 green.
+
+---
+
+## The page tells the story, not the measurements (2026-11-10)
+
+First real screen grabs came back with one verdict: *"the circles with numbers mean
+nothing."* Correct diagnosis. The page showed a graph, a friction bar and a stakeholder
+list — all true, none of it saying what would happen to the user's decision, and
+nothing a bystander could watch for the length of a 48-hour run.
+
+**What changed, and why each piece exists:**
+
+- **Home** is now an identity line + one primary action + three steps + four value
+  tiles, and the run history moved to the lower third as compact cards plus a capped
+  list (`test_history_does_not_eat_the_page`).
+- **The room** is an ordered board: parties sorted from *will block it · −1* to
+  *behind it · +1*, each with a bar measured from a labelled centre, a spoken power
+  word (*can stop it / can slow it / can only complain*), and their own reason. The
+  numbered dots are gone for good.
+- **Live runs** read as a feed: a round track with a "you are here" marker, an
+  estimated time remaining, the loudest objection, the statements the parties just
+  made, and the board beside the injection console. A watcher has something to read.
+- **Results** lead with the call: a headline sentence built from the blocker and the
+  heat band, then *who can stop it / what they need / your best move*, then the room,
+  the **movement chart** (positions over rounds), the **transcript** grouped by round,
+  and the scorecard with a countdown and the running record.
+- **Scorecard** is now *The call, frozen*: a bet slip, not a checklist — it shows when
+  to score, asks ✓/✗ per claim, and prints the aggregate record so tracking has a
+  visible payoff.
+- **Warmth in the engine:** the stakeholder prompt now requires first-person speech
+  and forbids third-person reportage (`tests/test_events.py`). This is what turns a
+  lab printout into people you can plan against.
+- **Backend for all of it:** `Snapshot.events` (the round's own statements) is now
+  emitted on every progress tick and exposed as `GET /events/{run_id}` with the
+  per-round stance series; `GET /status` also carries `movers` and `previous` so the
+  page can show what an injection actually moved.
+- **Honesty fixes:** an off-axis competition read now says *why* instead of lighting
+  an unlit axis (`test_ui_sea.py`); `text-(#hex)` — an invalid Tailwind form that
+  silently renders nothing — was replaced with real tokens, and a guard fails if it
+  returns.
+
+**Verified:** 143 tests green; `node --check` clean; the page rendered end to end
+against real run data in a harness (home, live, results) and reviewed for layout,
+overlap and clipping before shipping. Suite 143 green. BUILD → `0.5.0 · ui12`,
+version 0.5.0.
+
+**Not verified:** the real desktop window. The user must confirm the header reads
+`build 0.5.0 · ui12` — see `docs/DESKTOP-UPDATES.md` for why the server-side update
+cannot prove that on its own.

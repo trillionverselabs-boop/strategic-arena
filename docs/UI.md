@@ -1,79 +1,83 @@
-# UI direction
+# UI direction — what the page is for
 
-Reference studied: [`RegeneratusLabs/lazy-plugin`](https://github.com/RegeneratusLabs/lazy-plugin) (v0.9.x, 70
-commits, PR in review at the time of writing). Judged from its `desktop/plugin.js` and `assets/preview.png`,
-not from its README claims.
+Rewritten 2026-11-10 after the first real screen grabs came back. The old page
+failed for one reason: **it showed measurements, not the thing.** Coloured dots
+with numbers, a friction bar, a list of stakeholders — all correct, and none of
+it told a reader what would happen to *their decision*.
 
-## What that plugin gets right
+## The rule the page is built on
 
-1. **One primary action per screen.** A single input ("Give the cat a job"), one button ("make it"), results
-   below. No control panel competing with the job.
-2. **Verdicts are sentences, not colours.** A chip reads `needs a key — set PETBARN_API_KEY` or
-   `blocked upstream — HTTP 403`. The colour is the second signal, never the only one. That is exactly the
-   discipline our sea-state fix just adopted.
-3. **Serif headings + mono numbers.** Cheap to do inside the SDK, and it makes the thing read as an
-   *instrument* rather than a form.
-4. **A receipt, not a badge.** Every build ends with `plan · files · check · try-out`, each row a tick or
-   the exact failing line. "No green badge without the line underneath it." This is the single best idea
-   in the project.
-5. **Provenance on every card.** `2 tools · 6 files · v0.1.0` — the card tells you how much to trust it.
+> A number with no sentence next to it is noise.
+
+Every metric on the page now carries a word, a scale, and where it matters the
+sentence a party actually said. Concretely:
+
+| Old | New |
+|---|---|
+| `friction 52` | **A fight** · 52/100 · "At least one party is working against you and has the power to make it cost…" |
+| a red dot at `-0.5` | **against it** · bar from a labelled centre · power: *can stop it* |
+| a coalition hull | only drawn when 2+ parties actually agree, with their names |
+| "Score the claims — did the review call it?" | **The call, frozen**, with a countdown and your running record |
+| a wall of report markdown | the verdict first; the audit behind one toggle |
+
+## What each surface is for
+
+**Home.** One identity line, one primary action, three steps, four value tiles.
+No past-runs list competing with the job. The past runs live in the lower third.
+
+**Live run.** A watcher must not get bored in a 48-hour cycle, so the run is
+read as a feed: a round track (with "you are here"), a loudest-objection line,
+the statements the parties just made in their own words, and a board that bends
+when you inject a counter-move. Estimated time remaining, not a spinner.
+
+**Result.** The call first — a headline sentence built from the blocker and the
+heat band, then *who can stop it / what they need / your best move* as three
+labelled answers. Then the room in order, the movement chart (positions over
+rounds), the transcript grouped by round, and the scorecard.
+
+## Where the five papers show up
+
+| Paper | What it buys the page |
+|---|---|
+| **CAMEL** | The conversation is the artifact. `Snapshot.events` → the live floor and the transcript; the run's own frozen statements, grouped by round. |
+| **Generative Agents** | Parties remember and re-act, so positions move; the movement chart is the only honest way to show that. |
+| **OASIS** | Time is a dimension: rounds, a round track, "≈ 63 min left", per-round replay. |
+| **GraphRAG** | A camp is a community summary, not a hull — the board names members and the coalition card only appears when it is real. |
+| **MASS** | Receipts: the run line (`5 parties · 15 statements · 11 claims · served by …`), the frozen log, the calibration record. |
+
+## Voices
+
+The engine prompt now requires first-person speech ("I", "we") and forbids
+third-person reportage. This was the single biggest warmth change: `Finance
+blocks … so Finance blocks pending cost controls` reads like a status line;
+`I can't sign off until the free window is capped` reads like a person you can
+negotiate with. Guarded by `tests/test_events.py`.
+
+## Typography and colour
+
+One type scale (`T` at the top of `desktop/plugin.js`), one meaning per colour
+(red = will block, amber = undecided, green = behind it, accent = your side),
+and **theme variables only** for anything that reskins with the app. SVG text
+uses `fontFamily: 'inherit'` so graphics and prose share the app's font.
+
+`text-(#hex)` is not a valid Tailwind arbitrary-value form — it silently
+renders nothing. The old page used it for its grey text; a guard now fails if it
+comes back (`test_no_hardcoded_text_colours_that_break_the_theme`).
 
 ## What not to copy
 
-- **A 396 KB `plugin.js`.** Most of that file is one base64 PNG backdrop. It loads slowly, it is unreadable
-  at review time, and a catalog reviewer opens exactly this file. Ours is 35 KB; keep it that way — use
-  CSS, not a bitmap.
-- **Reimplementing the design system.** They ship their own `CC_STYLE` block with a class prefix, so the
-  page looks like an app inside a tab. The SDK's `ui.*` components and theme variables make a plugin look
-  *native* for free, and native is the thing that makes a plugin feel like part of Hermes.
-- **Mono for body text.** Fine for numbers and ids; it costs readability for anyone reading a paragraph.
-- **Themed voice everywhere.** The cat works because it is confined to names and headings. Inside the
-  actual findings it would undercut the credibility of a strategic read.
+- **A bitmap backdrop.** Everything here is CSS + inline SVG. The file is ~84 KB;
+  a reviewer opens it.
+- **Hardcoded colours.** Every token is `var(--ui-*)`. A plugin that hardcodes
+  looks broken the moment the user changes theme.
+- **Numbered dots.** The first user's words: *"the circles with numbers mean
+  nothing."* They are not coming back (`test_the_room_is_readable_without_a_number_you_cannot_place`).
 
-## What Upfront's page should become
+## Still owed
 
-Three zones, top to bottom. The fix already landed for the sea read; this is the rest.
-
-### 1. One question, one field
-
-> **What are you deciding?**  `[ paste a link, or the decision ]`   `[ Read it ]`
-
-Everything currently in the form that the document can answer moves out of the form. The user should not
-be typing stakeholders a document already names.
-
-### 2. The read — the part nobody else has
-
-A `Brief` card showing *the move*, *who is making it*, and every claim with **its quote underneath**.
-Clicking a quote highlights that sentence in the source pane. This is "no span, no fact" made visible: the
-credibility of the whole product is that a reader can check every line in two seconds.
-
-Also show the two counts that prove the read happened: `12.4K chars read · 11/11 spans verified`.
-
-### 3. Two axes, side by side
-
-| **Can it be stopped** | **What it changes for others** |
-|---|---|
-| friction gauge, veto player, coalitions, sea chip | displaced parties ranked by how hard it hits, counter-moves with timing |
-| existing engine | R5–R7 (`docs/PRODUCT.md`) |
-
-Under both, the **receipt line**:
-
-```
-read 12.4K chars · 11/11 spans verified · 8 parties · 3 rounds · $0.00 (Beam 501B, free)
-```
-
-That line is the trust product. It says what was read, what was checked, how much thinking happened, and
-what it cost — and every number in it is already tracked by the backend.
-
-## Ordering
-
-UI work rides after R5 (the reader), because the page's centrepiece is the Brief. Doing the visual pass
-first would mean designing a card for data that does not exist yet. The one cheap exception, done now:
-the off-axis sea chip, since it stops a grey "insufficient" from rendering as an unlit axis.
-
-## What we owe the repo (from the same reference)
-
-- A screenshot at the top of the README, above the fold.
-- A **"Limits, honestly"** section. We have better material than they do: an empty room reads as
-  insufficient input, the field axis is not built yet, and the calibration ledger is empty until n ≥ 10.
-- Tagged releases, so a SHA pin has something human-readable behind it.
+- The room is ordered by stance; it is not yet split by *camp*, so a coalition
+  shows up only as a card beside the board.
+- The verdict headline is composed client-side from friction + blocker + sea. A
+  model-written one-line verdict would be better, and the data is already there.
+- The scorecard record (`runs / scored / hit rate`) is real but thin until
+  n ≥ 10 scored runs — the page says so rather than pretending.

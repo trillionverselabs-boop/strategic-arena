@@ -1,4 +1,4 @@
-# Handoff — Upfront (state as of 2026-11-09, HEAD `33c6776`)
+# Handoff — Upfront (state as of 2026-11-10, HEAD `263cd8f`)
 
 Read this first in a new session. It is the shortest path from zero to productive.
 
@@ -12,6 +12,8 @@ Read this first in a new session. It is the shortest path from zero to productiv
 | Plan (versioned) | `docs/plans/2026-11-09_upfront-gap-repair.md` |
 | Positioning | `docs/POSITIONING.md` |
 | Catalog entry draft | `docs/catalog-entry.draft.yaml` |
+| **UI direction (design brief)** | **`docs/UI.md`** |
+| **How the desktop half reaches the window** | **`docs/DESKTOP-UPDATES.md`** |
 | **Recommendations + test protocol** | **`docs/ROADMAP.md`** (build order, acceptance tests, Phase A/B/C) |
 | Test venv | `/home/lisacore/.hermes/profiles/charlene/cache/scratch/upvenv` (pydantic, fastapi, pytest, httpx, pyyaml) |
 
@@ -19,20 +21,21 @@ Read this first in a new session. It is the shortest path from zero to productiv
 
 - **Correctness** — model failure raises `SimulationError` instead of inventing `Stakeholder 1..3`; no stance drift on a dead model; `find_blocker` needs `< -0.3`; degraded runs are banner-flagged; one persisted record per run; profile-safe data root via `plugin_data_dir("upfront")`.
 - **Checkability** — replication manifest per run; red/purple/blue competition axis; 2–4 frozen claims; per-claim scoring + friction error; calibration ledger; `run_pair()` counterfactual; GraphRAG claim extraction.
-- **UI** — green `+ New review` pill → modal form (uppercase labels, inline help, recipes, "what should I paste?" table, sample, decision-OR-URL validation, 30m→48h timelines with notes, model picker with live prices and per-run cost), live graph + **Inject ⚡**, report as markdown, claim scoring, past runs, **cross-timeline comparison**.
+- **UI (build `0.5.0 · ui12`)** — home with one primary action, three steps and four value tiles; a modal form (recipes, source guide, decision-OR-URL validation, 30m→48h timelines, model picker with live prices and per-run cost); a live run that reads as a feed (round track, loudest objection, party statements, bending board, injection console, ETA); results that lead with the call, then the ordered room board, movement chart, round-grouped transcript and the frozen-call scorecard with a running record. The past-runs list is capped in the lower third. See `docs/UI.md`.
+- **Transcript + movement data** — `Snapshot.events` on every round, `GET /events/{run_id}` (statements + per-round stances), `movers` on `GET /status`. This is what makes a 48-hour run watchable and a finished review worth keeping.
 - **Models** — live Nous catalogue (`inference-api.nousresearch.com/v1/models`, anonymous, 394 listed / 357 chat / 5 free), prices per million tokens, cached 6h; `llm.model_override` declared and probed.
 - **Marketplace** — banner + how-it-works assets, long description, category, 5 declared tools, docs_url, known_issues.
 
 ## What is verified vs not
 
-**Verified:** 36 tests green (fake LLM, throwaway `HERMES_HOME`); `node --check desktop/plugin.js`; `plugin.yaml` + catalog YAML parse; live catalogue fetch; README quickstart output reproduced by the engine (47.3 friction, Purple/medium, veto Enterprise IT −0.70, 4 claims).
+**Verified:** 143 tests green (fake LLM, throwaway `HERMES_HOME`); `node --check desktop/plugin.js`; `plugin.yaml` + catalog YAML parse; live catalogue fetch; README quickstart output reproduced by the engine (47.3 friction, Purple/medium, veto Enterprise IT −0.70, 4 claims); the new page rendered end to end in a local harness against a real saved run (home, live, results) and reviewed for layout, overlap and clipping.
 
-**NOT verified:** the UI has never run in the desktop app. Every visual claim is unproven.
+**NOT verified:** the new page in the real desktop window. The user must confirm the header reads `build 0.5.0 · ui12`. The server-side install cannot prove that on its own — `docs/DESKTOP-UPDATES.md`.
 
 ## Do-not list
 
 - Do **not** install the plugin into the Hermes backend without removing it afterwards (`docs/plans/...` §5.2 has the uninstall drill).
-- Keep exactly **one** copy on disk. Never copy `desktop/plugin.js` into `~/.hermes/desktop-plugins/`.
+- Keep exactly **one** repo copy. The app is what publishes `desktop/plugin.js` into `~/.hermes/desktop-plugins/<id>/` on the machine the window runs on — if you do it by hand (as we do for lisacore), make the two files byte-identical and never leave a second copy somewhere the app might read.
 - Never read credentials for the model catalogue — it is deliberately anonymous.
 
 ## Next steps, in order
@@ -40,7 +43,7 @@ Read this first in a new session. It is the shortest path from zero to productiv
 Full detail and acceptance criteria: `docs/ROADMAP.md`. The end-to-end test protocol (agent installs →
 url → results → uninstall → user installs → UI test) is at the bottom of that file.
 
-1. **Desktop test** (the gate). Install from the repo → enable (expect one `llm.model_override` consent prompt) → header must read `build 0.3.4 · ui5`. Then: recipe → sample → run `24h` → confirm a contested read (Purple, or Red when a hard veto player appears), a named challenge player (never `Stakeholder N`), formatted report; inject mid-run; score a claim; re-run at `30m` and confirm the comparison panel.
+1. **Desktop test** (the gate). On the machine running the app: Install from Git with the **Desktop** target ticked (see `docs/DESKTOP-UPDATES.md`), then ⌘K → Reload desktop plugins. The header must read `build 0.5.0 · ui12`. Then: recipe → sample → run `24h` → confirm the verdict panel, the ordered room board, the movement chart and the transcript; inject mid-run and watch the board bend; score a claim and check the record line.
 2. Capture 1–2 **real** screenshots into `assets/` and add them to `screenshots:` in the catalog entry.
 3. `hermes plugins validate /home/lisacore/work/upfront --install-deps` — fix every failure; then remove the editable installs (handoff §5.2).
 4. Decide the **name** (deferred by the user; display name is one constant `PRODUCT_NAME`; the id stays `upfront`).

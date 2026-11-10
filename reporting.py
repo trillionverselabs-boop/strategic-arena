@@ -328,6 +328,43 @@ def load_claims(run_id: str) -> List[dict]:
     return out
 
 
+def load_events(run_id: str) -> List[dict]:
+    """Every statement in the run, in order: {round, actor, action, text}.
+
+    The result page replays the debate from this. It is the same frozen log the
+    claims are written to, so nothing here is reconstructed after the fact.
+    """
+    p = _run_dir(run_id) / "log.jsonl"
+    if not p.exists():
+        return []
+    out = []
+    for line in p.read_text().splitlines():
+        try:
+            row = json.loads(line)
+        except Exception:
+            continue
+        if row.get("type") == "event":
+            out.append({"round": row.get("round", 0), "actor": row.get("actor", ""),
+                        "action": row.get("action", ""), "text": row.get("text", "")})
+    return out
+
+
+def load_snapshots(run_id: str) -> List[dict]:
+    """Per-round stance map: [{round, stances}]. Drives the movement chart."""
+    p = _run_dir(run_id) / "log.jsonl"
+    if not p.exists():
+        return []
+    out = []
+    for line in p.read_text().splitlines():
+        try:
+            row = json.loads(line)
+        except Exception:
+            continue
+        if row.get("type") == "snapshot":
+            out.append({"round": row.get("round", 0), "stances": row.get("stances") or {}})
+    return out
+
+
 def due_claims(as_of=None) -> List[dict]:
     """Runs whose window has closed and that nobody has scored yet.
 

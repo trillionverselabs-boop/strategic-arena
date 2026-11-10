@@ -109,6 +109,9 @@ class Event(BaseModel):
 class Snapshot(BaseModel):
     round: int
     stances: Dict[str, float]  # persona name -> stance
+    # what was actually said this round. The live view leads with these: a
+    # watcher needs words to read, not a dot that moved.
+    events: List[Event] = Field(default_factory=list)
 
 
 class SimulationResult(BaseModel):

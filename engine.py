@@ -64,12 +64,31 @@ def _same_model_family(requested: str, served: str) -> bool:
 
 
 def _emit(run_key: str, status: str, round_: int = 0, total: int = 0,
-          stances: dict | None = None) -> None:
+          stances: dict | None = None, events: list | None = None) -> None:
+    """Publish one progress tick.
+
+    `events` is the round that just closed: the live view reads these out loud,
+    because a moving dot is not a story and a 48h run has to be watchable.
+    """
     with _LOCK:
+        prev = _PROGRESS.get(run_key) or {}
+        before = prev.get("stances") or {}
+        now = stances or {}
+        movers = []
+        if before and now:
+            for k, v in now.items():
+                if k in before:
+                    d = round(v - before[k], 3)
+                    if abs(d) >= 0.05:
+                        movers.append({"name": k, "delta": d})
+            movers.sort(key=lambda m: abs(m["delta"]), reverse=True)
         _PROGRESS[run_key] = {
             "status": status, "round": round_, "total": total,
             "progress": round((round_ / total) * 100) if total else 0,
-            "stances": stances or {},
+            "stances": now,
+            "events": events or prev.get("events") or [],
+            "previous": before if before else None,
+            "movers": movers[:5],
         }
 
 
@@ -159,7 +178,9 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
     # 5. simulate (draining any mid-run injections)
     def _cb(snap):
         _emit(key, "running", snap.round, scenario.rounds,
-              {k: round(v, 3) for k, v in (snap.stances or {}).items()})
+              {k: round(v, 3) for k, v in (snap.stances or {}).items()},
+              [ev.model_dump() if hasattr(ev, "model_dump") else ev
+               for ev in (getattr(snap, "events", None) or [])])
         if on_round:
             on_round(snap)
 

@@ -56,7 +56,12 @@ class StakeholderAgent:
             f"Other stakeholders' stances: {others_stances}. "
             f"Decide your move this round. Respond with ONLY valid JSON: "
             f'{{"stance_delta": 0.0, "action": "supports|blocks|shares|waits", "text": "one sentence"}} '
-            f"stance_delta in [-0.5, 0.5]. Stay consistent with your stance and reasons."
+            f"stance_delta in [-0.5, 0.5]. Stay consistent with your stance and reasons.\n"
+            f"Write 'text' as something you would actually SAY in the room, in the first person "
+            f"('I', 'we'), in your own voice — under 30 words, concrete, naming the "
+            f"thing you need or object to. Never describe yourself in the third person "
+            f"and never write 'X blocks ...' or 'X supports ...'. A person reading it "
+            f"should hear a person, not a status line."
         )
         try:
             raw = llm.complete(prompt)

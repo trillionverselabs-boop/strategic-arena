@@ -299,6 +299,16 @@ async def report(run_id: str, full: bool = False):
     }
 
 
+@router.get("/events/{run_id}")
+async def events(run_id: str):
+    """The round-by-round transcript — what each party actually said."""
+    try:
+        return {"events": reporting.load_events(run_id),
+                "snapshots": reporting.load_snapshots(run_id)}
+    except Exception:
+        return {"events": [], "snapshots": []}
+
+
 @router.get("/claims/{run_id}")
 async def claims(run_id: str):
     return {"claims": reporting.load_claims(run_id)}

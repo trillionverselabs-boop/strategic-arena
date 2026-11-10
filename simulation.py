@@ -55,25 +55,26 @@ def run_simulation(
     interventions: List[Intervention] = scenario.interventions
 
     for rnd in range(1, rounds + 1):
+        round_events: List[Event] = []
         # scheduled intervention: everyone observes it first
         for iv in interventions:
             if iv.inject_at_round == rnd:
                 for a in agents:
                     a.observe(f"Intervention: {iv.name} — {iv.description}", 0.9, rnd)
-                result_events.append(
-                    Event(round=rnd, actor="<god>", action="intervention",
-                          text=f"{iv.name}: {iv.description}")
-                )
+                ev = Event(round=rnd, actor="<god>", action="intervention",
+                           text=f"{iv.name}: {iv.description}")
+                result_events.append(ev)
+                round_events.append(ev)
 
         # live intervention: queued from the UI / agent while the run is in flight
         while injection_queue:
             iv = injection_queue.pop(0)
             for a in agents:
                 a.observe(f"Intervention: {iv.name} — {iv.description}", 0.95, rnd)
-            result_events.append(
-                Event(round=rnd, actor="<god>", action="intervention",
-                      text=f"{iv.name}: {iv.description}")
-            )
+            ev = Event(round=rnd, actor="<god>", action="intervention",
+                       text=f"{iv.name}: {iv.description}")
+            result_events.append(ev)
+            round_events.append(ev)
 
         # each agent acts, seeing the current stance landscape
         stances = {a.p.name: a.p.stance for a in agents}
@@ -81,14 +82,15 @@ def run_simulation(
             a.p.stance = max(-1.0, min(1.0, a.p.stance + move["stance_delta"]))
             a.observe(move["text"] or move["action"], 0.4, rnd)
             if move["text"] or move["action"] != "waits":
-                result_events.append(
-                    Event(round=rnd, actor=a.p.name, action=move["action"], text=move["text"])
-                )
+                ev = Event(round=rnd, actor=a.p.name, action=move["action"], text=move["text"])
+                result_events.append(ev)
+                round_events.append(ev)
             for other in agents:
                 if other is not a:
                     other.observe(f"{a.p.name} {move['action']}", 0.3, rnd)
 
-        snap = Snapshot(round=rnd, stances={a.p.name: round(a.p.stance, 3) for a in agents})
+        snap = Snapshot(round=rnd, stances={a.p.name: round(a.p.stance, 3) for a in agents},
+                        events=round_events)
         snapshots.append(snap)
         if on_round:
             on_round(snap)
