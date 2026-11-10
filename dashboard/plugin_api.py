@@ -86,7 +86,7 @@ def _resolve_llm():
         from upfront.host_llm import build_host_llm
 
         built = LlmAdapter(build_host_llm(), allow_override=True)
-        _debug("model source=host-config (agent half not bound in this process)")
+        _debug("model source=host-facade (agent half not bound in this process)")
         return built, "host-config"
     except Exception as exc:
         _debug(f"model source=none ({exc})")

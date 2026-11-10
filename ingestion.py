@@ -64,6 +64,8 @@ def extract_personas(
         return None
     parsed = _parse_json(raw)
     if parsed is None:
+        LAST_ERROR = ("the model answered but not as JSON the plugin could read "
+                      f"(got: {str(raw)[:160]!r})")
         return None
     personas: List[Persona] = []
     for p in parsed.get("personas", [])[:max_personas]:
