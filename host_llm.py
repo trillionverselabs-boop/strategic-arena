@@ -49,6 +49,20 @@ class HostLlm:
         except TypeError:
             # a facade without `purpose` — same trust gate either way
             res = self._llm.complete(messages, temperature=temp, model=(model or None))
+        except Exception as exc:
+            # surface the real reason: "the model call failed" hides a trust
+            # error, an auth problem and a network problem behind one sentence
+            try:
+                from upfront import paths
+                _dbg = paths.data_root() / "desktop-debug.log"
+                _dbg.parent.mkdir(parents=True, exist_ok=True)
+                with _dbg.open("a", encoding="utf-8") as fh:
+                    fh.write(f"{__import__('time').strftime('%Y-%m-%d %H:%M:%S')} "
+                             f"pid={__import__('os').getpid()} model call failed: "
+                             f"{type(exc).__name__}: {exc}\n")
+            except Exception:
+                pass
+            raise
         text = getattr(res, "text", None)
         if text is None:
             text = res if isinstance(res, str) else ""

@@ -91,9 +91,10 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
             scenario.documents, llm, scenario.max_personas
         )
         if extracted is None:
+            detail = ingestion.LAST_ERROR or "no error detail was recorded"
             raise SimulationError(
                 "The model call failed, so no stakeholders could be read from your "
-                "documents. Nothing was simulated — check the model is reachable and re-run."
+                f"documents. Nothing was simulated. Underlying error: {detail}"
             )
         personas, relationships = extracted
         if not personas:

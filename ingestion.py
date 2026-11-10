@@ -9,6 +9,10 @@ from typing import List, Tuple
 
 from .models import Document, Persona
 
+# The real reason the last extraction failed, so the report can say "trust gate
+# denied the model override" instead of "the model call failed".
+LAST_ERROR = ""
+
 EXTRACT_PROMPT = """You are extracting the stakeholder landscape from a decision document.
 
 Read the documents. Identify the people, groups, and orgs whose reaction matters
@@ -52,9 +56,11 @@ def extract_personas(
     stakeholders when this returns None.
     """
     prompt = EXTRACT_PROMPT.format(max_personas=max_personas, docs=_docs_block(documents))
+    global LAST_ERROR
     try:
         raw = llm.complete(prompt)
-    except Exception:
+    except Exception as exc:
+        LAST_ERROR = f"{type(exc).__name__}: {exc}"
         return None
     parsed = _parse_json(raw)
     if parsed is None:
