@@ -41,7 +41,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.5.1 · ui13'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.5.2 · ui14'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
 const TAGLINE = 'Rehearse the reaction before you commit.'
 
@@ -388,8 +388,12 @@ function StanceMeter({ value, height = 9 }) {
     style: { height: `${height}px` },
     children: [
       jsx('div', { className: 'absolute top-0 h-full', style: {
-        left: v >= 0 ? '50%' : `${50 - pct}%`, width: `${pct}%`,
-        backgroundColor: tone, borderRadius: 999,
+        left: v >= 0 ? '50%' : `${50 - pct}%`, width: `${pct}%`, borderRadius: 999,
+        // faint at the neutral line, saturated at the far end: length is the
+        // direction, depth is how hard they mean it
+        background: v >= 0
+          ? `linear-gradient(90deg, color-mix(in srgb, ${tone} 22%, transparent), ${tone})`
+          : `linear-gradient(270deg, color-mix(in srgb, ${tone} 22%, transparent), ${tone})`,
       } }),
       jsx('div', { className: 'absolute inset-y-0', style: { left: '50%', width: '1px',
         backgroundColor: 'var(--ui-stroke-secondary)' } }),
@@ -422,6 +426,41 @@ function PowerWord({ cap }) {
   return jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: w })
 }
 
+// Three groups, named and counted, so the scale is a reading of the room and not
+// a colour legend. Counts come from the parties themselves.
+function ZoneStrip({ list }) {
+  const zones = [
+    { key: 'against', label: 'will block it', tone: C.against,
+      hint: 'can stop you or make it cost',
+      n: list.filter(n => (Number(n.stance) || 0) <= -0.3).length },
+    { key: 'undecided', label: 'undecided', tone: C.hold,
+      hint: 'moves if the reason is good',
+      n: list.filter(n => (Number(n.stance) || 0) > -0.3 && (Number(n.stance) || 0) < 0.3).length },
+    { key: 'for', label: 'behind it', tone: C.for,
+      hint: 'already with you',
+      n: list.filter(n => (Number(n.stance) || 0) >= 0.3).length },
+  ]
+  return jsxs('div', { className: 'flex items-stretch gap-3 pb-2', children: [
+    jsx('div', { className: 'w-[10rem] shrink-0' }),
+    jsxs('div', { className: 'grid flex-1 grid-cols-3 gap-1.5', children: zones.map(z => jsxs('div', {
+      className: 'flex flex-col gap-0.5 rounded-md px-2 py-1.5',
+      style: {
+        backgroundColor: `color-mix(in srgb, ${z.tone} 9%, transparent)`,
+        borderTop: `2px solid ${z.tone}`,
+      },
+      children: [
+        jsxs('div', { className: 'flex items-baseline gap-1.5', children: [
+          jsx('span', { className: `${T.micro} font-semibold uppercase tracking-[0.1em]`, style: { color: z.tone },
+            children: z.label }),
+          jsx('span', { className: `${T.micro} ${NUM} text-(--ui-text-tertiary)`, children: String(z.n) }),
+        ]}),
+        jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: z.hint }),
+      ],
+    })) }),
+    jsx('div', { className: `w-[6.5rem] shrink-0 text-right ${T.label} text-(--ui-text-quaternary)`, children: 'power to stop' }),
+  ]})
+}
+
 function RoomBoard({ nodes, previous, ownSide, blocker, deltas }) {
   const list = (nodes || []).slice().sort((a, b) => (Number(a.stance) || 0) - (Number(b.stance) || 0))
   if (!list.length) {
@@ -429,16 +468,8 @@ function RoomBoard({ nodes, previous, ownSide, blocker, deltas }) {
   }
   const own = new Set(ownSide || [])
   return jsxs('div', { className: 'flex flex-col', children: [
-    // axis header — names the scale once, in words
-    jsxs('div', { className: 'flex items-center gap-3 pb-2', children: [
-      jsx('div', { className: 'w-[10rem] shrink-0' }),
-      jsxs('div', { className: `flex flex-1 items-center justify-between ${T.label} text-(--ui-text-quaternary)`, children: [
-        jsx('span', { children: 'will block it · −1' }),
-        jsx('span', { children: 'undecided · 0' }),
-        jsx('span', { children: 'behind it · +1' }),
-      ]}),
-      jsx('div', { className: `w-[6.5rem] shrink-0 text-right ${T.label} text-(--ui-text-quaternary)`, children: 'power to stop' }),
-    ]}),
+    // three named groups, counted — the scale answers "what does this mean"
+    jsx(ZoneStrip, { list }),
     ...list.map((n, i) => {
       const tone = stanceTone(n.stance)
       const isBlocker = blocker && (n.name === blocker)
@@ -554,6 +585,107 @@ function MovementChart({ snapshots, height = 190 }) {
   ]})
 }
 
+// ── what each party is standing on (the provenance graph) ──────────────
+// GraphRAG's actual claim, drawn: a party's position is only as good as the
+// span it cites. One column of source spans, one column of parties, an edge for
+// every citation — so a reader can see who is standing on the same sentence.
+
+function citationsIn(text) {
+  const out = []
+  const re = /\[(decision|evidence|context)\s*¶?\s*(\d+)?\]/gi
+  let m
+  while ((m = re.exec(String(text)))) {
+    out.push(`${m[1].toLowerCase()} ¶${m[2] || '?'}`)
+  }
+  return out
+}
+
+function provenance(personas) {
+  const spans = []
+  const parties = []
+  for (const p of personas || []) {
+    const reasons = p.reasons || []
+    const cited = []
+    for (const r of reasons) {
+      for (const c of citationsIn(r)) {
+        let span = spans.find(s => s.id === c)
+        if (!span) {
+          span = { id: c, text: String(r).replace(/\[[^\]]*\]/g, '').trim(), cites: [] }
+          spans.push(span)
+        }
+        span.cites.push(p.name)
+        cited.push(c)
+      }
+    }
+    parties.push({ name: p.name, stance: p.stance, capacity: p.capacity, cited })
+  }
+  return { spans, parties: parties.filter(p => p.cited.length) }
+}
+
+function EvidenceGraph({ personas }) {
+  const { spans, parties } = provenance(personas)
+  if (!parties.length || !spans.length) return null
+  const w = 740
+  const rowH = 34
+  const h = Math.max(spans.length, parties.length) * rowH + 26
+  const leftX = 236, partyX = 452
+  const spanY = (i) => 20 + ((i + 0.5) / spans.length) * (h - 30)
+  const partyY = (i) => 20 + ((i + 0.5) / parties.length) * (h - 30)
+  return jsxs('div', { className: 'flex flex-col gap-1', children: [
+    jsx('div', { className: T.h2, children: 'What each party is standing on' }),
+    jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`,
+      children: 'Left: the lines of your own document. Right: the parties. A line means that party cites that span — two parties on one line are arguing from the same text.' }),
+    jsx('svg', {
+      viewBox: `0 0 ${w} ${h}`, className: 'w-full', style: { fontFamily: 'inherit' },
+      children: [
+        // edges first, so nodes sit on top
+        ...parties.flatMap((p, pi) => p.cited.map((c, ci) => {
+          const si = spans.findIndex(s => s.id === c)
+          if (si < 0) return null
+          const tone = stanceTone(p.stance).color
+          const y1 = spanY(si), y2 = partyY(pi)
+          return jsx('path', {
+            key: `e${pi}-${ci}`,
+            d: `M ${leftX + 8} ${y1} C ${leftX + 90} ${y1}, ${partyX - 90} ${y2}, ${partyX - 6} ${y2}`,
+            fill: 'none',
+            style: { stroke: tone, strokeWidth: 1.4, opacity: 0.45 },
+          })
+        })),
+        // source spans
+        ...spans.map((s, i) => {
+          const tone = stanceTone((parties.find(p => s.cites.includes(p.name)) || {}).stance || 0).color
+          return jsxs('g', { children: [
+            jsx('text', { x: leftX, y: spanY(i) + 3.5, textAnchor: 'end', fontSize: '10.5',
+              style: { fill: 'var(--ui-text-tertiary)', fontFamily: 'inherit' },
+              children: s.text.length > 38 ? s.text.slice(0, 37) + '…' : s.text }),
+            jsx('rect', { x: leftX + 2, y: spanY(i) - 4, width: 8, height: 8, rx: 1.5, fill: tone, opacity: 0.85 }),
+          ]})
+        }),
+        // parties
+        ...parties.map((p, i) => {
+          const tone = stanceTone(p.stance).color
+          const r = 3 + Math.max(0, Math.min(1, Number(p.capacity) || 0)) * 3.4
+          return jsxs('g', { children: [
+            jsx('circle', { cx: partyX, cy: partyY(i), r, fill: tone }),
+            jsx('text', { x: partyX + 10, y: partyY(i) + 4, fontSize: '11.5', fontWeight: 600,
+              style: { fill: 'var(--ui-text-secondary)', fontFamily: 'inherit' },
+              children: p.name.length > 24 ? p.name.slice(0, 23) + '…' : p.name }),
+            jsx('text', { x: w - 4, y: partyY(i) + 4, fontSize: '10', textAnchor: 'end',
+              style: { fill: 'var(--ui-text-quaternary)', fontFamily: 'inherit' },
+              children: stanceTone(p.stance).word }),
+          ]})
+        }),
+        jsx('text', { x: leftX + 2, y: 10, fontSize: '9.5',
+          style: { fill: 'var(--ui-text-quaternary)', fontFamily: 'inherit' },
+          children: 'cited spans' }),
+        jsx('text', { x: partyX, y: 10, fontSize: '9.5',
+          style: { fill: 'var(--ui-text-quaternary)', fontFamily: 'inherit' },
+          children: 'parties' }),
+      ],
+    }),
+  ]})
+}
+
 // ── the transcript ────────────────────────────────────────────────────
 // CAMEL's actual lesson: the conversation is the artifact. A stakeholder who
 // speaks in their own voice is a person you can plan against; a status line is
@@ -608,6 +740,26 @@ function Transcript({ events, rounds, openRound }) {
 const ACTION_TONE = {
   blocks: C.against, supports: C.for, shares: C.hold,
   waits: C.hold, intervention: C.own,
+}
+
+// The two voices that decide the room, quoted. A stance word without the
+// sentence behind it is back to being a number nobody can argue with.
+function LoudestLine({ who, kind }) {
+  if (!who) return null
+  const tone = kind === 'for' ? C.for : C.against
+  return jsxs('div', {
+    className: 'flex flex-col gap-0.5 rounded-md px-2 py-1.5',
+    style: { backgroundColor: `color-mix(in srgb, ${tone} 7%, transparent)`, borderLeft: `2px solid ${tone}` },
+    children: [
+      jsxs('div', { className: 'flex items-baseline gap-1.5', children: [
+        jsx('span', { className: `${T.label}`, style: { color: tone },
+          children: kind === 'for' ? 'loudest for it' : 'loudest against it' }),
+        jsx('span', { className: `${T.micro} font-semibold`, children: who.name }),
+        jsx('span', { className: `${T.micro} ${NUM} text-(--ui-text-quaternary)`, children: signed(who.stance) }),
+      ]}),
+      jsx('div', { className: `${T.small} text-(--ui-text-secondary)`, children: who.said || '—' }),
+    ],
+  })
 }
 
 // ── live: the floor ───────────────────────────────────────────────────
@@ -741,6 +893,25 @@ function Scorecard({ result, claimHits, setClaimHits, onVerify, record, due }) {
 
 // ── the verdict ───────────────────────────────────────────────────────
 
+// "Go talk to Legal" is not an instruction. Their condition names the artefact
+// that ends the objection; this maps the words they used onto what to carry into
+// the room. Derived, never invented — the condition itself is shown verbatim.
+function unblockArtefact(condition) {
+  const t = String(condition || '').toLowerCase()
+  if (!t) return ''
+  if (/licen[cs]e|licen[cs]ing|\bip\b|compliance|regulat|gdpr|data protection/.test(t))
+    return 'the signed paper: the licence or clearance they named, in writing — not a promise to obtain it'
+  if (/budget|cost|spend|margin|revenue|cannibal/.test(t))
+    return 'a capped number, agreed in writing, with whoever owns the budget'
+  if (/clause|terms|contract|protection|indemn/.test(t))
+    return 'the drafted clause itself — a term they can redline, not a description of one'
+  if (/survey|evidence|eval|benchmark|data/.test(t))
+    return 'the underlying data behind the claim, so they can check it themselves'
+  if (/support|migration|reseller/.test(t))
+    return 'a named owner and a date for the gap they described'
+  return 'the specific thing their condition names, in writing, before you ask again'
+}
+
 function verdictHeadline(result) {
   const blocker = result.blocker
   const band = frictionBand(result.friction)
@@ -803,6 +974,26 @@ function VerdictPanel({ result }) {
             children: move || 'No counter-move survived this run.' }),
         ]}),
       ]}),
+
+      // the two voices that decided it, and what ends the objection
+      blocker && condition ? jsxs('div', {
+        className: 'flex flex-col gap-1 rounded-lg px-3 py-2.5',
+        style: { backgroundColor: `color-mix(in srgb, ${C.against} 6%, transparent)`,
+                 borderLeft: `2px solid ${C.against}` },
+        children: [
+          jsx(Label, { children: 'what ends this objection' }),
+          jsx('div', { className: `${T.small} text-(--ui-text-secondary)`, children: condition }),
+          jsxs('div', { className: `${T.small}`, children: [
+            jsx('span', { className: 'font-semibold', children: 'Bring: ' }),
+            jsx('span', { className: 'text-(--ui-text-secondary)', children: unblockArtefact(condition) }),
+          ]}),
+          move ? jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
+            jsx('span', { className: 'font-semibold', children: 'Then: ' }), move,
+          ]}) : null,
+          jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`,
+            children: 'Read off the words in their condition — the run does not add facts you did not give it.' }),
+        ],
+      }) : null,
 
       jsxs('div', { className: 'flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-(--ui-stroke-tertiary) pt-3', children: [
         jsx(FrictionGauge, { friction: result.friction }),
@@ -1369,11 +1560,16 @@ function UpfrontPage({ ctx }) {
     setResult({ ...result, verified: { verdict } })
   }
 
-  function loudestObjector() {
+  function loudest(kind) {
     const entries = Object.entries(running?.stances || {})
     if (!entries.length) return null
-    const [name, stance] = entries.reduce((a, b) => (b[1] < a[1] ? b : a), entries[0])
-    return { name, stance }
+    const pick = kind === 'for'
+      ? entries.reduce((a, b) => (b[1] > a[1] ? b : a), entries[0])
+      : entries.reduce((a, b) => (b[1] < a[1] ? b : a), entries[0])
+    const [name, stance] = pick
+    const said = [...(running.events || [])].reverse()
+      .find(e => e.actor === name && (e.text || '').trim())
+    return { name, stance, said: said ? said.text : '' }
   }
 
   // remaining time from the pace so far — a 48h run needs an end time, not a spinner
@@ -1413,7 +1609,6 @@ function UpfrontPage({ ctx }) {
           children: showExplainer ? 'hide overview' : 'what is this?',
         }),
         jsx(Button, {
-          variant: 'outline', size: 'xs',
           onClick: () => { haptic('tap'); setModal(true) },
           children: '+ New review',
         }),
@@ -1434,9 +1629,9 @@ function UpfrontPage({ ctx }) {
       jsxs('div', { className: 'flex flex-col gap-2.5 rounded-xl border border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) p-4', children: [
         jsxs('div', { className: 'flex flex-wrap items-end justify-between gap-2', children: [
           jsxs('div', { className: 'flex flex-col gap-0.5', children: [
-            jsx(Label, { children: 'rehearsing' }),
+            jsx(Label, { children: 'roundtable in session' }),
             jsx('div', { className: T.h1,
-              children: running.progress >= 100 ? 'Closing the room — writing the call' : 'The room is arguing' }),
+              children: running.progress >= 100 ? 'Closing the roundtable — writing the call' : 'The roundtable is arguing' }),
           ]}),
           jsxs('div', { className: 'flex flex-col items-end gap-0.5', children: [
             jsx('div', { className: `${T.small} font-medium ${NUM}`,
@@ -1448,14 +1643,10 @@ function UpfrontPage({ ctx }) {
           ]}),
         ]}),
         jsx(RoundTrack, { round: running.round, total: running.total }),
-        loudestObjector()
-          ? jsxs('div', { className: `${T.micro} text-(--ui-text-secondary)`, children: [
-              'Loudest objection right now: ',
-              jsx('span', { className: 'font-semibold', children: loudestObjector().name }),
-              ` (${signed(loudestObjector().stance)}) — `,
-              stanceTone(loudestObjector().stance).word,
-            ]})
-          : null,
+        jsxs('div', { className: 'grid gap-2 md:grid-cols-2', children: [
+          LoudestLine({ who: loudest('against'), kind: 'against' }),
+          LoudestLine({ who: loudest('for'), kind: 'for' }),
+        ]}),
         jsx(LiveFloor, { events: running.events }),
       ]}),
 
@@ -1556,6 +1747,7 @@ function UpfrontPage({ ctx }) {
           ]}),
         ]}),
       ]}),
+      (result.personas || []).length > 0 && jsx(Card, { children: jsx(EvidenceGraph, { personas: result.personas }) }),
       jsx(MovementChartCard, { snapshots: result.snapshots }),
 
       jsx(Transcript, { events: result.events, rounds: result.rounds }),

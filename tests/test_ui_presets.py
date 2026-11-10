@@ -23,7 +23,7 @@ def test_form_says_what_a_run_costs():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.5.1 · ui13" in UI.read_text()
+    assert "0.5.2 · ui14" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -43,9 +43,11 @@ def test_the_room_is_readable_without_a_number_you_cannot_place():
     js = UI.read_text()
     assert "The room, in order" in js
     assert "power to stop" in js
-    assert "will block it · −1" in js
-    assert "undecided · 0" in js
-    assert "behind it · +1" in js
+    # three named, counted groups instead of a colour legend
+    assert "function ZoneStrip(" in js
+    assert "can stop you or make it cost" in js
+    assert "moves if the reason is good" in js
+    assert "already with you" in js
     assert "Bar length = how strongly they back or oppose it" in js
     assert "n.stance >= 0 ?" not in js            # no stance printed inside a dot
 

@@ -629,3 +629,51 @@ covers the honest fallback when it is absent.
 passes; the one-line table rendered against an 8-run fixture and checked column by
 column (title / room / verdict / blocker / heat / scored / age / chevron).
 BUILD → `0.5.1 · ui13`, version 0.5.1.
+
+---
+
+## Roundtable, zones, both loudest voices, and the provenance graph (2026-11-10, later)
+
+The model switch still would not take. It was not the permission this time — it was
+*when* the plugin read it:
+
+```python
+allow_override=getattr(base, "allow_override", False)   # captured at register()
+```
+
+The adapter is built once, at session start, so a permission granted afterwards
+reached `/model-access` but never a run. Now one helper resolves the key **per
+call** — `_override_allowed()` — and `_run_llm()` is the only place a run's
+adapter is built, so the picker and the run cannot disagree. `tests/test_model_gate.py`
+covers the exact bug: the permission flips after registration, the run still
+asks for the picked model, and a denied permission never sends `model` at all.
+
+UI, in the same round:
+
+- **"Rehearsing" → "Roundtable in session"**, and the closing line is "Closing the
+  roundtable — writing the call". The product is still a rehearsal; the live
+  object is a roundtable.
+- **+ New review** is the accent button again, matching the entry screen.
+- **Three named, counted groups** above the room board — *will block it · 2*,
+  *undecided · 1*, *behind it · 2* — each with a one-line meaning, instead of a
+  colour legend. The meters now run faint→saturated from the neutral line, so
+  depth reads as strength, not just direction.
+- **Both loudest voices**, quoted, live and in the results: loudest against it and
+  loudest for it, with the sentence each actually said.
+- **"What ends this objection"**: the blocker's condition verbatim, then *Bring:*
+  — the artefact their own words point at (licence → the signed paper, budget →
+  a capped number in writing, clause → the drafted term). Explicitly derived, with
+  the disclaimer that the run adds no facts.
+- **"What each party is standing on"** — a provenance graph: cited spans on the
+  left, parties on the right, an edge per citation. It answers "why is Legal
+  objecting" with the line Legal is standing on, and shows when three parties are
+  arguing from the same sentence.
+
+**Honest limit, now visible:** the graph is thin because each party currently
+carries one grounded reason, so a 5-party run collapses to ~2 cited spans. That is
+an extraction-depth problem, not a drawing problem — the engine should return 2–3
+cited reasons per party. Next round.
+
+**Verified:** 154 tests green; `node --check` clean; live board, results page and
+the graph rendered against real run data and checked for overlap/clipping.
+BUILD → `0.5.2 · ui14`, version 0.5.2.

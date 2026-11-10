@@ -132,6 +132,39 @@ def _resolve_llm():
         )
 
 
+def _override_allowed() -> bool:
+    """Whether the host will honour a picked model — resolved PER CALL.
+
+    Capturing this at registration was the bug behind "I switched model and it
+    still didn't take": the adapter is built once, at session start, so a
+    permission granted later never reached a run. Read the same key the
+    enforcer reads, every time, and the picker and the run cannot disagree.
+    """
+    try:
+        from hermes_cli.config import load_config_readonly
+
+        cfg = (load_config_readonly() or {}).get("plugins") or {}
+        entry = ((cfg.get("entries") or {}).get("upfront") or {})
+        return bool((entry.get("llm") or {}).get("allow_model_override"))
+    except Exception:
+        return False
+
+
+def _run_llm(base, scenario):
+    """The adapter a run uses: the picked model only when the host honours it.
+
+    One place, so "the picker says allowed" and "the run actually asks for that
+    model" cannot drift apart.
+    """
+    chosen = (scenario.model or "").strip()
+    if not chosen or chosen == "default":
+        return base
+    return LlmAdapter(
+        base._llm, temperature=scenario.temperature, model=chosen,
+        allow_override=_override_allowed() or getattr(base, "allow_override", False),
+    )
+
+
 def _llm():
     return _resolve_llm()[0]
 
@@ -182,13 +215,7 @@ async def run(body: dict):
                 engine._emit(run_id, "running", snap.round, scenario.rounds,
                              {k: round(v, 3) for k, v in (snap.stances or {}).items()})
             base = _llm()
-            chosen = (scenario.model or "").strip()
-            llm = base
-            if chosen and chosen != "default":
-                llm = LlmAdapter(
-                    base._llm, temperature=scenario.temperature, model=chosen,
-                    allow_override=getattr(base, "allow_override", False),
-                )
+            llm = _run_llm(base, scenario)
             result = engine.run_scenario_progress(
                 scenario, llm, on_round=_on_round, run_id=run_id
             )
@@ -419,10 +446,10 @@ async def model_access():
     try:
         from hermes_cli.config import load_config_readonly
 
+        allowed = _override_allowed()
         plugins_cfg = (load_config_readonly() or {}).get("plugins") or {}
         entry = ((plugins_cfg.get("entries") or {}).get("upfront") or {})
         llm_cfg = entry.get("llm") or {}
-        allowed = bool(llm_cfg.get("allow_model_override"))
         raw = llm_cfg.get("allowed_models")
         if isinstance(raw, (list, tuple)):
             allowed_models = [str(x) for x in raw]

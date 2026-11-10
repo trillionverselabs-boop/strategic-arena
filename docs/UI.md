@@ -31,15 +31,19 @@ heat score, whether it is scored, and how long ago — then a chevron. Six rows 
 default, `show all` for the rest, always in the lower third. The old design used
 three tall cards plus a second list, which ate the screen and said less.
 
-**Live run.** A watcher must not get bored in a 48-hour cycle, so the run is
-read as a feed: a round track (with "you are here"), a loudest-objection line,
-the statements the parties just made in their own words, and a board that bends
-when you inject a counter-move. Estimated time remaining, not a spinner.
+**Live run — the roundtable.** A watcher must not get bored in a 48-hour cycle,
+so the run is read as a feed: a round track (with "you are here"), **both loudest
+voices quoted** (for and against), the statements the parties just made in their
+own words, and a board that bends when you inject a counter-move. Estimated time
+remaining, not a spinner. The board names its three groups and counts them —
+*will block it · undecided · behind it* — because a colour legend is not a scale.
 
 **Result.** The call first — a headline sentence built from the blocker and the
 heat band, then *who can stop it / what they need / your best move* as three
-labelled answers. Then the room in order, the movement chart (positions over
-rounds), the transcript grouped by round, and the scorecard.
+labelled answers, then **what ends this objection** (their condition verbatim and
+the artefact it points at). Then the room in order, **what each party is standing
+on** (the provenance graph: cited spans → parties), the movement chart, the
+transcript grouped by round, and the scorecard.
 
 ## Where the five papers show up
 
