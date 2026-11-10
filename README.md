@@ -407,9 +407,12 @@ What a user would want to know before installing, stated plainly:
 - **Data:** reads and writes live only under `~/.hermes/upfront/` (graph + run history)
   plus the plugin's own package files. Nothing leaves the machine except the inference
   and URL-fetch calls above.
-- **Credentials:** none stored. All model access goes through Hermes' host-owned
-  `ctx.llm` (admission rule 11). The plugin never reads `.env`, `auth.json`, or any
-  vendor token file.
+- **Credentials:** none stored, none read. All model access goes through the
+  host's own `PluginLlm` facade — the same object `ctx.llm` is built from
+  (`agent.plugin_llm.PluginLlm(plugin_id="upfront")`), used by the backend routes
+  when they run in a process that never saw `register(ctx)`. The plugin never
+  reads `.env`, `auth.json`, or any vendor token file (catalog admission rule 11),
+  and never builds an `Authorization` header itself.
 
 ## Install
 

@@ -426,3 +426,34 @@ proof line** — it re-scans and exits non-zero if anything survived. `--keep-da
 
 Verified end to end on this machine: install → built-in remove (18 paths left) → purge → `find
 ~/.hermes -iname '*upfront*'` returns 0. Suite 104 green.
+
+---
+
+## Admission rule 11: the model now comes from the host facade, not auth.json (2026-11-09)
+
+A compliance pass against the catalog submission rules found one real violation, and the
+validator cannot see it (it scans for dangerous patterns, not for "did you read a credential
+store"):
+
+**Rule 11** — *"A plugin never reads `.env` files, Hermes's `auth.json`, another tool's login …
+or any other credential store directly."* `host_llm.py`, written to fix the desktop "LLM not
+bound" bug, read `~/.hermes/auth.json` and built an OpenAI client with the agent key. It worked;
+it also would have been a decline at review.
+
+Fix: `build_host_llm()` now returns a shim over **`agent.plugin_llm.PluginLlm`** — the exact
+object `PluginContext.llm` builds (`hermes_cli/plugins.py` → `PluginLlm(plugin_id=...)`), so
+the routes get host-owned credentials, the per-plugin trust gate, fallback and usage accounting.
+The plugin never holds a token and never builds an `Authorization` header.
+
+Verified with a live call through the real interpreter:
+`build_host_llm().complete("Reply with exactly: OK")` → `OK`.
+
+Also removed `tools/probe_free_models.py`, a dev probe that read `auth.json` — it is not runtime
+code, but a reviewer reads the whole pinned tree. `tests/test_admission.py` now guards the line:
+no credential-store reads, no subprocess/eval, in any shipped module (docstrings excepted).
+
+**`hermes plugins validate --install-deps` now passes end to end** (dependency resolution
+included) — the earlier failure was stale duplicate `plugin-sources/upfront-*` snapshots from
+earlier installs, which is exactly the residue `scripts/uninstall-clean.py` exists to clear.
+
+Suite 112 green.

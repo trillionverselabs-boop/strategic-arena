@@ -62,5 +62,5 @@ at all is **dropped and listed**, never silently kept.
 
 Final measurement on the Arete fixture: **11/11 spans verified, 0 repaired, 0 dropped, $0, 5.3K tokens.**
 
-Reproducible: `python tools/probe_free_models.py --extract tests/fixtures/arete-27b.txt`
+Reproducible: `hermes -p <profile> plugins doctor upfront` (the plugin's own model picker uses the anonymous Nous catalogue, see `portal.py`).
 (fixtures are the extracted page text and the resulting brief).
