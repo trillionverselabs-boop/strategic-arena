@@ -17,9 +17,9 @@ tier: community
 category: tools
 version: "0.6.1"
 requires_hermes: ">=0.23.0"
-image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/08eae0a4236d6e8eb17393a397f3fbe30b6e33e0/assets/banner.png
+image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/6c43a2c818e1ca70c3eddb5b777d1a80795d98f8/assets/banner.png
 screenshots:
-  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/08eae0a4236d6e8eb17393a397f3fbe30b6e33e0/assets/how-it-works.png
+  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/6c43a2c818e1ca70c3eddb5b777d1a80795d98f8/assets/how-it-works.png
 platforms: []
 capabilities:
   provides_tools:
