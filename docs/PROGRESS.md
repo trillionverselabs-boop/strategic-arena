@@ -404,3 +404,25 @@ BUILD → `0.4.1 · ui7`. Suite 101 green.
 machine. `plugins update` on lisacore refreshes only the backend copy. The reliable path in the
 app is **Uninstall → Install from Git** (which installs both halves at the current commit), then a
 full quit and relaunch.
+
+---
+
+## Uninstall leaves 18 paths behind — shipped a purge with a proof (2026-11-09)
+
+`hermes plugins remove` deletes the plugin tree, config, aliases and OAuth grants, then stops
+(`hermes_cli/plugins_cmd_remove.py` → `_remove_user_plugin`). It never touches the dependency
+environments that `--yes-deps` built, so an **editable `hermes-upfront` survives in each venv**,
+along with the `workspace/plugin-sources/upfront-*` snapshot the build came from. Measured twice on
+a real machine: **18 paths** survive.
+
+That snapshot is the dangerous one: a later install can build from it, which is exactly how a
+"reinstalled and the UI is still old" bug happens.
+
+`scripts/uninstall-clean.py` (described in `docs/UNINSTALL.md`, linked from the README) fills the
+gap: it pip/uv-uninstalls where the env has a package manager, deletes the editable files directly
+where it does not (uv envs often ship without pip), prunes emptied cache dirs, and **ends with the
+proof line** — it re-scans and exits non-zero if anything survived. `--keep-data` preserves
+`plugin-data/upfront` (run history). Three tests cover dry-run, full purge and keep-data.
+
+Verified end to end on this machine: install → built-in remove (18 paths left) → purge → `find
+~/.hermes -iname '*upfront*'` returns 0. Suite 104 green.

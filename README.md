@@ -310,6 +310,18 @@ stated, and their conditions are printed as sentences you can act on.
    under the result and tells you whether the read is stable across timelines or moves with how
    long you let it run. That is the difference between a one-off report and evidence.
 
+### Uninstalling
+
+`hermes plugins remove upfront` leaves 18 paths behind (dependency venvs, source
+snapshots, run history). Use the one-command purge and its built-in proof:
+
+```bash
+hermes plugins remove upfront
+python3 scripts/uninstall-clean.py upfront      # add --keep-data to keep run history
+```
+
+Full detail: [`docs/UNINSTALL.md`](docs/UNINSTALL.md).
+
 ### What to paste — source → what it buys the review
 
 | Source | What it buys |
