@@ -1,4 +1,4 @@
-# Next-session prompt — Upfront Prediction: desktop install & UI test
+# Next-session prompt — Strategic Arena: desktop install & UI test
 
 Paste this whole section into a fresh session.
 
@@ -19,14 +19,14 @@ only copy): `/home/lisacore/work/upfront`, HEAD `f0a7af5`.
 
 ## The product
 
-**Upfront Prediction** — *a rehearsal with a scorecard for high-stakes moves.* Feed it a decision
+**Strategic Arena** — *the read before you publish.* Feed it an artefact
 (or a URL); it simulates stakeholder reactions, maps emerging coalitions, finds your best
 response, and delivers a competitive read — plus verifiable scorecards to track prediction vs.
-reality. **Not a prediction; a rehearsal.** Local-first: it runs on your own machine.
+reality. **Not a prediction; a scored read of the room.** Local-first: it runs on your own machine.
 
 ## Decisions already made (do not re-litigate)
 
-- **Display name: Upfront Prediction** — sidebar nav, plugin card label, catalog entry title,
+- **Display name: Strategic Arena** — sidebar nav, plugin card label, catalog entry title,
   README title. The plugin `id` stays `upfront` (tool names, data dir, saved runs unchanged).
 - **Terminology:** "who can challenge" (not *veto*), "their conditions", "how competitive the
   market is" (not *contested ground*), "testable claims" (not *falsifiable*), and "local-first"
@@ -38,7 +38,7 @@ reality. **Not a prediction; a rehearsal.** Local-first: it runs on your own mac
 - **Use cases:** launch, price change, deprecation, open-weight release, reputation/crisis.
 - **What you get:** who can challenge, their conditions, your best response, how competitive the
   market is, and testable claims you grade later.
-- **"If it's not a prediction, what is it?"** → a rehearsal with a scorecard: a dry run that tells
+- **"If it's not a prediction, what is it?"** → a scored read: a dry run that tells
   you what could happen and who can stop it, with testable claims you grade later.
 
 ## Current machine state
@@ -60,7 +60,7 @@ reality. **Not a prediction; a rehearsal.** Local-first: it runs on your own mac
    **Capabilities → Plugins → Install from Git → `trillionverselabs-boop/upfront-test`** → tick
    **Desktop** → Install → **⌘K → Reload desktop plugins**.
 4. **Verify:** the header must read **`build 0.3.4 · ui5`**; the left nav must read
-   **Upfront Prediction**.
+   **Strategic Arena**.
 5. **UI test with the user** (full protocol in `docs/ROADMAP.md`):
    - the plugin card in Capabilities → Plugins is readable by both developers and business people,
      in layman's terms, with a hook;

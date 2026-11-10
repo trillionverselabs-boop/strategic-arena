@@ -27,7 +27,7 @@ You bring a move — a launch, a deprecation, an open-weight release, a price ch
 
 Every paper underneath this product says the same thing, and MASS states it as a boundary rule: *do not claim the simulation predicts real outcomes, and do not treat a single run as a stable conclusion.* What the method legitimately produces is:
 
-- **mechanism rehearsal** — what resistance the move generates, and through whom;
+- **mechanism exploration** — what resistance the move generates, and through whom;
 - **counterfactual contrast** — does the counter-move change the outcome, or just feel like it would;
 - **risk identification** — the veto player you had not budgeted for;
 - **research-design preparation** — the questions to ask before you commit.
@@ -47,7 +47,7 @@ Three sentences, and no more:
 ## What we never claim
 
 - That it **predicts** an outcome, or estimates a real causal effect.
-- That it **solves** the game, finds an **equilibrium**, or computes a Nash outcome. It rehearses a response; it does not solve a model.
+- That it **solves** the game, finds an **equilibrium**, or computes a Nash outcome. It tests a response; it does not solve a model.
 - That LLM agents are samples of real people.
 - That one run, or three scored runs, are evidence of accuracy. Every number carries its `n`.
 

@@ -1,6 +1,6 @@
 # Models — what this plugin assumes, and what it does not
 
-Upfront Prediction **ships no model** and **names no model**. A review runs on whatever model
+Strategic Arena **ships no model** and **names no model**. A review runs on whatever model
 Hermes is already using, or on the one the user picks from the host's live catalogue. That is a
 deliberate boundary, and the only model statement a community plugin is in a position to make.
 

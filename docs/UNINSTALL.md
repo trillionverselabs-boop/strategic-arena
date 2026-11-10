@@ -1,4 +1,4 @@
-# Uninstalling Upfront Prediction (completely)
+# Uninstalling Strategic Arena (completely)
 
 `hermes plugins remove upfront` removes the plugin, its config, its aliases and its
 OAuth grants. It does **not** remove everything the plugin created. This is a Hermes

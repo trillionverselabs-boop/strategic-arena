@@ -1,6 +1,6 @@
 name: upfront
 label: Strategic Arena
-version: "0.6.1"
+version: "0.6.2"
 manifest_version: 1
 kind: standalone
 requires_hermes: ">=0.23.0"

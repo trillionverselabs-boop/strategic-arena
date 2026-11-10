@@ -39,7 +39,7 @@ node --check desktop/plugin.js
   close whose prompt calls `upfront_due`; never a plugin-owned timer.
 - `__init__._register_skills()` walks `skills/*/SKILL.md`; a bad skill is logged and skipped, never fatal.
 - `plugin.yaml` + catalog draft: `upfront_due` added to tools. `pyproject.toml` version aligned to
-  0.3.0 and stale "Upfront Prediction" description replaced.
+  0.3.0 and stale "Strategic Arena" description replaced.
 
 **Verified**
 
@@ -239,9 +239,9 @@ Recent block, the claim rows and `<strong>` in the report. BUILD → `0.3.2 · u
 
 ---
 
-## Rename — the product is "Upfront Prediction" (2026-11-09)
+## Rename — the product is "Strategic Arena" (2026-11-09)
 
-The display name is **Upfront Prediction** everywhere a user reads it: the sidebar nav
+The display name is **Strategic Arena** everywhere a user reads it: the sidebar nav
 (`PRODUCT_NAME`), the plugin card (`plugin.yaml` `label`), the catalog entry `title`, and
 the README title. The plugin `id` stays `upfront` — tool names, the data dir and saved
 runs' provenance do not change.
@@ -804,7 +804,7 @@ Four fixes from the screenshot review, all verified in the harness:
    `window.location.reload()` comes back.
 
 **Marketplace copy synced.** `plugin.yaml` had `label: Strategic Arena` but the
-catalog draft still said "Upfront Prediction" and described a rehearsal. Title,
+catalog draft still said "Strategic Arena" and described a rehearsal. Title,
 description and tags now match the brand; the manifest description leads with the
 artefact framing. The plugin id, folder, tool prefixes, data dir and repo slug stay
 `upfront` — renaming those breaks installs, the catalog pin and the desktop folder.

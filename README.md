@@ -1,23 +1,24 @@
-# Upfront Prediction (`upfront`)
+# Strategic Arena (`upfront`)
 
-<img src="assets/logo.svg" alt="Upfront Prediction logo" width="72" height="72" align="left" hspace="0" vspace="0"/>
+<img src="assets/logo.svg" alt="Strategic Arena logo" width="72" height="72" align="left" hspace="0" vspace="0"/>
 
-![Upfront — strategic-response review](assets/banner.png)
+![Strategic Arena — the read before you publish](assets/banner.png)
 
-> **See who can kill your plan before you ship it.**
+> **Read what it means before it reads you.**
 >
-> A rehearsal with a scorecard for high-stakes moves. Feed it a strategic
-> decision — a product launch, price change, breaking announcement, API
-> deprecation, or open-weight release — and it simulates stakeholder reactions,
-> maps emerging coalitions, names who can challenge the move and on what
-> conditions, finds your best response, and delivers a competitive read.
+> Give it a link — a repo README, a blog post, a whitepaper, a case study, a press
+> release, a tweet — and it opens a room of the people who will actually react.
+> It names who holds real power over the outcome (who can block it, who can
+> amplify it, who can only complain), prices each party's leverage against the
+> room's own friction, and shows what each concession buys. Then it freezes
+> testable claims with dates and scores them, so the record argues for itself.
 >
-> **Not a prediction. Not a guarantee. A zero-fluff auditing engine.**
+> **Not a prediction. Not a guarantee. A scored read of the room.**
 
-### Why rehearsal, not chat
+### Why a room, not a chat
 
-Most AI tools act as conversational search engines. Upfront runs a **deterministic
-3-pass audit** instead of asking a model to "summarize a link":
+Most AI tools act as conversational search engines. Strategic Arena runs a
+**deterministic 3-pass read** instead of asking a model to "summarize a link":
 
 1. **Claim & fact extraction** — strips marketing fluff, PR spin, and slop to pull
    raw metrics and structural claims.
@@ -38,19 +39,49 @@ debt).
 
 ### What it is — and what it is not
 
-**What it is:** a rehearsal. You hand it a decision, it simulates how the people
-affected are likely to react, and hands back the blocker, the coalitions, your
-best response, and a read on how competitive the market is. Then it writes down
-2–4 testable claims and lets you score them later, so the review gets sharper
-with every run.
+**What it is:** a reception read for an artefact. You hand it a link or the text;
+it staffs the room that will answer it, runs the debate, and hands back the
+landscape: what the request means, who is for it and who can stop it, how
+contested the ground already is, and what each concession buys. Then it writes
+down testable claims with dates and lets you score them later, so the record gets
+sharper with every run.
 
 **What it is not:** a prediction, a guarantee, a game solver, or a forecast. It
-does not tell you what *will* happen. It tells you what *could* happen and who
-can stop it — a dry run before you commit.
+does not tell you what *will* happen. It tells you what the room is likely to do
+and who holds power over the outcome — a test before you publish.
 
 ```
-Your move → who can veto it → coalitions → best response → competition read → claims frozen → score them later
+Artefact → the room it lands in → who decides → the field → the price → claims frozen → scored later
 ```
+
+### The contract — what comes back
+
+| | comes back | means |
+|---|---|---|
+| 1 | **What it means** | the request read plainly: the claim, what it displaces, the opening it creates for you |
+| 2 | **The room** | who actually reacts — customers, competitors, partners, the marketplace that would list you — named, from your own text |
+| 3 | **Who decides** | the parties with real power over the outcome: who can veto it, who can amplify it, who can only complain |
+| 4 | **The field** | how contested the ground already is, and whether you will be read as a new category, another entrant, or noise |
+| 5 | **The price** | what each concession buys, computed from the room |
+| 6 | **The record** | claims frozen with dates, scored when the window closes |
+
+### The lens — the medium sets the room
+
+Reception depends on what you handed in, so the extraction question changes with it:
+
+| you give it | the room it staffs |
+|---|---|
+| a **repo / README** | maintainers, security and supply-chain reviewers, downstream developers, the project it displaces, the registry that lists it |
+| a **blog post** | the reader who quotes it back, the competitor it attacks, the parties it cites, the curator who decides if it travels |
+| a **whitepaper** | the reviewer who checks the method, procurement, the peer it extends or contradicts, the implementer |
+| a **case study** | the named customer (whose approval is itself a gate), the buyer who needs a comparable, procurement, the competitor in the same evaluation |
+| a **press release** | the journalist, the incumbent, the regulator, existing customers |
+| a **tweet** | the reply-guy finding the weakest clause, the quote-tweeter reframing it, the silent majority, the account it names |
+| an **internal decision** | approvers with a veto, the teams whose work changes, customers, the market it enters |
+
+The lens is detected from the link (`github.com` → repo, `x.com` → tweet,
+`arxiv`/`.pdf` → whitepaper, `/blog/` → post) and can be set by hand in the
+dialog.
 
 ## At a glance
 
@@ -77,15 +108,17 @@ machine. No cloud graph service, no Docker, no stored credentials — see
 
 ### What it is — and what it is not
 
-**What it is:** a rehearsal. You hand it a decision, it simulates how the people
-affected by that decision are likely to react, and hands back the blocker, the
-coalitions, your best response, and a read on how competitive the market is.
-Then it writes down 2–4 testable claims and lets you score them later, so the
-review gets sharper with every run.
+**What it is:** a reception read for an artefact. You hand it a link or the text —
+a README, a post, a whitepaper, a case study, an announcement, a tweet — and it
+staffs the room that will answer it, runs the debate, and hands back the
+landscape: what it means, who is for it and who can stop it, how contested the
+ground is, and what each concession buys. Then it writes down testable claims
+with dates and lets you score them later, so the record gets sharper with every
+run.
 
 **What it is not:** a prediction, a guarantee, a game solver, or a forecast. It
-does not tell you what *will* happen. It tells you what *could* happen and who
-can stop it — a dry run before you commit.
+does not tell you what *will* happen. It tells you what the room is likely to do
+and who holds power over the outcome — a test before you publish.
 
 **Example cases it handles well:**
 - **A product launch** — "We're open-weighting our model next Tuesday." Who
@@ -107,25 +140,35 @@ cloud service, no account is required, and no data leaves unless you choose to
 fetch a URL or use your own model provider. You can unplug from the internet
 and still run a review (using a local model).
 
-### Credits and inspiration
+### Credits and licences
 
-Upfront is a clean-room, smaller-footprint implementation of ideas from these
-papers and projects. We credit them because the ideas are theirs:
+Strategic Arena is a **clean-room implementation**. No code is vendored from any
+paper or project below — every line in this repository is ours, MIT-licensed. The
+ideas are theirs, and the full list with links, what we take from each, and the
+licence status of each source lives in **[CREDITS.md](CREDITS.md)**.
 
-- **GraphRAG** (Edge et al.) — document → stakeholder/relationship extraction
-- **Generative Agents** (Park et al.) — memory stream, retrieval, reflection
-- **OASIS** (Yang et al.) — round-based simulation loop and social action types
-- **MASS** (Qian et al.) — replication manifest, scheduling, failure modes
-- **CAMEL** — role-play framing and inception-style prompts
+**Papers (ideas only, no code):**
 
-**MiroFish** is a separate, larger project exploring similar territory with a
-much bigger footprint. Upfront borrows the *spirit* (simulate before you ship)
-but is a deliberately smaller, local-first tool with its own codebase. If you
-find MiroFish useful, go support it too — the two are complementary, not
-duplicates.
+- **CAMEL** — Communicative Agents for "Mind" Exploration (Li et al., arXiv:2303.17760) — role framing, inception-style prompts, the role-flip/loop failure modes
+- **OASIS** — Open Agent Social Interaction Simulations with One Million Agents (arXiv:2411.11581) — round-based loop, action taxonomy, propagation
+- **MASS** — Multi-Agent Social Simulation protocol (Hu & Shen, 2026) — replication manifest, scheduling discipline, the 8 failure modes, and the "pre-experimental evidence" boundary
+- **GraphRAG** — From Local to Global (Edge et al., arXiv:2404.16130) — entity/relationship/claim extraction with source spans
+- **Generative Agents** — Interactive Simulacra of Human Behavior (Park et al., arXiv:2304.03442) — memory stream, recency/importance/relevance retrieval, reflection
+- **Shapley Counterfactual Credits for MARL** (Li et al., arXiv:2106.00285) and **Market Regime Council** (Pei et al., arXiv:2605.24490) — the leverage ledger: exact Shapley attribution over the room's own friction function, and coalition interaction
+- **Evaluating LLMs on Real-World Forecasting Against Expert Forecasters** (Lu, arXiv:2507.04562) and **Approaching Human-Level Forecasting with LMs** (Halawi et al., arXiv:2402.18563) — Brier-scored claims, calibration as the honesty layer
+- **A Benchmark for Multi-Party Negotiation Games** (Benac et al., arXiv:2603.14066) and **LLMs as Virtual Survey Respondents** (Zhao et al., arXiv:2509.06337) — validation targets for multi-party rooms and simulated respondents
+- **Shapley, L. S. (1953)**, *A Value for n-Person Games* — the attribution itself
 
-If you believe we've used an idea of yours without credit, open an issue and we
-will fix it.
+**MiroFish** ([666ghj/MiroFish](https://github.com/666ghj/MiroFish)) explores the
+same territory with a much larger footprint, and it is **AGPL-3.0**. This
+repository is **MIT** and contains **no MiroFish code, no MiroFish assets and no
+copied files** — the overlap is the *idea* (test a move against synthetic
+respondents before you ship), which is not copyrightable. If you want the bigger
+tool, go support MiroFish too; the two are complementary, not duplicates.
+
+If you believe an idea of yours is used here without credit, open an issue and we
+will fix it — with a citation, and if any code is involved, with a licence
+change, not an excuse.
 
 A landscape-level read, on a **left-to-right axis**: red on the left (high competition —
 everyone fighting for the same fish), purple in the middle (medium — a real contest with
@@ -136,7 +179,7 @@ so the two never get conflated.
 ### This is a review, not a forecast
 
 MASS's own boundary rule: LLM-driven simulation produces *pre-experimental evidence* —
-mechanism rehearsal, counterfactual contrast, risk identification. Upfront never claims to
+mechanism exploration, counterfactual contrast, risk identification. Strategic Arena never claims to
 predict an outcome, solve a game, or find an equilibrium. What it does claim is a **scored
 track record**: every run freezes claims, every claim can be scored, and the calibration
 ledger shows hit rate and friction error over N runs.
@@ -214,7 +257,7 @@ URL alone is enough (a repo URL ingests its README).
 **What you get** is spelled out inside the form, before you spend anything: a structured
 review of the response to your move — who can veto it, which coalitions form, the best
 response, how contested the ground is — and the explicit sentence that it is **not a
-prediction and not a guarantee**, but rehearsal that freezes its calls so you can score
+prediction and not a guarantee**, but a read that freezes its calls so you can score
 them later.
 
 **Timelines, and what more time buys:**
@@ -284,7 +327,7 @@ the two vendor data licences cleared before the training set can be published.
 
 The example is written to show a real fight, not a room where everyone agrees: one party with a
 lever and a condition, one fixable complaint, one compliance condition, and the people who gain.
-That is what a rehearsal is for.
+That is what the record is for.
 
 4. **Pick a timeline** (`24 hours` is the recommended default) and a model — the form prints
    `176 model calls · ~$0.02 at list price` (or `FREE`) before you commit.
@@ -535,19 +578,36 @@ hermes plugins validate . --install-deps
 ## Repo layout
 
 ```
-upfront/
-├── plugin.yaml              # plugin manifest (provides_tools …)
+upfront/                     # the repository id stays `upfront`; the product is Strategic Arena
+├── plugin.yaml              # plugin manifest: label, capabilities, provides_tools
 ├── __init__.py              # register(ctx): tools + ctx.llm bind
-├── pyproject.toml           # python deps: pydantic, fastapi
+├── pyproject.toml           # no deps of our own — pydantic/fastapi are Hermes core
+├── LICENSE                  # MIT (TrillionVerse Labs)
+├── CREDITS.md               # every paper we implement, with ids and licence status
+├── README.md                # what it is, the contract, the lens, the rules we hold to
 ├── dashboard/
 │   ├── manifest.json        # {"name": "upfront", "api": "plugin_api.py"}
 │   └── plugin_api.py        # FastAPI backend at /api/plugins/upfront/
-├── desktop/plugin.js        # desktop UI (sidebar + pane, React ESM)
+│       routes: /run /status /report /graph /claims /events /leverage /history
+│               /calibration /due /verify /compare /presets /models /model-access
+├── desktop/plugin.js        # the whole desktop UI — uncompiled ESM, no JSX, no build
 ├── skills/                  # bundled preset packs + the review loop
-├── data/presets/*.json      # arete / arete-real demo presets
-├── tests/                   # pytest suite (fake-LLM end-to-end)
-└── src modules: models, graph, ingestion, agents, simulation, scoring,
-                 reporting, tools, engine, llm_adapter, fetch …
+├── data/presets/*.json      # demo presets
+├── assets/                  # logo, banner, how-it-works (drawn here, MIT)
+├── docs/                    # UI.md, PRODUCT.md, POSITIONING.md, PROGRESS.md, catalog draft
+├── tests/                   # pytest suite — 213 tests, fake-LLM end-to-end
+└── src modules:
+    ingestion.py   artefact → personas (+ the lens: repo/post/whitepaper/…)
+    agents.py      memory stream, retrieval, reflection, one turn
+    simulation.py  the round loop
+    camps.py       coalition detection
+    scoring.py     friction, blocker, competition read
+    leverage.py    exact Shapley: what each party is worth, and what each concession buys
+    claims.py      frozen claims + Brier scoring
+    graph.py       provenance graph (cited spans → parties)
+    reporting.py   run storage, history, calibration ledger, exports
+    engine.py      orchestration, progress, cancel, injections
+    tools.py       the seven agent tools
 ```
 
 ## Tools exposed
