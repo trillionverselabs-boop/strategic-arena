@@ -454,6 +454,35 @@ The header prints a build badge — `build <BUILD>` when it matches the file on 
 If a toggle hangs ~30s, a stale plugin-host child is holding the RPC: `pkill -f plugin_host_child`
 and retry. That is a Hermes process issue, not a plugin bug.
 
+### App on one machine, Hermes on another (remote backend)
+
+The desktop half is **local to the machine the desktop app runs on**. Against a remote
+gateway the remote box's `~/.hermes/plugins` is not a reachable filesystem, so only locally
+installed packages contribute a desktop half by copy. This is a documented Hermes case, not a
+plugin quirk — see the SDK guide's note under *One package, both SDKs*.
+
+What that means in practice:
+
+- **Ordinary install (app and Hermes on one machine).** Nothing to do. The app copies
+  `desktop/plugin.js` into `$HERMES_HOME/desktop-plugins/<id>/` by itself, and it refreshes when
+  the source is newer and something asks — **Rescan** in Capabilities → Plugins, an
+  install/update through the app, or a restart.
+- **Remote backend (app on Windows, Hermes on a Linux box).** Install the **desktop target on
+  the machine running the app**: **Capabilities → Plugins → Install from Git** →
+  `trillionverselabs-boop/upfront-test`, with the **Desktop** component checked. That clones the
+  desktop half into the app machine's `desktop-plugins/`, exactly as a desktop-only repo would.
+  The agent half stays installed on the server.
+  Until that clone exists the Plugins page shows this plugin's Desktop half as
+  **unavailable (remote backend)** — with a tooltip pointing at **Install from Git** with the
+  Desktop target checked. That state is the diagnosis; a stale local copy is the other one.
+- `hermes plugins doctor upfront` warns when the copy differs from the installed source and
+  names the copy it found.
+
+Running `hermes plugins update upfront` on the **server** updates the engine and the half the
+server can see; it cannot reach a window on another computer. The header's build badge is the
+one honest check: it compares the build this window runs with the build beside it, and the
+callout names the fix when they differ.
+
 ### Where data lives
 
 Run history, the graph, the manifests and the calibration ledger live in the plugin's
