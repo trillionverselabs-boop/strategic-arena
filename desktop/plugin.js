@@ -41,7 +41,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.5.2 · ui14'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.5.3 · ui15'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
 const TAGLINE = 'Rehearse the reaction before you commit.'
 
@@ -59,19 +59,35 @@ const T = {
 }
 const NUM = 'tabular-nums'
 
+// Hue is for fills; text needs a lighter step of the same hue or it smudges into
+// the dark background at 11px. One helper, so the graph and the prose agree.
+const textTone = (hex) => `color-mix(in srgb, ${hex} 74%, white)`
+
 // One meaning per colour. Nothing decorative is coloured.
+// One palette, built off the blue the product already reads as.
+//
+// Blue (behind it) and rose (will block it) are a complementary pair, with gold
+// held between them for undecided — a cool→warm ramp instead of the red/green
+// stoplight, which every dashboard uses and nobody reads. Direction is carried
+// by the words on the labels and by *where* a party sits, never by hue alone:
+// rose and blue are close in luminance, so a colour-blind reader loses nothing.
+const BRAND = {
+  blue: '#4c9bf0',        // the accent, and "behind it"
+  blueDeep: '#2b6fc2',
+  blueSoft: 'rgba(62,146,232,.12)',
+}
 const C = {
-  against: '#e5484d',   // will block
-  hold: '#f5a524',      // undecided / conditional
-  for: '#46a758',       // behind it
-  own: '#8b5cf6',       // the parties your own document names
+  against: '#d9538f',   // will block — rose, the warm end of the ramp
+  hold: '#e5b54a',      // undecided / conditional
+  for: BRAND.blue,      // behind it
+  own: '#9b7be0',       // the parties your own document names
   ink: '#e8ecf2',       // label text on a canvas
   halo: 'rgba(6,8,12,.86)',
 }
 const SEA = {
-  red: { label: 'Red ocean', color: '#e5484d', meaning: 'everyone is fighting for the same fish — you will be read as another entrant' },
-  purple: { label: 'Purple ocean', color: '#8b5cf6', meaning: 'contested middle — winnable ground, but not free' },
-  blue: { label: 'Blue ocean', color: '#3b82f6', meaning: 'open water — nobody is contesting this yet' },
+  red: { label: 'Red ocean', color: '#d9538f', meaning: 'everyone is fighting for the same fish — you will be read as another entrant' },
+  purple: { label: 'Purple ocean', color: '#9b7be0', meaning: 'contested middle — winnable ground, but not free' },
+  blue: { label: 'Blue ocean', color: '#4c9bf0', meaning: 'open water — nobody is contesting this yet' },
 }
 const SEA_ORDER = ['red', 'purple', 'blue']
 
@@ -357,7 +373,9 @@ function FrictionGauge({ friction, width = 200, height = 8 }) {
       className: 'relative overflow-hidden rounded-full',
       style: {
         width: `${width}px`, height: `${height}px`,
-        background: 'linear-gradient(90deg, #46a758 0%, #46a758 20%, #f5a524 45%, #f5a524 64%, #e5484d 82%, #e5484d 100%)',
+        // cool → warm: the same ramp the parties use, so the gauge and the room
+        // cannot read as two different scales
+        background: `linear-gradient(90deg, ${C.for} 0%, ${C.for} 22%, ${C.hold} 45%, ${C.hold} 62%, ${C.against} 84%, ${C.against} 100%)`,
         opacity: 0.28,
       },
       children: [
@@ -582,6 +600,196 @@ function MovementChart({ snapshots, height = 190 }) {
         }),
       ],
     }),
+  ]})
+}
+
+
+// ── what each party is worth (the leverage ledger) ─────────────────────
+// A party's price is a counterfactual, so it is computed from the room's own
+// friction function (exact Shapley, server-side) and drawn — never asked of a
+// model. The waterfall is the decomposition: it starts at the floor a room of
+// undecided parties scores, adds what each hostile party costs, subtracts what
+// each supporter takes back, and lands on the number the run already printed.
+
+function waterfallRows(lev) {
+  const rows = [{ key: 'base', label: 'nobody objects (the floor)', from: 0,
+                  to: lev.baseline, kind: 'base' }]
+  let cursor = lev.baseline
+  const parties = lev.parties || []
+  for (const p of parties.filter(x => !x.cools)) {
+    rows.push({ key: `u${p.name}`, label: p.name, from: cursor, to: cursor + p.value,
+                tone: stanceTone(p.stance).color, kind: 'up', value: p.value })
+    cursor += p.value
+  }
+  for (const p of parties.filter(x => x.cools)) {
+    rows.push({ key: `d${p.name}`, label: p.name, from: cursor, to: cursor + p.value,
+                tone: C.for, kind: 'down', value: p.value })
+    cursor += p.value
+  }
+  rows.push({ key: 'total', label: 'the room ends here', from: 0, to: lev.total, kind: 'total' })
+  return rows
+}
+
+function HeatWaterfall({ lev }) {
+  const rows = waterfallRows(lev)
+  const W = 980
+  const rowH = 30
+  const top = 10
+  const labelW = 250
+  const valueW = 64
+  const plotW = W - labelW - valueW - 10
+  const max = Math.max(...rows.map(r => Math.max(r.from, r.to))) * 1.02 || 1
+  const H = top * 2 + rows.length * rowH
+  const x = v => labelW + (v / max) * plotW
+  const NEUTRAL_INK = '#7d8798'   // the floor is nobody's colour — a grey
+  const toneOf = r => r.kind === 'total' ? C.ink
+    : r.kind === 'base' ? NEUTRAL_INK
+    : r.kind === 'down' ? C.for : r.tone
+  return jsxs('svg', { viewBox: `0 0 ${W} ${H}`, className: 'w-full', style: { fontFamily: 'inherit' },
+    children: [
+      // the line the room actually lands on
+      jsx('line', { x1: x(lev.total), y1: 2, x2: x(lev.total), y2: H - 2,
+        style: { stroke: C.ink, strokeWidth: 0.7, opacity: 0.28, strokeDasharray: '3 3' } }),
+      ...rows.map((r, i) => {
+        const cy = top + i * rowH + rowH / 2
+        const x0 = x(Math.min(r.from, r.to)), x1 = x(Math.max(r.from, r.to))
+        const tone = toneOf(r)
+        const prev = rows[i - 1]
+        const isTotal = r.kind === 'total', isBase = r.kind === 'base'
+        return jsxs('g', { children: [
+          // step connector: the eye has to be able to follow the running total
+          i > 0 && jsx('path', {
+            d: `M ${x(prev.to)} ${top + (i - 1) * rowH + rowH / 2 + 7} L ${x(prev.to)} ${cy} L ${x(r.from)} ${cy}`,
+            fill: 'none', style: { stroke: '#4a5462', strokeWidth: 1.2, opacity: 0.95 },
+          }),
+          jsx('text', { x: labelW - 12, y: cy + 4, textAnchor: 'end', fontSize: '11.5',
+            style: { fill: isTotal ? 'var(--ui-text-primary)' : 'var(--ui-text-secondary)',
+                     fontFamily: 'inherit', fontWeight: isTotal ? 650 : 400 },
+            children: r.label.length > 24 ? r.label.slice(0, 23) + '…' : r.label }),
+          jsx('rect', { x: x0, y: cy - 8, width: Math.max(2, x1 - x0), height: 16, rx: 3,
+            style: { fill: isTotal ? 'none' : tone,
+                     fillOpacity: r.kind === 'down' ? 0.62 : isBase ? 0.55 : 0.92,
+                     stroke: isTotal ? 'var(--ui-text-tertiary)' : 'none',
+                     strokeWidth: isTotal ? 1 : 0, strokeDasharray: isTotal ? '3 2' : 'none' } }),
+          r.kind === 'down' && jsx('rect', { x: x0, y: cy - 8, width: Math.max(2, x1 - x0), height: 16, rx: 3,
+            style: { fill: 'none', stroke: C.for, strokeWidth: 1, strokeDasharray: '2 2', opacity: 0.75 } }),
+          jsx('text', { x: W - 4, y: cy + 4, textAnchor: 'end', fontSize: '11.5',
+            style: { fill: isBase ? 'var(--ui-text-quaternary)' : textTone(tone),
+                     fontFamily: 'inherit', fontWeight: 650 },
+            children: isBase ? r.to.toFixed(0)
+              : isTotal ? (isTotal ? r.to.toFixed(1) : r.to.toFixed(1))
+              : (r.value > 0 ? '+' : '−') + Math.abs(r.value).toFixed(1) }),
+        ]})
+      }),
+    ]})
+}
+
+function HeatLedger({ lev }) {
+  if (!lev || !lev.available || !(lev.parties || []).length) return null
+  const ups = lev.parties.filter(p => !p.cools)
+  const largest = Math.max(...ups.map(p => p.value), 1)
+  const blocker = ups.filter(p => p.veto)[0]
+  const cooling = lev.parties.filter(p => p.cools)
+  return jsxs(Card, { children: [
+    jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
+      jsxs('div', { children: [
+        jsx('div', { className: T.h2, children: 'What each party is worth' }),
+        jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`,
+          children: 'Computed by neutralising each party in turn and re-reading the room — not an opinion.' }),
+      ]}),
+      jsx('span', { className: `${T.micro} ${NUM} text-(--ui-text-tertiary)`, children: lev.method }),
+    ]}),
+
+    jsx('div', { className: 'mt-2', children: jsx(HeatWaterfall, { lev }) }),
+
+    // the ledger proper
+    jsxs('div', { className: 'mt-2 flex flex-col', children: [
+      jsxs('div', { className: `grid grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_54px_74px] gap-2 border-b border-(--ui-stroke-tertiary) pb-1 ${T.label} text-(--ui-text-quaternary)`, children: [
+        jsx('span', { children: 'party' }),
+        jsx('span', { children: 'share of the heat' }),
+        jsx('span', { className: 'text-right', children: 'points' }),
+        jsx('span', { className: 'text-right', children: 'veto' }),
+      ]}),
+      ...lev.parties.map(pp => {
+        const tone = pp.cools ? C.for : stanceTone(pp.stance).color
+        const pct = Math.max(0, pp.value) / largest * 100
+        return jsxs('div', { className: 'grid grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_54px_74px] items-center gap-2 border-b border-(--ui-stroke-tertiary) py-1', children: [
+          jsxs('div', { className: 'flex min-w-0 items-center gap-1.5', children: [
+            jsx('span', { className: 'inline-block size-1.5 shrink-0 rounded-full', style: { backgroundColor: tone } }),
+            jsx('span', { className: `truncate ${T.small}`, children: pp.name }),
+          ]}),
+          jsx('div', { className: 'h-1.5 overflow-hidden rounded-full bg-(--ui-bg-quaternary)', children:
+            jsx('div', { className: 'h-full rounded-full', style: {
+              width: `${pct}%`, background: pp.cools
+                ? `repeating-linear-gradient(45deg, ${C.for}66, ${C.for}66 3px, transparent 3px, transparent 6px)`
+                : tone } }) }),
+          jsx('div', { className: `text-right ${T.small} ${NUM}`, style: { color: textTone(tone) },
+            children: (pp.value > 0 ? '+' : '−') + Math.abs(pp.value).toFixed(1) }),
+          jsxs('div', { className: `text-right ${T.micro} text-(--ui-text-quaternary)`, children: [
+            pp.cools ? 'cools' : pp.veto ? (pp.capacity >= 0.8 ? 'outright' : 'can slow') : '—',
+          ]}),
+        ]})
+      }),
+    ]}),
+
+    // the read: one sentence, from the arithmetic
+    blocker && jsxs('div', { className: 'mt-2 flex flex-col gap-1 rounded-lg px-3 py-2', style: {
+      backgroundColor: `color-mix(in srgb, ${stanceTone(blocker.stance).color} 8%, transparent)`,
+      borderLeft: `2px solid ${stanceTone(blocker.stance).color}` }, children: [
+      jsx(Label, { children: 'the read' }),
+      jsxs('div', { className: `${T.small} leading-relaxed`, children: [
+        jsx('span', { className: 'font-semibold', children: blocker.name }),
+        ` carries ${blocker.value.toFixed(0)} of the ${lev.attributable.toFixed(0)} points above a neutral room`,
+        blocker.share >= 50 ? ' — more than half of everything anyone adds. ' : '. ',
+        cooling.length
+          ? `${cooling.map(c => c.name).join(' and ')} take${cooling.length > 1 ? '' : 's'} ${Math.abs(cooling.reduce((a, c) => a + c.value, 0)).toFixed(1)} back out.`
+          : '',
+      ]}),
+    ]}),
+
+    // coalitions, by what they actually do
+    (lev.pairs || []).length > 0 && jsxs('div', { className: 'mt-2 flex flex-col gap-1', children: [
+      jsx(Label, { children: 'together, they are one negotiation' }),
+      ...lev.pairs.slice(0, 2).map(pr => jsxs('div', { className: 'flex flex-col gap-0.5', children: [
+        jsxs('div', { className: `${T.small} font-medium`, children: [
+          pr.a, jsx('span', { className: 'text-(--ui-text-quaternary)', children: ' + ' }), pr.b,
+          jsx('span', { className: `${T.micro} text-(--ui-text-tertiary)`, children: pr.kind === 'heat'
+            ? `  costs ${pr.interaction.toFixed(1)} more together`
+            : '  neither one alone clears the veto' }),
+        ]}),
+        jsx('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: pr.line }),
+      ]})),
+    ]}),
+
+    // what each concession buys
+    (lev.counterfactuals || []).length > 0 && jsxs('div', { className: 'mt-3 flex flex-col gap-1.5', children: [
+      jsx(Label, { children: 'what each concession buys' }),
+      jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`,
+        children: 'The room re-read with that party’s condition met. Same parties, same claims, one thing changed.' }),
+      jsx('div', { className: 'grid gap-1.5 sm:grid-cols-2 xl:grid-cols-3', children:
+        lev.counterfactuals.map(cf => {
+          const better = cf.friction < lev.total - 0.05
+          const clears = !cf.veto_left
+          const tone = clears ? C.for : better ? C.hold : 'var(--ui-text-quaternary)'
+          return jsxs('div', { className: 'flex flex-col gap-1 rounded-lg border px-3 py-2.5', style: {
+            borderColor: clears ? `color-mix(in srgb, ${C.for} 45%, transparent)` : 'var(--ui-stroke-tertiary)',
+            backgroundColor: clears ? `color-mix(in srgb, ${C.for} 9%, transparent)` : 'var(--ui-bg-elevated)' }, children: [
+            jsxs('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: ['clear ', cf.label] }),
+            jsxs('div', { className: 'flex items-baseline gap-2', children: [
+              jsx('span', { className: `${T.body} ${NUM} font-semibold leading-none`,
+                style: { color: textTone(tone) }, children: cf.friction.toFixed(0) }),
+              jsx('span', { className: `${T.small}`, style: { color: 'var(--ui-text-tertiary)' },
+                children: cf.band.label }),
+            ]}),
+            jsx('div', { className: `${T.small}`, style: { color: clears ? textTone(C.for) : 'var(--ui-text-secondary)' },
+              children: clears ? 'nobody left can stop it'
+                : cf.veto_left ? `${cf.veto_left} can still stop it` : 'no veto left' }),
+          ]})
+        }) }),
+    ]}),
+
+    jsx('div', { className: `${T.micro} text-(--ui-text-quaternary) mt-2`,
+      children: 'Points are heat, not power: a loud party with no lever costs heat and cannot stop you. The veto column is the lever.' }),
   ]})
 }
 
@@ -1467,15 +1675,16 @@ function UpfrontPage({ ctx }) {
   React.useEffect(() => { refreshHistory() }, [])
 
   async function openRun(runId, titleHint) {
-    const [rep, g, cl, ev, meta] = await Promise.all([
+    const [rep, g, cl, ev, meta, lev] = await Promise.all([
       ctx.rest(`/report/${runId}`).catch(() => ({ report: '' })),
       ctx.rest(`/graph/${runId}`).catch(() => ({ nodes: [], edges: [] })),
       ctx.rest(`/claims/${runId}`).catch(() => ({ claims: [] })),
       ctx.rest(`/events/${runId}`).catch(() => ({ events: [], snapshots: [] })),
       ctx.rest('/history').then(rows => (rows || []).find(h => h.run_id === runId) || {}).catch(() => ({})),
+      ctx.rest(`/leverage/${runId}`).catch(() => ({ available: false })),
     ])
     setResult({
-      runId, report: rep.report, graph: g, claims: cl.claims || [],
+      runId, report: rep.report, graph: g, claims: cl.claims || [], leverage: lev,
       events: ev.events || [], snapshots: ev.snapshots || [],
       sea: meta.sea_state ? { state: meta.sea_state, label: meta.sea_label, color: meta.sea_color,
                              why: meta.sea_why, meaning: SEA[meta.sea_state] ? SEA[meta.sea_state].meaning : '' } : null,
@@ -1584,7 +1793,11 @@ function UpfrontPage({ ctx }) {
   // one list, newest first; collapsed to a third of the screen until asked
   const shown = showAllPast ? history : history.slice(0, 6)
 
-  return jsxs('div', { className: 'flex h-full flex-col gap-3 overflow-auto p-4', children: [
+  return jsxs('div', {
+    // scope the accent to this page only: every SDK control inside inherits it,
+    // so the primary button is the product's blue without touching core UI
+    style: { '--ui-accent': BRAND.blue },
+    className: 'flex h-full flex-col gap-3 overflow-auto p-4', children: [
     // header — one line of identity, one line of state, one primary action
     jsxs('div', { className: 'flex flex-wrap items-center justify-between gap-3', children: [
       jsxs('div', { className: 'flex flex-col gap-1', children: [
@@ -1712,6 +1925,8 @@ function UpfrontPage({ ctx }) {
       ]}),
 
       jsx(VerdictPanel, { result }),
+
+      jsx(HeatLedger, { lev: result.leverage }),
 
       result.modelFallback && jsx(Callout, { icon: 'warning', tone: '#f5a524',
         title: 'The model you picked was not used', children: result.modelFallback }),

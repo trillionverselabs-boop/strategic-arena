@@ -59,7 +59,7 @@ def _load_package():
 _load_package()
 
 from upfront import engine  # noqa: E402
-from upfront import llm_binding, portal, reporting  # noqa: E402
+from upfront import leverage, llm_binding, portal, reporting  # noqa: E402
 from upfront.llm_adapter import LlmAdapter  # noqa: E402
 from upfront.models import Intervention  # noqa: E402
 
@@ -339,6 +339,20 @@ async def events(run_id: str):
 @router.get("/claims/{run_id}")
 async def claims(run_id: str):
     return {"claims": reporting.load_claims(run_id)}
+
+
+@router.get("/leverage/{run_id}")
+async def leverage_route(run_id: str):
+    """What each party is worth — computed from the room's own friction function.
+
+    Read-only, deterministic, no model call: reopening a run must return the same
+    numbers it returned the first time, which is why this is arithmetic and not a
+    second opinion from an LLM.
+    """
+    try:
+        return leverage.ledger_for_run(reporting.load_run(run_id))
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"no run {run_id}")
 
 
 @router.post("/verify/{run_id}")
