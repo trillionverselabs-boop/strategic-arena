@@ -1,6 +1,6 @@
 name: upfront
 repo: https://github.com/trillionverselabs-boop/upfront-test   # must stay PUBLIC
-sha: c5bf02249af2adfb67af25b003ddb874386b9f58
+sha: f4b211acd8cd634f5fdbc8e52ebe3ad0df708190
 title: Strategic Arena
 description: >-
   Read what it means before it reads you. Give it a link — a repo README, a blog
@@ -17,9 +17,9 @@ tier: community
 category: tools
 version: "0.6.2"
 requires_hermes: ">=0.23.0"
-image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/c5bf02249af2adfb67af25b003ddb874386b9f58/assets/banner.png
+image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/f4b211acd8cd634f5fdbc8e52ebe3ad0df708190/assets/banner.png
 screenshots:
-  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/c5bf02249af2adfb67af25b003ddb874386b9f58/assets/how-it-works.png
+  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/f4b211acd8cd634f5fdbc8e52ebe3ad0df708190/assets/how-it-works.png
 platforms: []
 capabilities:
   provides_tools:
