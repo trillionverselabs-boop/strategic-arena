@@ -1,23 +1,32 @@
-# Models — free tier on the Nous inference API
+# Models — the free tier on the Nous inference API
 
-Measured 2026-11-09 against `https://inference-api.nousresearch.com/v1/models` (396 models) with a live
-key. Five models are zero-priced; each was exercised with a real request, not read off the catalogue.
+**A dated snapshot, not a policy.** Free models are transient: any of them can be rate-limited,
+degraded or withdrawn without notice. This page records what was true on **2026-11-09** so a
+regression is explainable; it is not a recommendation to depend on a specific one, and nothing in
+the plugin hard-codes a model id. The picker reads the live catalogue on every open, so whatever
+is there is what you can choose.
 
-## The five free models
+Measured against `https://inference-api.nousresearch.com/v1/models` (396 models) with a live key.
+Five models were zero-priced that day; each was exercised with a real request, not read off the
+catalogue.
 
-| Model | ctx | structured outputs | reasoning | Measured | Verdict |
+## What we measured on 2026-11-09
+
+| Model | ctx | structured outputs | reasoning | Measured then | Note |
 |---|---|---|---|---|---|
-| **`reflection/beam-1.0-501b-a23b:free`** | 262K | yes (+tools, parallel) | mandatory | structured Brief, **7/7 spans verified**, 5.0 s, 4,072 tok, **$0** | **use for the report** |
-| **`upstage/solar-mini4:free`** | 524K | yes (+tools, parallel) | optional (off = fast) | correct one-sentence read in 1.7 s, 2,902 tok, $0 | **use for the cheap pre-read** |
-| `meituan/longcat-2.5:free` | 1M | **no** `response_format` | on by default | correct probe answer, 3.3 s | fallback only — cannot honour the JSON contract |
-| `stepfun/step-3.7-flash:free` | 262K | yes | mandatory | **HTTP 429 "temporarily at capacity upstream"** | unreliable — do not default to it |
-| `stealth/crouton-alpha` | 1M | yes | mandatory | not tested | **expires 2026-11-09** — excluded |
+| **`reflection/beam-1.0-501b-a23b:free`** | 262K | yes (+tools, parallel) | mandatory | structured Brief, **7/7 spans verified**, 5.0 s, 4,072 tok, **$0** | produced the best report that day |
+| **`upstage/solar-mini4:free`** | 524K | yes (+tools, parallel) | optional (off = fast) | correct one-sentence read in 1.7 s, 2,902 tok, $0 | fastest that day |
+| `meituan/longcat-2.5:free` | 1M | **no** `response_format` | on by default | correct probe answer, 3.3 s | **chatters around the JSON**; the plugin's parser tolerates it, but output is less predictable |
+| `stepfun/step-3.7-flash:free` | 262K | yes | mandatory | **HTTP 429 "temporarily at capacity upstream"** | capacity-limited that day |
+| `stealth/crouton-alpha` | 1M | yes | mandatory | not tested | **expired 2026-11-09** — already gone |
 
-Beam is 501B total / 23B active; Solar is 35B / 3B active. Both are genuinely $0 (`cost_details.cost: 0`).
+Beam was 501B total / 23B active; Solar 35B / 3B active. Both were genuinely $0
+(`cost_details.cost: 0`) on the day.
 
-**Decision:** `reflection/beam-1.0-501b-a23b:free` writes the report; `upstage/solar-mini4:free` does the
-cheap read (roster pre-pass, title/summary). A run costs nothing, which makes the demo's cost line honest
-rather than theoretical.
+**Do not build on any of these.** They are a snapshot of a free tier that rotates. The reliable
+statement is the negative one: the plugin must work against *whatever* the user has active, and it
+does — no model id appears in the code, the picker reads the catalogue live, and a model that
+answers in prose instead of JSON is parsed defensively rather than trusted.
 
 ## Two traps found by running it, both must be handled in code
 

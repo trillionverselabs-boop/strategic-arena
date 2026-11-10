@@ -377,11 +377,12 @@ million tokens** in and out. The run line under it does the arithmetic before yo
 
 ```
 176 calls · ~$0.02 at list price        (a paid flash-class model)
-176 calls · FREE                        (one of the five zero-priced models)
+176 calls · FREE                        (whichever zero-priced models the catalogue has today)
 ```
 
-- **Free models are flagged and filterable** ("free only") — the currently configured
-  default, `reflection/beam-1.0-501b-a23b:free`, is one of them.
+- **Free models are flagged and filterable** ("free only"). The free tier rotates — models
+  appear, get rate-limited and disappear — so the picker reads the catalogue live and no model
+  id is hardcoded anywhere in the plugin.
 - **Cheap ≠ frontier.** For a review the work is many small structured judgments, so a
   flash-class model is usually the right buy; a frontier model costs ~$5 for the same
   176 calls and makes the run *slower*, not smarter.
