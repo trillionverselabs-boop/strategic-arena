@@ -38,12 +38,33 @@ own words, and a board that bends when you inject a counter-move. Estimated time
 remaining, not a spinner. The board names its three groups and counts them —
 *will block it · undecided · behind it* — because a colour legend is not a scale.
 
+**The ledger.** Under the call: *what each party is worth*. A waterfall from the
+neutral floor (35 on this scale — the decision itself, not a person) through every
+hostile party, the supporters who subtract, and the number the room actually ends on.
+Then the ledger proper (share / points / veto), "the read" from the arithmetic, the
+coalition by what it does, and concession cards showing the re-read room for each
+satisfied party. Points are heat; the veto column is power. Never conflate them.
+
 **Result.** The call first — a headline sentence built from the blocker and the
 heat band, then *who can stop it / what they need / your best move* as three
 labelled answers, then **what ends this objection** (their condition verbatim and
 the artefact it points at). Then the room in order, **what each party is standing
 on** (the provenance graph: cited spans → parties), the movement chart, the
 transcript grouped by round, and the scorecard.
+
+## Palette
+
+| role | hex | meaning |
+|---|---|---|
+| accent / "behind it" | `#4c9bf0` | the brand blue, and every primary action |
+| "undecided" | `#e5b54a` | gold |
+| "will block it" | `#d9538f` | rose |
+| "your own document named them" | `#9b7be0` | violet |
+
+A cool→warm ramp rather than a red/green stoplight. Hue never carries meaning alone —
+the labels and the position do — so a colour-blind reader loses nothing. Fills use the
+hue; text uses `textTone()` (74% hue toward white) because small rose on near-black
+smudges.
 
 ## Where the five papers show up
 

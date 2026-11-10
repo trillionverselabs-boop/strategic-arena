@@ -677,3 +677,61 @@ cited reasons per party. Next round.
 **Verified:** 154 tests green; `node --check` clean; live board, results page and
 the graph rendered against real run data and checked for overlap/clipping.
 BUILD → `0.5.2 · ui14`, version 0.5.2.
+
+---
+
+## The leverage ledger, and the palette (2026-11-10, later still)
+
+**What ships:** `leverage.py` computes what each party is *worth* — exact Shapley over
+the room's own friction function. A party "not in S" is neutralised, not removed, so
+the room stays the same size and the question stays legible: how much of this heat is
+that party's, above a room where nobody objects? It is arithmetic, not a model call:
+deterministic, order-independent, and exact — `sum(party) == total - baseline`, which
+`tests/test_leverage.py` asserts. Route: `GET /leverage/{run_id}`, read-only.
+
+Worked example (the live run in this profile, 5 parties):
+
+| party | points | share | veto |
+|---|---|---|---|
+| Finance | +13.5 | 81.8% | outright |
+| Legal | +13.5 | 81.8% | outright |
+| Enterprise resellers | +1.4 | 8.5% | — |
+| Enterprise CIOs | −4.9 | — | cools |
+| Community fine-tuners | −7.0 | — | cools |
+| **room** | **51.5** | | floor 35.0, attributable 16.5 |
+
+Clear Finance alone → 35.2, Legal still vetoes. Clear Legal alone → 35.2, Finance still
+vetoes. Clear both → 18.9, Quiet ground, nobody can stop it. That is the sentence the
+page could not say before.
+
+**A correction to the design mockup:** it showed a hatched "+6 coalition interaction"
+in the heat. This engine's friction is additive in stances (an average plus two
+counts), so that number cannot exist. It is not faked — the coalition is reported by
+what it actually does (`kind: "veto"`): *clearing either one alone leaves the other's
+veto standing; clearing both leaves none*. A guard test (`test_ui_ledger.py`) keeps a
+fabricated interaction off the page.
+
+**Palette.** Off the red/green stoplight and onto the blue the product reads as:
+
+| role | hex | meaning |
+|---|---|---|
+| `BRAND.blue` | `#4c9bf0` | accent, primary action, "behind it" |
+| `C.hold` | `#e5b54a` | undecided |
+| `C.against` | `#d9538f` | will block it (rose, the warm end) |
+| `C.own` | `#9b7be0` | parties named by your own document |
+
+Blue and rose are a complementary pair with gold held between them: a cool→warm ramp,
+not a stoplight. Direction is carried by the labels and by position, never by hue alone.
+Text uses `textTone()` (74% hue, 26% white) because an 11px rose on near-black is a
+smudge, not a word. The accent is scoped to the plugin page (`--ui-accent`) and the
+three primary buttons carry the brand blue on their own instance — never by restyling
+core UI.
+
+**Found while verifying:** the preview harness's stub `Button` silently dropped
+`style`, so the button rendered green locally while the real component would have been
+blue. The stub now forwards `style` like the real one, and the computed colour is
+asserted (`rgb(76,155,240)`).
+
+**Verified:** 174 tests green; `node --check` clean; `hermes plugins validate` passes;
+waterfall, ledger, concession cards and palette rendered against real run data and
+critiqued twice before shipping. BUILD → `0.5.3 · ui15`, version 0.5.3.
