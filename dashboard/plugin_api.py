@@ -59,7 +59,7 @@ def _load_package():
 _load_package()
 
 from upfront import engine  # noqa: E402
-from upfront import llm_binding, portal, reporting  # noqa: E402
+from upfront import llm_binding, paths, portal, reporting  # noqa: E402
 from upfront.llm_adapter import LlmAdapter  # noqa: E402
 from upfront.models import Intervention  # noqa: E402
 
@@ -382,9 +382,15 @@ def _ui_status(running: str) -> dict:
         "published": published,
         "up_to_date": up_to_date,
         "published_current": published_current,
+        # Never say "reload the page" as if that were the fix: the file this
+        # window runs is on the machine the app runs on, which a page reload
+        # cannot reach. Say what to do instead.
         "hint": ("" if up_to_date else
-                 f"This window is running build {running or 'unknown'} but build {source or 'unknown'} "
-                 "is installed. Reload the page to pick it up."),
+                 f"This window is running build {running or 'unknown'}; build "
+                 f"{source or 'unknown'} is installed. The app reads its UI from "
+                 "the machine it runs on, so update it there — either Install from "
+                 "Git with the Desktop target ticked, or save the new plugin.js "
+                 "over the copy in desktop-plugins. Neither needs a restart."),
     }
 
 
@@ -398,6 +404,26 @@ async def ui_status(build: str = ""):
     route instead of making the user guess.
     """
     return _ui_status(build)
+
+
+@router.get("/ui/download")
+async def ui_download():
+    """The current desktop half, as a gateway-servable path for the save bridge.
+
+    The window's copy of this file lives on the machine the app runs on, which
+    this process cannot reach — so the only honest way to hand a remote window
+    the new UI is to let the user save it. The bytes go to a stable path in the
+    plugin's own data dir; the desktop save bridge streams them from there.
+    """
+    src = _PLUGIN_ROOT / "desktop" / "plugin.js"
+    if not src.exists():
+        raise HTTPException(status_code=404, detail="desktop half not found")
+    dest_dir = paths.data_root() / "ui"
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest = dest_dir / "plugin.js"
+    dest.write_bytes(src.read_bytes())
+    return {"path": str(dest), "suggestedName": "plugin.js",
+            "build": _read_build(src), "bytes": dest.stat().st_size}
 
 
 @router.post("/ui/refresh")

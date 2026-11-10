@@ -38,6 +38,7 @@ import {
   ROUTES_AREA,
   SIDEBAR_NAV_AREA,
 } from '@hermes/plugin-sdk'
+import * as SDK from '@hermes/plugin-sdk'
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
@@ -934,6 +935,39 @@ function RunRow({ h, onOpen }) {
   })
 }
 
+// ── "this window is behind" ───────────────────────────────────────────
+// A page reload cannot fix a stale window: the app reads its UI file from the
+// machine the window runs on, and this process is not that machine. So the card
+// offers the two things that do work, and says plainly that neither restarts
+// the app.
+
+function UpdateCard({ uiBuild, uiDownload, saved, onSave, onOpenPlugins }) {
+  return jsxs(Card, { tone: C.hold, children: [
+    jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
+      jsx(Label, { children: 'this window is behind' }),
+      jsx(Badge, { variant: 'outline',
+        children: `window ${uiBuild.running || 'unknown'} → installed ${uiBuild.installed || 'unknown'}` }),
+    ]}),
+    jsx('div', { className: `${T.small} text-(--ui-text-secondary)`,
+      children: 'The app reads its UI file from the machine it runs on, so reloading this page cannot pick up a new build. You do not need to restart the app for either fix below.' }),
+    jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
+      jsx(Button, { onClick: onOpenPlugins, children: 'Update in the app' }),
+      jsx(Button, { variant: 'outline', disabled: !uiDownload, onClick: onSave,
+        children: saved ? 'Saved — now put it in place' : 'Download the UI file' }),
+    ]}),
+    jsxs('div', { className: 'flex flex-col gap-1', children: [
+      jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
+        jsx('strong', { children: 'Update in the app: ' }),
+        'Capabilities → Plugins → Install from Git → trillionverselabs-boop/upfront-test → tick Desktop → Install. The app copies the file itself and reloads it.',
+      ]}),
+      jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
+        jsx('strong', { children: 'Or save the file: ' }),
+        'save it over `%USERPROFILE%\\.hermes\\desktop-plugins\\upfront\\plugin.js`. The app watches that folder and reloads the page in place — no restart.',
+      ]}),
+    ]}),
+  ]})
+}
+
 // ── new review dialog ─────────────────────────────────────────────────
 
 function NewReviewModal({ ctx, onClose, onStarted }) {
@@ -1195,6 +1229,9 @@ function UpfrontPage({ ctx }) {
   const [startedAt, setStartedAt] = React.useState(null)
   const [uiBuild, setUiBuild] = React.useState(null)
   const [reloading, setReloading] = React.useState(false)
+  const [uiDownload, setUiDownload] = React.useState(null)
+  const [uiSaved, setUiSaved] = React.useState(false)
+  const saveRef = React.useRef(null)
   const [record, setRecord] = React.useState(null)
   const [due, setDue] = React.useState([])
   const gateway = useValue(host.state.gateway)
@@ -1204,6 +1241,13 @@ function UpfrontPage({ ctx }) {
   // the new build" are two different things and the user should not have to guess
   React.useEffect(() => {
     ctx.rest(`/ui?build=${encodeURIComponent(BUILD)}`).then(setUiBuild).catch(() => setUiBuild(null))
+    // The save bridge is captured at READ time, not click time: it carries this
+    // connection's scope. Feature-detected — an older app has no bridge, and a
+    // missing named export would be a fatal import for the whole page.
+    if (typeof SDK.captureGatewayFileDownload === 'function') {
+      saveRef.current = SDK.captureGatewayFileDownload()
+      ctx.rest('/ui/download').then(setUiDownload).catch(() => setUiDownload(null))
+    }
   }, [])
 
   async function reloadUi() {
@@ -1215,6 +1259,19 @@ function UpfrontPage({ ctx }) {
     // the page reload re-runs the app's plugin scan, which is what reads the
     // freshly published copy back in
     window.location.reload()
+  }
+
+  async function saveUiFile() {
+    const save = saveRef.current
+    if (!save || !uiDownload) return
+    haptic('tap')
+    await save(uiDownload.path, uiDownload.suggestedName).catch(() => {})
+    setUiSaved(true)
+  }
+
+  function openPluginSettings() {
+    haptic('tap')
+    try { host.navigate('/capabilities?tab=plugins') } catch (_) {}
   }
 
   function refreshHistory() {
@@ -1347,14 +1404,14 @@ function UpfrontPage({ ctx }) {
         jsxs('div', { className: `flex flex-wrap items-center gap-2 ${T.micro} text-(--ui-text-quaternary)`, children: [
           jsx('span', { children: `gateway ${gateway}` }),
           jsx('span', { className: 'opacity-50', children: '·' }),
-          jsx(Badge, { variant: 'outline', title: 'This window reads the installed copy of this file. Reload UI republishes and refreshes.',
+          jsx(Badge, { variant: 'outline', title: 'This window reads the UI file from the machine the app runs on. A new build has to be put there — see the banner when this one is behind.',
             children: uiBuild && uiBuild.installed && uiBuild.installed !== BUILD
               ? `build ${BUILD} → ${uiBuild.installed} installed`
               : `build ${BUILD}` }),
           jsx(Button, {
             variant: 'ghost', size: 'xs', disabled: reloading, onClick: reloadUi,
-            title: 'Re-read the installed plugin UI and reload this page',
-            children: reloading ? 'Reloading…' : 'Reload UI',
+            title: 'Reloads this page only. It cannot update the UI file — the app reads that from the machine it runs on.',
+            children: reloading ? 'Reloading…' : 'Reload page',
           }),
         ]}),
       ]}),
@@ -1371,13 +1428,8 @@ function UpfrontPage({ ctx }) {
       ]}),
     ]}),
 
-    uiBuild && !uiBuild.up_to_date && jsx(Callout, { icon: 'info', tone: 'var(--ui-accent)',
-      title: 'A newer build of this page is installed',
-      children: jsxs('div', { className: 'flex flex-col gap-2', children: [
-        jsx('span', { children: uiBuild.hint }),
-        jsx('span', { className: 'text-(--ui-text-tertiary)',
-          children: 'Press Reload UI — it republishes the installed copy and refreshes this page. If the page still shows the old build, use ⌘K → "Reload desktop plugins".' }),
-      ]}) }),
+    uiBuild && !uiBuild.up_to_date && jsx(UpdateCard, {
+      uiBuild, uiDownload, saved: uiSaved, onSave: saveUiFile, onOpenPlugins: openPluginSettings }),
 
     modal && jsx(NewReviewModal, { ctx, onClose: () => setModal(false), onStarted: started }),
 

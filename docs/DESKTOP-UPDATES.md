@@ -1,79 +1,82 @@
 # Desktop updates — how a UI change reaches the window
 
-**The finding (2026-11-10).** The plugin has two halves, and they can live on
-different machines. The app loads `desktop/plugin.js` **from the machine the
-desktop app runs on**; it cannot copy a desktop half out of a remote backend.
-`hermes plugins update upfront` on the server updates the engine and the
-server-side half — it never reaches a window on another machine.
+**The finding (2026-11-10, corrected the same day).** The plugin has two halves
+and they can live on different machines. The app loads `desktop/plugin.js`
+**from the machine the window runs on** — which, in this setup, is the user's
+computer, not the lisacore backend. `hermes plugins update upfront` on the
+server updates the engine; it never reaches that window.
 
-Symptom: the window keeps showing an old `build` number forever, and the new
-`Reload UI` button never appears, no matter how many times the server is updated.
+**The second finding, the one that matters day to day:** *reloading the page
+cannot fix a stale window.* The Reload button only reloads the page; the file it
+would need to change is on another machine. The old UI said "press Reload UI" —
+that was a lie, and it is why the button looked broken.
 
-## The two halves
+## What each thing actually does
 
-| Half | File | Runs where | Updated by |
-|---|---|---|---|
-| Agent half | `plugin.yaml`, `*.py`, `dashboard/plugin_api.py` | lisacore (the backend) | `hermes plugins update upfront` |
-| Desktop half | `desktop/plugin.js` | **the machine running the desktop app** | the app's own install/reload path |
+| Action | What it really does | Fixes a stale window? |
+|---|---|---|
+| **Reload page** (the header button) | reloads this page in the renderer | **No** — the file is on the window's machine |
+| **⌘K → Reload desktop plugins** | re-reads every known plugin file from disk | **Only if the file there is already new** |
+| **Install from Git with the Desktop target** (on the window's machine) | the app clones the desktop half into its own folder | **Yes** — the app copies it and reloads |
+| **Save the new `plugin.js` over the copy** | replaces one file | **Yes** — the app watches that file and hot-reloads it in place |
 
-In the normal case (app and Hermes on the same machine) the app copies the
-desktop half into `~/.hermes/desktop-plugins/<id>/` and refreshes it from that
-local copy. Against a **remote backend** the remote `~/.hermes/plugins` is not a
-filesystem the window can see, so that copy has to come from an install that
-targets the desktop.
+## The two fixes that work — neither needs a restart
 
-## The supported path (per the SDK guide, *One package, both SDKs*)
+**1. Update in the app** (preferred; the app does the copying)
 
-> For a remote backend the install dialog clones the desktop half separately
-> into `desktop-plugins/`, the same as a desktop-only repo. A package whose
-> agent half was installed on the remote host without that clone shows its
-> Desktop half as **unavailable (remote backend)** on the Plugins page.
+On the machine running the app: **Capabilities → Plugins → Install from Git** →
+`trillionverselabs-boop/upfront-test` → tick **Desktop** → Install. Then
+⌘K → **Reload desktop plugins**. The app copies the file itself and reloads it.
 
-So, on the machine running the app:
+**2. Save the file over the copy** (fallback, one file)
 
-1. **Capabilities → Plugins → Install from Git** → `trillionverselabs-boop/upfront-test`.
-2. Tick the **Desktop** target (leave the backend target to the server install).
-3. Install → then **⌘K → "Reload desktop plugins"**.
+Save the new UI file to
+`%USERPROFILE%\.hermes\desktop-plugins\upfront\plugin.js` on the window's
+machine, replacing the existing one. The app fs-watches that file, so it
+hot-reloads the page **in place — no restart, no ⌘K**.
 
-The Plugins page will also offer **Update** on the entry once the pin moves; that
-pulls the new desktop half the same way.
+The plugin now offers both: when the window's build is older than the installed
+build, a banner appears with **Update in the app** (opens Capabilities → Plugins)
+and **Download the UI file** (the sanctioned gateway save bridge, which hands the
+user the exact bytes through the native save dialog).
 
-## How to tell which build the window is actually on
+## Why ⌘K alone felt like it did nothing
 
-The page header prints a `build <version> · ui<N>` pill, and the backend exposes
-`GET /api/plugins/upfront/ui?build=…` which compares it to the installed copy.
+`Reload desktop plugins` re-reads the files it already knows about — it fetches
+nothing. If the file on the window's machine is still the old one, the reload
+faithfully shows the old build. It is not broken; there was nothing new to read.
+
+Also worth knowing: toggling a desktop plugin off/on does **not** re-read
+`plugin.js` (the module is cached) — use ⌘K, or quit the app from the tray.
+
+## How to tell which build the window is on
+
+The header prints `build <version> · ui<N>`. `GET /api/plugins/upfront/ui`
+compares it against the build the backend has installed and returns an honest
+hint — it no longer says "reload the page".
 
 | Header reads | Meaning |
 |---|---|
-| `build 0.5.0 · ui12` | the window is running the installed file. Done. |
-| `build 0.5.0 · ui12 → 0.5.0 · ui12 installed` | in sync (the arrow form appears when they differ). |
-| anything older | the window is stale — click **Reload UI**, then ⌘K if that fails. |
-
-**Reload UI** does two things: it asks the backend to re-publish the installed
-copy (`POST /ui/refresh`, which re-reads the repo's `desktop/plugin.js` into
-`~/.hermes/desktop-plugins/upfront/`), then reloads the page. It is the button
-that exists only from build 0.4.6 onward — its absence is itself the diagnosis.
+| `build 0.5.0 · ui12` | this window is on the installed build. Done. |
+| `build 0.5.0 · ui12 → 0.5.0 · ui12 installed` | the window is behind; the banner says how to fix it. |
 
 ## Known core behaviour to remember
 
-- **Toggling a desktop plugin off/on does not re-read `plugin.js`.** The module
-  is cached; use **⌘K → Reload desktop plugins**, or quit the app from the tray
-  and reopen it.
 - Old copies of the desktop half accumulate under
   `~/.hermes/installs/<env>/…/plugin-sources/upfront-*/desktop/plugin.js`. They
-  are inert, but they make a "which build is live?" search confusing — always
-  read the `BUILD` constant in the file the window actually loads
+  are inert, but they make a "which build is live?" search confusing — read the
+  `BUILD` constant in the file the window actually loads
   (`~/.hermes/desktop-plugins/upfront/plugin.js`), not the newest one found.
 - A headless backend has no window at all: verifying "the UI looks right"
   remotely requires the user's eyes, or a screenshot from their machine.
 
 ## Verification checklist for any UI change
 
-1. `node --check desktop/plugin.js` (no build step; a syntax error is a blank page).
-2. `pytest -q` — `tests/test_ui_presets.py` guards the copy and structure decisions.
+1. `node --check desktop/plugin.js` — no build step; a syntax error is a blank page.
+2. `pytest -q` — `tests/test_ui_presets.py` and `tests/test_ui_download.py` guard
+   the copy, the structure, and the download path.
 3. Bump `BUILD` in `desktop/plugin.js` **and** `version` in `plugin.yaml`.
-4. Publish: copy the repo's `desktop/plugin.js` to
-   `~/.hermes/desktop-plugins/upfront/plugin.js` on the machine the app runs on
-   (the app's own Install/Update path is the user-facing version of this).
-5. Tell the user the expected `build …` string, and ask them to confirm the
-   header shows it. Never report "the UI is updated" from the server side alone.
+4. Publish: put the repo's `desktop/plugin.js` where the window can read it —
+   the app's Install/Update path on that machine, or the file itself.
+5. Tell the user the expected `build …` string and ask them to confirm the
+   header. Never report "the UI is updated" from the server side alone.

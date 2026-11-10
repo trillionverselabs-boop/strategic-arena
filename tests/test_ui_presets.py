@@ -77,6 +77,34 @@ def test_the_scorecard_has_a_reason_to_come_back():
     assert "/calibration" in js
 
 
+def test_a_stale_window_is_told_the_truth_not_a_fairytale():
+    """The old card said "press Reload UI". A page reload cannot change a file
+    that lives on the machine the window runs on, so that instruction was a
+    lie. The card must offer the two things that actually work."""
+    js = UI.read_text()
+    assert "Reload page" in js
+    assert "this window is behind" in js
+    assert "Update in the app" in js
+    assert "Download the UI file" in js
+    assert "no restart" in js
+    assert "Reload UI" not in js
+
+
+def test_the_update_card_points_at_the_app_settings():
+    js = UI.read_text()
+    assert "host.navigate('/capabilities?tab=plugins')" in js
+
+
+def test_the_save_bridge_is_feature_detected_not_assumed():
+    """A named import of a newer SDK export would be a fatal import error on
+    an older app, which is a blank page — the one failure mode we cannot
+    recover from."""
+    js = UI.read_text()
+    assert "import * as SDK from '@hermes/plugin-sdk'" in js
+    assert "SDK.captureGatewayFileDownload" in js
+    assert "typeof SDK.captureGatewayFileDownload === 'function'" in js
+
+
 def test_the_home_screen_says_what_you_get():
     js = UI.read_text()
     assert "Rehearse the reaction before you commit." in js

@@ -548,3 +548,45 @@ version 0.5.0.
 **Not verified:** the real desktop window. The user must confirm the header reads
 `build 0.5.0 · ui12` — see `docs/DESKTOP-UPDATES.md` for why the server-side update
 cannot prove that on its own.
+
+---
+
+## The Reload button told the truth (2026-11-10, later)
+
+The user reported the Reload button and ⌘K both "don't work", and rightly objected
+to restarting the app every time. Diagnosis, after reading the desktop loader:
+
+- **The button only reloaded the page.** The app reads `desktop/plugin.js` from the
+  machine the window runs on, so a page reload can never pick up a new build — and
+  the old banner literally said "Press Reload UI — it republishes the installed
+  copy". That instruction was impossible, which is why the button read as broken.
+- **⌘K was never broken either.** `Reload desktop plugins` re-reads known entries
+  from disk; if the file on the window's machine is unchanged, it faithfully shows
+  the old build. Nothing new to read.
+- **Neither fix needs a restart.** The app fs-watches the copy
+  (`watchDiskPluginFile`) and hot-reloads in place on save; and Install from Git
+  with the **Desktop** target makes the app do the copying itself.
+
+**What changed:**
+
+- `Reload UI` → **Reload page**, with a title that says what it does.
+- A stale window now gets an **"this window is behind"** card: `window X → installed
+  Y`, **Update in the app** (→ `host.navigate('/capabilities?tab=plugins')`), and
+  **Download the UI file**.
+- `GET /ui/download` writes the shipped `desktop/plugin.js` to a stable path in the
+  plugin data dir and returns it for the **gateway save bridge**
+  (`captureGatewayFileDownload`), which streams the bytes through the native save
+  dialog — the sanctioned way to hand a file to a remote window. Feature-detected:
+  a missing SDK export would be a fatal import and a blank page.
+- `/ui`'s hint no longer says "reload the page"; it names the two things that work.
+- `docs/DESKTOP-UPDATES.md` rewritten around what each action actually does.
+
+**Verified:** 150 tests green (new `tests/test_ui_download.py` covers the served
+bytes being identical to the repo file, the path being one the gateway may
+download, and the honest hint); `node --check` clean; the download route returns
+88,367 bytes byte-identical to `desktop/plugin.js`, and the path resolves through
+the host's managed-file guard (`_is_sensitive_path` false, `_resolve_managed_path`
+returns it unchanged).
+
+**Not verified:** the save dialog on the user's machine. That is the one step only
+they can perform.
