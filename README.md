@@ -95,7 +95,7 @@ dialog.
 
 ### What it is, in one sentence
 
-Upfront is a **strategic-response review**: it simulates how the people your
+Strategic Arena is a **reception read**: it opens the room of people your
 decision affects will react, so you can see the blocking stakeholder, the
 coalitions that form, and the move that flips them — before you commit.
 
@@ -234,7 +234,7 @@ model** via `ctx.llm` — the plugin never sees or stores a credential.
 - **A track record** — score the claims and the ledger reports claim hit rate, friction
   error, and the sea-state mix. The hit rate is the accuracy claim; a single report is not.
 
-### Desktop experience (left sidebar → Upfront)
+### Desktop experience (left sidebar → Strategic Arena)
 
 The page opens on a header with a single green **`+ New review`** pill. Everything else is
 history: past runs, their competition read, and the comparison across timelines.
@@ -302,7 +302,7 @@ failure-mode audit.
 
 ## Quickstart — one review, start to finish
 
-1. **Install and enable** the plugin (see *Install*), then open **Upfront** in the left sidebar.
+1. **Install and enable** the plugin (see *Install*), then open **Strategic Arena** in the left sidebar.
 2. Press the green **`+ New review`** pill. Staring at a blank form is the wrong way in — press a
    **recipe** instead (`Launch / adoption`, `Price change`, `Deprecation`, `Open-weight release`,
    `Reputation / crisis`). It fills every field with a skeleton you edit.
@@ -399,7 +399,7 @@ stances" when a run comes back thin — the tool teaches you what to feed it.
 
 ## Which model to run it on
 
-Upfront runs on **your active Hermes model** (borrowed via `ctx.llm`, host-owned auth).
+Strategic Arena runs on **your active Hermes model** (borrowed via `ctx.llm`, host-owned auth).
 It does not need a frontier model — the work is many small structured judgments
 (open to act, nudge a stance, summarize a few memories), not one hard reasoning problem.
 
@@ -475,7 +475,7 @@ What a user would want to know before installing, stated plainly:
 ## Install
 
 Hermes plugins only load when the plugin is enabled. From the desktop app:
-**Capabilities → Plugins → Upfront → enable**, then it appears in the left sidebar.
+**Capabilities → Plugins → Strategic Arena → enable**, then it appears in the left sidebar.
 
 From the CLI:
 
@@ -496,7 +496,7 @@ The header prints a build badge — `build <BUILD>` when it matches the file on 
 
 1. **Reload UI** in the header (reloads the page, so the app re-runs its plugin scan), or
 2. `⌘K` → **Reload desktop plugins** (fastest), or
-3. Capabilities → Plugins → Upfront off → on, or
+3. Capabilities → Plugins → Strategic Arena off → on, or
 4. Quit the app fully (tray → Quit) and relaunch.
 
 If a toggle hangs ~30s, a stale plugin-host child is holding the RPC: `pkill -f plugin_host_child`
@@ -619,9 +619,31 @@ upfront/                     # the repository id stays `upfront`; the product is
 - `upfront_calibration()` → the scored track record (runs, hit rate, friction error)
 - `upfront_due([as_of])` → reviews whose window closed and are still unscored
 
+## Who built this
+
+**LeMultiFox** — the handle I use in the [Nous Research Discord](https://discord.gg/nousresearch),
+where this plugin was built and where I answer questions about it. A
+**TrillionVerse Labs** project: same person, one studio, one name you can check.
+
+I built it because I kept doing the same thing badly: shipping a post, a launch, a
+README, and finding out who it annoyed *after* it was public. Everything here is
+the tool I wanted — a room of the people who will actually react, a price on every
+objection, and a written prediction I have to grade afterwards.
+
+Two rules I held to while building it, because they are the difference between a
+demo and something you can put in front of a legal team:
+
+- **No invented numbers.** When the heat function turned out to be additive, the
+  coalition-interaction figure in the design mockup was deleted rather than
+  fabricated — `tests/test_ui_ledger.py` fails the build if it comes back.
+- **The record can be wrong in public.** Claims are frozen with dates and scored;
+  the track record prints its own `n`, however thin that `n` is.
+
+MIT licensed, local-first, no account, no telemetry.
+
 ## Bundled skills
 
-Registered under the plugin namespace, available in `skills_list` while Upfront is enabled:
+Registered under the plugin namespace, available in `skills_list` while Strategic Arena is enabled:
 
 | Skill | For |
 |---|---|

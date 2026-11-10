@@ -109,6 +109,23 @@ def test_the_licence_is_mit_and_names_the_owner():
     assert "TrillionVerse Labs" in LICENSE
 
 
+def test_the_readme_names_the_person_behind_it():
+    """Attribution is the hiring surface: a handle the community knows, and the
+    studio it belongs to. A stealth company with no handle reads as nobody."""
+    assert "LeMultiFox" in README
+    assert "TrillionVerse Labs" in README
+    assert "discord" in README.lower()
+    # the author fields a catalogue reviewer reads must be the same person
+    assert "author: LeMultiFox" in MANIFEST
+    assert "maintainer: LeMultiFox" in CATALOG
+
+
+def test_the_old_framing_is_gone_from_the_public_text():
+    for banned in ("strategic-response review", "Upfront Prediction"):
+        assert banned not in README, banned
+    assert not re.search(r"\bUpfront\b", README), "prose still calls the product Upfront"
+
+
 def test_the_readme_points_at_the_credits():
     assert "CREDITS.md" in README
 
