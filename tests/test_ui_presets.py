@@ -23,7 +23,7 @@ def test_form_says_what_a_run_costs():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.5.0 · ui12" in UI.read_text()
+    assert "0.5.1 · ui13" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -80,29 +80,14 @@ def test_the_scorecard_has_a_reason_to_come_back():
 def test_a_stale_window_is_told_the_truth_not_a_fairytale():
     """The old card said "press Reload UI". A page reload cannot change a file
     that lives on the machine the window runs on, so that instruction was a
-    lie. The card must offer the two things that actually work."""
+    lie. It now says so, and points at the app's own update path."""
     js = UI.read_text()
     assert "Reload page" in js
     assert "this window is behind" in js
-    assert "Update in the app" in js
-    assert "Download the UI file" in js
-    assert "no restart" in js
+    assert "Open plugin settings" in js
     assert "Reload UI" not in js
-
-
-def test_the_update_card_points_at_the_app_settings():
-    js = UI.read_text()
-    assert "host.navigate('/capabilities?tab=plugins')" in js
-
-
-def test_the_save_bridge_is_feature_detected_not_assumed():
-    """A named import of a newer SDK export would be a fatal import error on
-    an older app, which is a blank page — the one failure mode we cannot
-    recover from."""
-    js = UI.read_text()
-    assert "import * as SDK from '@hermes/plugin-sdk'" in js
-    assert "SDK.captureGatewayFileDownload" in js
-    assert "typeof SDK.captureGatewayFileDownload === 'function'" in js
+    # rule 03: no updater of our own files, see tests/test_no_self_update.py
+    assert "Download the UI file" not in js
 
 
 def test_the_home_screen_says_what_you_get():
@@ -115,13 +100,20 @@ def test_the_home_screen_says_what_you_get():
 
 
 def test_history_does_not_eat_the_page():
-    """The past-runs list is capped and sits below the content, with the recent
-    runs in a compact card strip instead."""
+    """Every run is one line — title, a mini room, verdict, blocker, heat,
+    scored, age — capped at six until asked, and below the content so the top
+    can breathe."""
     js = UI.read_text()
-    assert "pick up where you left off" in js
-    assert "all reviews" in js
+    assert "your reviews" in js
+    assert "click a row to read it" in js
     assert "show all" in js
-    assert "rest.slice(0, 4)" in js
+    assert "history.slice(0, 6)" in js
+    # the mini graph: one dot per party, position and power
+    assert "function MiniRoom(" in js
+    assert "function RunLine(" in js
+    # the old tall cards are gone
+    assert "function RunCard(" not in js
+    assert "pick up where you left off" not in js
 
 
 def test_injection_has_a_visible_impact():

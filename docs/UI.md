@@ -23,7 +23,13 @@ sentence a party actually said. Concretely:
 ## What each surface is for
 
 **Home.** One identity line, one primary action, three steps, four value tiles.
-No past-runs list competing with the job. The past runs live in the lower third.
+No past-runs list competing with the job, so the top can breathe.
+
+**Your reviews.** Every run is **one line**: title, a miniature of the room (a dot
+per party, position = stance, size = power), the verdict band, the blocker, the
+heat score, whether it is scored, and how long ago — then a chevron. Six rows by
+default, `show all` for the rest, always in the lower third. The old design used
+three tall cards plus a second list, which ate the screen and said less.
 
 **Live run.** A watcher must not get bored in a 48-hour cycle, so the run is
 read as a feed: a round track (with "you are here"), a loudest-objection line,

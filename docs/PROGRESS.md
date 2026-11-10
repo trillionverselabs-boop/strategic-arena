@@ -590,3 +590,42 @@ returns it unchanged).
 
 **Not verified:** the save dialog on the user's machine. That is the one step only
 they can perform.
+
+---
+
+## The run list is one line, and the plugin stopped updating itself (2026-11-10, later)
+
+Two things in one round: a UX request from the user, and an admission-rule audit
+that caught a regression I had just introduced.
+
+**1. Every run is now one line** — title, a miniature of the room (a dot per party:
+position = stance, size = power), verdict band, blocker, heat, scored state, age,
+then a chevron. Six by default with `show all`, and the whole block sits in the
+lower third so the hero can breathe. The three tall cards and the second list are
+gone (`RunCard`, `RunRow` deleted; `MiniRoom` + `RunLine` + `RunTableHead` added).
+
+**2. Rule 03 caught me.** The previous round added "Download the UI file" — a save
+bridge that handed the user the plugin's own desktop half. It was manual and it
+only copied a local file, but rule 03 names it exactly: *"no self-updating code …
+in-app 'check for updates' … strip it from the catalog build."* Removed:
+the `/ui/download` route, the `/ui/refresh` call, the save bridge import, and the
+button. A stale window now gets the honest diagnosis and **Open plugin settings**
+(the app's own update path), which is where the update belongs.
+`tests/test_no_self_update.py` fails if any of it comes back — including a raw
+`fetch(` in the shipped UI.
+
+**3. The model picker was telling the truth.** `plugins.entries.upfront.llm.
+allow_model_override` had been reset to `entries: {}` in the profile config, and
+the gateway serves the default home, which had no such key — so the host really
+had not granted model choice. Added the documented key to `~/.hermes/config.yaml`
+(host config, an operator action, not plugin behaviour). The enforcer resolves the
+policy per call, so it took effect with no restart:
+`_resolve_trust_policy("upfront").allow_model_override` → `True`, and
+`GET /model-access` → `{"allowed": true}`. The plugin still only *reads* the
+permission — rule 6/13 stay satisfied, and `tests/test_trust_degrade.py` still
+covers the honest fallback when it is absent.
+
+**Verified:** 150 tests green; `node --check` clean; `hermes plugins validate`
+passes; the one-line table rendered against an 8-run fixture and checked column by
+column (title / room / verdict / blocker / heat / scored / age / chevron).
+BUILD → `0.5.1 · ui13`, version 0.5.1.

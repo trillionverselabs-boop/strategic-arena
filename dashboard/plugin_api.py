@@ -59,7 +59,7 @@ def _load_package():
 _load_package()
 
 from upfront import engine  # noqa: E402
-from upfront import llm_binding, paths, portal, reporting  # noqa: E402
+from upfront import llm_binding, portal, reporting  # noqa: E402
 from upfront.llm_adapter import LlmAdapter  # noqa: E402
 from upfront.models import Intervention  # noqa: E402
 
@@ -402,39 +402,6 @@ async def ui_status(build: str = ""):
     which is refreshed on the app's plugin scan — so "I just updated the plugin" and
     "my window shows the new build" are two different things. The header asks this
     route instead of making the user guess.
-    """
-    return _ui_status(build)
-
-
-@router.get("/ui/download")
-async def ui_download():
-    """The current desktop half, as a gateway-servable path for the save bridge.
-
-    The window's copy of this file lives on the machine the app runs on, which
-    this process cannot reach — so the only honest way to hand a remote window
-    the new UI is to let the user save it. The bytes go to a stable path in the
-    plugin's own data dir; the desktop save bridge streams them from there.
-    """
-    src = _PLUGIN_ROOT / "desktop" / "plugin.js"
-    if not src.exists():
-        raise HTTPException(status_code=404, detail="desktop half not found")
-    dest_dir = paths.data_root() / "ui"
-    dest_dir.mkdir(parents=True, exist_ok=True)
-    dest = dest_dir / "plugin.js"
-    dest.write_bytes(src.read_bytes())
-    return {"path": str(dest), "suggestedName": "plugin.js",
-            "build": _read_build(src), "bytes": dest.stat().st_size}
-
-
-@router.post("/ui/refresh")
-async def ui_refresh(build: str = ""):
-    """Confirm a reload: the app's own plugin scan republishes the desktop half.
-
-    The plugin writes nothing here — the app-level ``desktop-plugins/`` folder is
-    the app's to own, and it re-copies a unified package's ``desktop/`` half every
-    time the loader asks for that root (which a page reload does). This endpoint
-    just reports the same build readback, so the UI can say what it is about to
-    show and fall back to the app's own rescan command if it is wrong.
     """
     return _ui_status(build)
 

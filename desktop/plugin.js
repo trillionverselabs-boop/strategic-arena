@@ -38,11 +38,10 @@ import {
   ROUTES_AREA,
   SIDEBAR_NAV_AREA,
 } from '@hermes/plugin-sdk'
-import * as SDK from '@hermes/plugin-sdk'
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.5.0 · ui12'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.5.1 · ui13'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
 const TAGLINE = 'Rehearse the reaction before you commit.'
 
@@ -844,7 +843,7 @@ function GetTile({ title, body }) {
 
 function Hero({ onStart }) {
   return jsxs('div', {
-    className: 'flex flex-col gap-4 rounded-xl border border-(--ui-stroke-tertiary) p-5',
+    className: 'flex flex-col gap-4 rounded-xl border border-(--ui-stroke-tertiary) px-5 py-5',
     style: {
       background: `radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--ui-accent) 12%, transparent) 0%, transparent 58%), var(--ui-bg-elevated)`,
     },
@@ -861,7 +860,7 @@ function Hero({ onStart }) {
         jsx('span', { className: `${T.micro} text-(--ui-text-tertiary)`,
           children: 'Three rounds takes about two minutes on a free model — a cheap way to find out whether anyone cares.' }),
       ]}),
-      jsxs('div', { className: 'grid gap-4 border-t border-(--ui-stroke-tertiary) pt-3.5 md:grid-cols-3', children: [
+      jsxs('div', { className: 'grid gap-4 border-t border-(--ui-stroke-tertiary) pt-4 md:grid-cols-3', children: [
         jsx(Step, { n: 1, title: 'Paste the move',
           body: 'The decision plus one or two real facts. Vague input produces vague stakeholders — that is the only rule.' }),
         jsx(Step, { n: 2, title: 'The room reacts',
@@ -887,52 +886,70 @@ function WhatYouGet() {
   ]})
 }
 
-function RunCard({ h, onOpen }) {
-  const band = frictionBand(h.friction)
-  const due = h.window && h.created_at ? Date.parse(dueAt(h)) <= Date.now() && !(h.verified && h.verified.verdict) : false
-  return jsxs('button', {
-    type: 'button',
-    className: 'flex flex-col gap-1.5 rounded-lg border border-(--ui-stroke-tertiary) p-3 text-left transition-colors hover:border-(--ui-stroke-secondary)',
-    style: { backgroundColor: 'var(--ui-bg-elevated)' },
-    onClick: () => onOpen(h.run_id, h.title),
+// A run is one line. The room is drawn small — position as a dot on a line,
+// power as the dot's size — so the row carries a picture without a second row
+// of chrome. Twelve runs then take a third of the space three cards used to.
+function MiniRoom({ personas, width = 78, height = 16 }) {
+  const list = (personas || []).filter(p => p && p.stance != null)
+  if (!list.length) return jsx('span', { className: 'inline-block', style: { width: `${width}px` } })
+  const x = (s) => 4 + ((Math.max(-1, Math.min(1, Number(s) || 0)) + 1) / 2) * (width - 8)
+  return jsxs('svg', {
+    width, height, viewBox: `0 0 ${width} ${height}`, 'aria-hidden': 'true',
+    className: 'shrink-0',
     children: [
-      jsxs('div', { className: 'flex items-start justify-between gap-2', children: [
-        jsx('div', { className: `${T.small} font-medium leading-snug`, children: h.title }),
-        jsx('span', { className: 'mt-1 inline-block size-1.5 shrink-0 rounded-full',
-          style: { backgroundColor: band.color } }),
-      ]}),
-      jsxs('div', { className: `flex flex-wrap items-center gap-x-2 ${T.micro} text-(--ui-text-tertiary)`, children: [
-        jsx('span', { children: band.name }),
-        jsx('span', { className: 'opacity-50', children: '·' }),
-        jsx('span', { children: h.blocker ? `${h.blocker} can stop it` : 'no blocker' }),
-      ]}),
-      jsxs('div', { className: `flex items-center justify-between ${T.micro} text-(--ui-text-quaternary)`, children: [
-        jsx('span', { children: ago(h.created_at) }),
-        due ? jsx('span', { style: { color: C.own }, children: 'ready to score' })
-          : jsx('span', { children: h.verified && h.verified.verdict ? `scored: ${h.verified.verdict}` : `${h.rounds || '?'} rounds` }),
-      ]}),
+      jsx('line', { x1: 4, y1: height / 2, x2: width - 4, y2: height / 2,
+        style: { stroke: 'var(--ui-stroke-tertiary)', strokeWidth: 1 } }),
+      jsx('line', { x1: width / 2, y1: 3, x2: width / 2, y2: height - 3,
+        style: { stroke: 'var(--ui-stroke-tertiary)', strokeWidth: 1, strokeDasharray: '1.5 2' } }),
+      ...list.map((p, i) => jsx('circle', {
+        key: `m${i}`,
+        cx: x(p.stance), cy: height / 2,
+        r: 1.8 + Math.max(0, Math.min(1, Number(p.capacity) || 0)) * 2.2,
+        fill: stanceTone(p.stance).color, opacity: 0.95,
+      })),
     ],
   })
 }
 
-function RunRow({ h, onOpen }) {
+function RunLine({ h, onOpen }) {
   const band = frictionBand(h.friction)
   const due = h.window && h.created_at ? Date.parse(dueAt(h)) <= Date.now() && !(h.verified && h.verified.verdict) : false
   return jsxs('button', {
     type: 'button',
-    className: 'flex w-full items-center gap-2.5 border-t border-(--ui-stroke-tertiary) px-1 py-1.5 text-left transition-colors first:border-t-0 hover:bg-(--ui-bg-elevated)',
+    className: 'flex w-full items-center gap-2.5 border-t border-(--ui-stroke-tertiary) px-1.5 py-2 text-left transition-colors first:border-t-0 hover:bg-(--ui-bg-elevated)',
     onClick: () => onOpen(h.run_id, h.title),
     children: [
-      jsx('span', { className: 'inline-block size-1.5 shrink-0 rounded-full', style: { backgroundColor: band.color } }),
-      jsx('span', { className: `min-w-0 flex-1 truncate ${T.small}`, children: h.title }),
-      jsx('span', { className: `hidden shrink-0 sm:inline ${T.micro} text-(--ui-text-tertiary)`, children: band.name }),
-      jsx('span', { className: `w-14 shrink-0 text-right ${T.micro} ${NUM} text-(--ui-text-quaternary)`,
-        children: h.friction != null ? `${Number(h.friction).toFixed(0)}/100` : '' }),
-      jsx('span', { className: `w-16 shrink-0 text-right ${T.micro} text-(--ui-text-quaternary)`,
+      jsx('span', { className: 'inline-block size-1.5 shrink-0 rounded-full',
+        style: { backgroundColor: band.color } }),
+      jsx('span', { className: `min-w-0 flex-1 truncate ${T.small} font-medium`, children: h.title }),
+      jsx(MiniRoom, { personas: h.personas }),
+      jsx('span', { className: `hidden w-[5.5rem] shrink-0 md:inline ${T.micro}`, style: { color: band.color },
+        children: band.name }),
+      jsx('span', { className: `hidden w-[9rem] shrink-0 truncate md:inline ${T.micro} text-(--ui-text-tertiary)`, title: h.blocker || '',
+        children: h.blocker ? `${h.blocker} can stop it` : 'no single blocker' }),
+      jsx('span', { className: `w-[3.5rem] shrink-0 text-right ${T.micro} ${NUM} text-(--ui-text-quaternary)`,
+        children: h.friction != null ? `${Number(h.friction).toFixed(0)}` : '—' }),
+      jsx('span', { className: `w-[4.5rem] shrink-0 text-right ${T.micro}`,
+        style: due ? { color: C.own } : undefined,
         children: h.verified && h.verified.verdict ? h.verified.verdict : (due ? 'to score' : '') }),
-      jsx('span', { className: `w-16 shrink-0 text-right ${T.micro} text-(--ui-text-quaternary)`, children: ago(h.created_at) }),
+      jsx('span', { className: `w-[3.5rem] shrink-0 text-right ${T.micro} text-(--ui-text-quaternary)`, children: ago(h.created_at) }),
+      jsx(Codicon, { name: 'chevron-right', size: '0.75rem', className: 'shrink-0 text-(--ui-text-quaternary)' }),
     ],
   })
+}
+
+function RunTableHead() {
+  return jsxs('div', { className: `flex items-center gap-2.5 px-1.5 pb-1 ${T.label} text-(--ui-text-quaternary)`, children: [
+    jsx('span', { className: 'size-1.5 shrink-0' }),
+    jsx('span', { className: 'min-w-0 flex-1', children: 'review' }),
+    jsx('span', { className: 'w-[78px] shrink-0', children: 'room' }),
+    jsx('span', { className: 'hidden w-[5.5rem] shrink-0 md:inline', children: 'verdict' }),
+    jsx('span', { className: 'hidden w-[9rem] shrink-0 md:inline', children: 'blocker' }),
+    jsx('span', { className: 'w-[3.5rem] shrink-0 text-right', children: 'heat' }),
+    jsx('span', { className: 'w-[4.5rem] shrink-0 text-right', children: 'scored' }),
+    jsx('span', { className: 'w-[3.5rem] shrink-0 text-right', children: 'when' }),
+    jsx('span', { className: 'w-3 shrink-0' }),
+  ]})
 }
 
 // ── "this window is behind" ───────────────────────────────────────────
@@ -941,7 +958,7 @@ function RunRow({ h, onOpen }) {
 // offers the two things that do work, and says plainly that neither restarts
 // the app.
 
-function UpdateCard({ uiBuild, uiDownload, saved, onSave, onOpenPlugins }) {
+function UpdateCard({ uiBuild, onOpenPlugins }) {
   return jsxs(Card, { tone: C.hold, children: [
     jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
       jsx(Label, { children: 'this window is behind' }),
@@ -949,21 +966,19 @@ function UpdateCard({ uiBuild, uiDownload, saved, onSave, onOpenPlugins }) {
         children: `window ${uiBuild.running || 'unknown'} → installed ${uiBuild.installed || 'unknown'}` }),
     ]}),
     jsx('div', { className: `${T.small} text-(--ui-text-secondary)`,
-      children: 'The app reads its UI file from the machine it runs on, so reloading this page cannot pick up a new build. You do not need to restart the app for either fix below.' }),
+      children: 'The app reads its UI file from the machine it runs on, so reloading this page cannot pick up a new build — and you do not need to restart the app.' }),
     jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
-      jsx(Button, { onClick: onOpenPlugins, children: 'Update in the app' }),
-      jsx(Button, { variant: 'outline', disabled: !uiDownload, onClick: onSave,
-        children: saved ? 'Saved — now put it in place' : 'Download the UI file' }),
+      jsx(Button, { onClick: onOpenPlugins, children: 'Open plugin settings' }),
     ]}),
-    jsxs('div', { className: 'flex flex-col gap-1', children: [
-      jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
-        jsx('strong', { children: 'Update in the app: ' }),
-        'Capabilities → Plugins → Install from Git → trillionverselabs-boop/upfront-test → tick Desktop → Install. The app copies the file itself and reloads it.',
-      ]}),
-      jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
-        jsx('strong', { children: 'Or save the file: ' }),
-        'save it over `%USERPROFILE%\\.hermes\\desktop-plugins\\upfront\\plugin.js`. The app watches that folder and reloads the page in place — no restart.',
-      ]}),
+    // This plugin does not update itself: the trust model is the pinned commit,
+    // so the update has to be the app's or the user's, never ours.
+    jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
+      jsx('strong', { children: 'In the app: ' }),
+      'Capabilities → Plugins → Install from Git → trillionverselabs-boop/upfront-test → tick Desktop → Install. The app copies the file and reloads it.',
+    ]}),
+    jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
+      jsx('strong', { children: 'Or drop the file in yourself: ' }),
+      'replace `%USERPROFILE%\\.hermes\\desktop-plugins\\upfront\\plugin.js`. The app watches that file and reloads the page in place.',
     ]}),
   ]})
 }
@@ -1229,9 +1244,6 @@ function UpfrontPage({ ctx }) {
   const [startedAt, setStartedAt] = React.useState(null)
   const [uiBuild, setUiBuild] = React.useState(null)
   const [reloading, setReloading] = React.useState(false)
-  const [uiDownload, setUiDownload] = React.useState(null)
-  const [uiSaved, setUiSaved] = React.useState(false)
-  const saveRef = React.useRef(null)
   const [record, setRecord] = React.useState(null)
   const [due, setDue] = React.useState([])
   const gateway = useValue(host.state.gateway)
@@ -1241,32 +1253,14 @@ function UpfrontPage({ ctx }) {
   // the new build" are two different things and the user should not have to guess
   React.useEffect(() => {
     ctx.rest(`/ui?build=${encodeURIComponent(BUILD)}`).then(setUiBuild).catch(() => setUiBuild(null))
-    // The save bridge is captured at READ time, not click time: it carries this
-    // connection's scope. Feature-detected — an older app has no bridge, and a
-    // missing named export would be a fatal import for the whole page.
-    if (typeof SDK.captureGatewayFileDownload === 'function') {
-      saveRef.current = SDK.captureGatewayFileDownload()
-      ctx.rest('/ui/download').then(setUiDownload).catch(() => setUiDownload(null))
-    }
   }, [])
 
-  async function reloadUi() {
+  function reloadUi() {
     haptic('tap')
     setReloading(true)
-    try {
-      await ctx.rest(`/ui/refresh?build=${encodeURIComponent(BUILD)}`, { method: 'POST' })
-    } catch (_) {}
-    // the page reload re-runs the app's plugin scan, which is what reads the
-    // freshly published copy back in
+    // A page reload re-runs the app's plugin scan, which re-reads the UI file
+    // from this machine. It cannot fetch a new one — see UpdateCard.
     window.location.reload()
-  }
-
-  async function saveUiFile() {
-    const save = saveRef.current
-    if (!save || !uiDownload) return
-    haptic('tap')
-    await save(uiDownload.path, uiDownload.suggestedName).catch(() => {})
-    setUiSaved(true)
   }
 
   function openPluginSettings() {
@@ -1391,10 +1385,8 @@ function UpfrontPage({ ctx }) {
     return left <= 0 ? 'almost done' : `≈ ${left} min left`
   }
 
-  const recent = history.slice(0, 3)
-  // the strip above already shows the recent ones — the list carries the rest
-  const rest = history.slice(recent.length)
-  const past = showAllPast ? rest : rest.slice(0, 4)
+  // one list, newest first; collapsed to a third of the screen until asked
+  const shown = showAllPast ? history : history.slice(0, 6)
 
   return jsxs('div', { className: 'flex h-full flex-col gap-3 overflow-auto p-4', children: [
     // header — one line of identity, one line of state, one primary action
@@ -1410,7 +1402,7 @@ function UpfrontPage({ ctx }) {
               : `build ${BUILD}` }),
           jsx(Button, {
             variant: 'ghost', size: 'xs', disabled: reloading, onClick: reloadUi,
-            title: 'Reloads this page only. It cannot update the UI file — the app reads that from the machine it runs on.',
+            title: 'Reloads this page. The app re-reads the UI file from this machine; this button never fetches a new one.',
             children: reloading ? 'Reloading…' : 'Reload page',
           }),
         ]}),
@@ -1429,7 +1421,7 @@ function UpfrontPage({ ctx }) {
     ]}),
 
     uiBuild && !uiBuild.up_to_date && jsx(UpdateCard, {
-      uiBuild, uiDownload, saved: uiSaved, onSave: saveUiFile, onOpenPlugins: openPluginSettings }),
+      uiBuild, onOpenPlugins: openPluginSettings }),
 
     modal && jsx(NewReviewModal, { ctx, onClose: () => setModal(false), onStarted: started }),
 
@@ -1601,33 +1593,25 @@ function UpfrontPage({ ctx }) {
         onClick: () => setShowCompare(false), children: 'hide comparison' }),
     ]}),
 
-    // ── recent + history, deliberately in the lower third ────────────
-    recent.length > 0 && jsxs('div', { className: 'flex flex-col gap-2', children: [
-      jsxs('div', { className: 'flex items-center justify-between', children: [
-        jsx(Label, { children: 'pick up where you left off' }),
-        jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'click a card to read the review' }),
-      ]}),
-      jsx('div', { className: 'grid gap-2 md:grid-cols-3', children: recent.map(h =>
-        jsx(RunCard, { key: h.run_id, h, onOpen: openRun })) }),
-    ]}),
-
-    rest.length > 0 && jsxs(Card, { pad: 'none', className: 'p-3', children: [
-      jsxs('div', { className: 'flex items-center justify-between', children: [
-        jsxs('div', { className: 'flex items-baseline gap-2', children: [
-          jsx(Label, { children: 'all reviews' }),
-          jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`,
-            children: `${history.length}${due.length ? ` · ${due.length} ready to score` : ''}` }),
+    // ── every run, one line each, in the lower third ─────────────────
+    history.length > 0 && jsxs('div', { className: 'flex flex-col gap-1.5 pt-2', children: [
+      jsxs('div', { className: 'flex items-end justify-between gap-3', children: [
+        jsxs('div', { className: 'flex flex-col gap-0.5', children: [
+          jsx(Label, { children: 'your reviews' }),
+          jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`,
+            children: `${history.length} ${history.length === 1 ? 'run' : 'runs'}${due.length ? ` · ${due.length} ready to score` : ''} · click a row to read it` }),
         ]}),
-        rest.length > 4
+        history.length > 6
           ? jsx(Button, { size: 'xs', variant: 'ghost', onClick: () => setShowAllPast(v => !v),
-              children: showAllPast ? 'show fewer' : `show all ${rest.length}` })
+              children: showAllPast ? 'show fewer' : `show all ${history.length}` })
           : null,
       ]}),
-      rest.length === 0
-      ? jsx('div', { className: `py-2 ${T.small} text-(--ui-text-tertiary)`,
-          children: history.length === 0 ? 'No runs yet — press + New review.' : 'Nothing older than the cards above.' })
-      : jsxs('div', { className: 'flex flex-col', children: past.map(h =>
-          jsx(RunRow, { key: h.run_id, h, onOpen: openRun })) }),
+      jsx(RunTableHead, {}),
+      jsxs('div', {
+        className: 'flex flex-col rounded-lg border border-(--ui-stroke-tertiary) px-1.5',
+        style: { backgroundColor: 'var(--ui-bg-elevated)' },
+        children: shown.map(h => jsx(RunLine, { key: h.run_id, h, onOpen: openRun })),
+      }),
     ]}),
   ]})
 }

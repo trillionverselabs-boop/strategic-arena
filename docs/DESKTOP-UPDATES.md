@@ -18,6 +18,7 @@ that was a lie, and it is why the button looked broken.
 | **Reload page** (the header button) | reloads this page in the renderer | **No** — the file is on the window's machine |
 | **⌘K → Reload desktop plugins** | re-reads every known plugin file from disk | **Only if the file there is already new** |
 | **Install from Git with the Desktop target** (on the window's machine) | the app clones the desktop half into its own folder | **Yes** — the app copies it and reloads |
+| **App → Plugins → Update** | the app re-clones the pinned commit | **Yes** |
 | **Save the new `plugin.js` over the copy** | replaces one file | **Yes** — the app watches that file and hot-reloads it in place |
 
 ## The two fixes that work — neither needs a restart
@@ -35,10 +36,15 @@ Save the new UI file to
 machine, replacing the existing one. The app fs-watches that file, so it
 hot-reloads the page **in place — no restart, no ⌘K**.
 
-The plugin now offers both: when the window's build is older than the installed
-build, a banner appears with **Update in the app** (opens Capabilities → Plugins)
-and **Download the UI file** (the sanctioned gateway save bridge, which hands the
-user the exact bytes through the native save dialog).
+When the window's build is older than the installed build, the page says so and
+offers **Open plugin settings** — a navigation into the app's own Plugins tab, so
+the update follows the app's path.
+
+**It deliberately does not update itself** (catalog admission rule 03): a listed
+plugin may not fetch or replace its own files, because the pinned SHA is the
+trust model. An earlier build of this page offered a "download the UI file"
+button. It was manual and it only copied a local file, but it is the shape the
+rule names, so it was removed — `tests/test_no_self_update.py` keeps it gone.
 
 ## Why ⌘K alone felt like it did nothing
 
