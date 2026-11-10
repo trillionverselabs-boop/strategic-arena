@@ -23,7 +23,7 @@ def test_form_says_what_a_run_costs():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.5.7 · ui19" in UI.read_text()
+    assert "0.5.8 · ui20" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -104,19 +104,24 @@ def test_the_word_rehearsal_is_gone():
 
 def test_the_home_screen_says_what_you_get():
     js = UI.read_text()
-    assert 'Read the landscape before it reads you.' in js
+    assert 'Read what it means before it reads you.' in js
     # the output contract: an artefact goes in, a landscape read comes out
-    for tile in ("The room", "Who decides", "The field", "The price", "The record"):
+    for tile in ("What it means", "The room", "Who decides", "The field",
+                 "The price", "The record"):
         assert tile in js, tile
-    assert "a README, a launch post, a whitepaper, a case study" in js
+    assert "a repo README, a blog link, a launch post, a whitepaper, a case study" in js
 
 
 def test_the_input_is_an_artefact_not_a_decision_form():
     """The product reads what you are about to publish, not a plan you filed."""
     js = UI.read_text()
-    assert "Paste a link or the text itself" in js
+    assert "Add what you want evaluated" in js
     assert "a README, a post, a whitepaper, an announcement" in js
     assert "nothing is invented" in js
+    # the lens is offered, and the buttons agree with each other
+    assert "const KINDS = [" in js
+    assert "const KIND_ROOM = {" in js
+    assert js.count("Start arena session") == 2
 
 
 def test_history_does_not_eat_the_page():

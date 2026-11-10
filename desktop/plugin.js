@@ -41,9 +41,9 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.5.7 · ui19'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.5.8 · ui20'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
-const TAGLINE = 'Read the landscape before it reads you.'
+const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
 // Strategic Arena, the Arena debates, the Arena closes and writes the call.
 const ARENA = 'Strategic Arena'
@@ -118,6 +118,28 @@ const ACTION_WORD = {
 
 // eta = realistic wall-clock on a free, rate-limited model — the number that
 // decides whether a 24h review is a 5-minute check or a 30-minute wait.
+// What was handed in sets the room. Auto-detect reads it off the link; the
+// chooser is there for when the link is ambiguous or the text is a draft.
+const KINDS = [
+  { v: 'auto', label: 'Auto-detect from the link' },
+  { v: 'repo', label: 'Repo / README' },
+  { v: 'post', label: 'Blog post / essay' },
+  { v: 'whitepaper', label: 'Whitepaper / paper / spec' },
+  { v: 'case_study', label: 'Case study' },
+  { v: 'press', label: 'Press release / announcement' },
+  { v: 'tweet', label: 'Social post' },
+  { v: 'decision', label: 'Internal decision / memo' },
+]
+const KIND_ROOM = {
+  repo: 'maintainers, security reviewers, downstream developers, the project it displaces, the registry that lists it',
+  post: 'the reader who quotes it, the competitor it attacks, the parties it cites, the curator who decides if it travels',
+  whitepaper: 'the reviewer who checks the method, procurement, the peer it extends or contradicts, the implementer',
+  case_study: 'the customer named, the buyer who needs a comparable, procurement, the competitor in the same evaluation',
+  press: 'the journalist, the incumbent, the regulator, the existing customers',
+  tweet: 'the reply-guy, the quote-tweeter, the silent majority, the account it names',
+  decision: 'approvers with a veto, the teams whose work changes, customers, the market it enters',
+}
+
 const TIMELINES = [
   { v: '30m', label: '30 minutes', rounds: 3, note: 'Sanity check — does anyone care at all? Cheapest.', eta: '2–5 min' },
   { v: '1h', label: '1 hour', rounds: 5, note: 'First reactions only. Good for a fast no.', eta: '4–8 min' },
@@ -1351,24 +1373,24 @@ function Hero({ onStart }) {
     },
     children: [
       jsxs('div', { className: 'flex flex-col gap-1.5', children: [
-        jsx('h1', { className: `${T.display} max-w-[40rem]`, children: TAGLINE }),
-        jsx('p', { className: `max-w-[44rem] ${T.body} text-(--ui-text-secondary)`,
-          children: `Paste a link or the text itself — a README, a launch post, a whitepaper, a case study, a press release, a tweet. ${PRODUCT_NAME} opens a ${ARENA}: the people and organisations who will actually react, drawn from your own text, arguing for as many rounds as you ask. What comes back is the landscape — who has real power over the outcome, what it costs to move them, and how contested the ground already is.` }),
-        jsx('p', { className: `max-w-[44rem] ${T.small} text-(--ui-text-tertiary)`,
-          children: 'Every party and every condition comes from the text you paste — nothing is invented. It is a test, not a forecast.' }),
+        jsx('h1', { className: T.display, children: TAGLINE }),
+        jsx('p', { className: `${T.body} text-(--ui-text-secondary)`,
+          children: `Add what you want evaluated — a repo README, a blog link, a launch post, a whitepaper, a case study, a press release, a tweet. ${PRODUCT_NAME} opens a stage: the people, organisations, markets and stakeholders who will actually react, drawn from the text and links you give it, arguing for as few as three rounds or as many as you ask. What comes back is the result — what the request means, who is for it and who can stop it, how contested the ground already is, and what each concession buys.` }),
+        jsx('p', { className: `${T.small} text-(--ui-text-tertiary)`,
+          children: 'Every party, every condition and every quote comes from what you gave it — nothing is invented. It is a test, not a forecast: the claims are frozen with dates and scored later, so the record argues for itself.' }),
       ]}),
       jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
-        jsx(PrimaryAction, { onClick: onStart, className: 'h-9 px-3.5 text-[0.875rem]', children: 'Open a session' }),
+        jsx(PrimaryAction, { onClick: onStart, className: 'h-9 px-3.5 text-[0.875rem]', children: 'Start arena session' }),
         jsx('span', { className: `${T.micro} text-(--ui-text-tertiary)`,
           children: 'Three rounds takes about two minutes on a free model — a cheap way to find out whether anyone cares.' }),
       ]}),
       jsxs('div', { className: 'grid gap-4 border-t border-(--ui-stroke-tertiary) pt-4 md:grid-cols-3', children: [
-        jsx(Step, { n: 1, title: 'Paste the move',
-          body: 'The decision plus one or two real facts. Vague input produces vague stakeholders — that is the only rule.' }),
-        jsx(Step, { n: 2, title: 'The room reacts',
-          body: 'Each party remembers, argues and shifts round by round. You can change the situation mid-run and watch it bend.' }),
-        jsx(Step, { n: 3, title: 'Read the call',
-          body: 'Blocker, condition, best move — plus claims frozen at run time, so you can check us later.' }),
+        jsx(Step, { n: 1, title: 'Add the details',
+          body: 'A repo README, a blog link, a launch post, a whitepaper, a case study, a press release, a tweet. One link is enough; more gives the room more to stand on.' }),
+        jsx(Step, { n: 2, title: 'The arena opens',
+          body: 'The people, organisations, markets and stakeholders who will actually react take their seats and argue — three rounds, or as many as you ask. You can change the situation mid-run.' }),
+        jsx(Step, { n: 3, title: 'Read the result',
+          body: 'What it means, who is for it, who can stop it, what each concession buys — and the claims frozen so you can score them.' }),
       ]}),
     ],
   })
@@ -1377,7 +1399,8 @@ function Hero({ onStart }) {
 function WhatYouGet() {
   return jsxs('div', { className: 'flex flex-col gap-2', children: [
     jsx(Label, { children: 'what comes back' }),
-    jsxs('div', { className: 'grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5', children: [
+    jsxs('div', { className: 'grid gap-2 sm:grid-cols-2 lg:grid-cols-3', children: [
+      jsx(GetTile, { title: 'What it means', body: 'The request read plainly: what is actually being claimed, who it displaces, and the opening it creates for you.' }),
       jsx(GetTile, { title: 'The room', body: 'Who actually reacts: customers, competitors, partners, and the marketplace that would list you — named, drawing on your own text.' }),
       jsx(GetTile, { title: 'Who decides', body: 'The parties with real power over the outcome — the ones who can veto it, the ones who can amplify it, and the ones who can only complain.' }),
       jsx(GetTile, { title: 'The field', body: 'How contested the ground already is, and whether you will be read as a new category, another entrant, or noise.' }),
@@ -1494,6 +1517,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
   const [evidence, setEvidence] = React.useState('')
   const [urls, setUrls] = React.useState('')
   const [window, setWindow] = React.useState('24h')
+  const [kind, setKind] = React.useState('auto')
   const [goal, setGoal] = React.useState('adoption')
   const [showGuide, setShowGuide] = React.useState(false)
   const [models, setModels] = React.useState([])
@@ -1550,7 +1574,8 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
       const urlList = urls.split('\n').map(u => u.trim()).filter(Boolean)
       const res = await ctx.rest('/run', {
         method: 'POST',
-        body: { title, goal, documents: docs, urls: urlList, window, model: modelId || undefined },
+        body: { title, goal, documents: docs, urls: urlList, window,
+                kind, model: modelId || undefined },
       })
       onStarted(res.run_id, title)
     } catch (e) {
@@ -1566,7 +1591,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
       children: [
         jsxs(DialogHeader, { children: [
           jsx(DialogTitle, { children: `New ${ARENA} session` }),
-          jsx(DialogDescription, { children: 'Paste a link or the text — a README, a post, a whitepaper, an announcement. It goes in front of the room that will answer it.' }),
+          jsx(DialogDescription, { children: 'Add a link or the text — a README, a post, a whitepaper, an announcement. It opens the arena the room will answer in.' }),
         ]}),
 
         jsxs('div', { className: 'flex max-h-[min(72vh,44rem)] flex-col gap-3 overflow-y-auto pr-0.5', children: [
@@ -1633,6 +1658,18 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
               placeholder: 'https://github.com/owner/repo\nhttps://example.com/blog-post',
               value: urls, onChange: e => setUrls(e.target.value),
             }),
+          }),
+            jsx(Field, {
+            label: 'What are you adding?',
+            hint: kind === 'auto'
+              ? 'Read off the link. A repo link brings maintainers and security reviewers; a post brings the people who quote it.'
+              : `The room: ${KIND_ROOM[kind] || KIND_ROOM.decision}.`,
+            children: jsxs(Select, { value: kind, onValueChange: setKind, children: [
+              jsx(SelectTrigger, { children: jsx(SelectValue, { placeholder: 'Auto-detect from the link' }) }),
+              jsx(SelectContent, { children: KINDS.map(k => jsx(SelectItem, {
+                key: k.v, value: k.v, children: k.label,
+                })) }),
+            ]}),
           }),
           jsxs('div', { className: 'grid grid-cols-2 gap-3', children: [
             jsx(Field, {
@@ -1930,7 +1967,7 @@ function UpfrontPage({ ctx }) {
         }),
         jsx(PrimaryAction, {
           onClick: () => { haptic('tap'); setModal(true) },
-          children: '+ New arena session',
+          children: '+ Start arena session',
         }),
       ]}),
     ]}),

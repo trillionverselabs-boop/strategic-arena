@@ -13,6 +13,19 @@ from pydantic import BaseModel, Field
 
 # ── input ──────────────────────────────────────────────────────────────
 
+class ArtefactKind(str, Enum):
+    """What is being read. Reception depends on the medium: a README is judged by
+    maintainers and security reviewers, a tweet by the people who quote it."""
+    AUTO = "auto"
+    REPO = "repo"              # a repository / README
+    POST = "post"              # a blog post, essay, newsletter
+    WHITEPAPER = "whitepaper"  # a paper, technical report, spec
+    CASE_STUDY = "case_study"  # a customer story / proof point
+    PRESS = "press"            # a press release / announcement
+    TWEET = "tweet"            # a single post on a social platform
+    DECISION = "decision"      # an internal plan or memo (the original default)
+
+
 class DocumentType(str, Enum):
     DECISION = "decision"      # the core proposal / plan
     EVIDENCE = "evidence"      # real data, quotes, links
@@ -90,6 +103,8 @@ class Scenario(BaseModel):
     interventions: List[Intervention] = Field(default_factory=list)
     max_personas: int = Field(default=8, ge=3, le=16)
     temperature: float = Field(default=0.6, ge=0.0, le=1.0)
+    # what was handed in — sets the room. AUTO is resolved from the links/text.
+    kind: ArtefactKind = ArtefactKind.AUTO
 
     @property
     def rounds(self) -> int:
@@ -126,6 +141,7 @@ class SimulationResult(BaseModel):
     personas: List[Persona]
     events: List[Event] = Field(default_factory=list)
     snapshots: List[Snapshot] = Field(default_factory=list)
+    kind: str = ""             # the lens this room was read under (repo/post/...)
     friction: float = 0.0      # 0..100
     uncertainty: float = 0.0   # ± on friction, from input quality
     confidence: str = "low"    # low / medium / high

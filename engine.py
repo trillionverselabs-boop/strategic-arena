@@ -136,9 +136,12 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
     # 1. personas: user-supplied, else extract — never invent
     personas: List[Persona] = list(scenario.personas)
     relationships: List[tuple] = []
+    # the lens: what was handed in decides who could possibly react
+    kind = scenario.kind.value if scenario.kind.value != "auto" else ingestion.detect_kind(
+        scenario.urls, scenario.documents[0].content if scenario.documents else "")
     if not personas:
         extracted = ingestion.extract_personas(
-            scenario.documents, llm, scenario.max_personas
+            scenario.documents, llm, scenario.max_personas, kind=kind
         )
         if extracted is None:
             detail = ingestion.LAST_ERROR or "no error detail was recorded"
@@ -207,6 +210,7 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
     if run_id:
         result.run_id = run_id
     result.window = scenario.window.value
+    result.kind = result.kind or kind
 
     for p in result.personas:
         graph.add_node(p.name, name=p.name, kind="persona", stance=round(p.stance, 3),
