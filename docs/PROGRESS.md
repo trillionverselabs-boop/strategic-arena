@@ -357,3 +357,24 @@ Backend: `/report` now returns the summary fields (recommendation, counter-moves
 interventions, camps) so the page leads with the answer; graph nodes carry `capacity`.
 
 BUILD → `0.4.0 · ui6`. Suite 95 green.
+
+---
+
+## The card and the marketplace listing (2026-11-09)
+
+The installed-plugin card in Capabilities → Plugins renders only **name, version,
+kind, provenance and the `description`** — no image, no author, no tags (checked in
+`apps/desktop/src/app/capabilities/plugins/plugins-tab.tsx`). So the levers are the description
+and the catalog entry.
+
+- **Tagline.** Both `plugin.yaml` and the catalog entry now lead with *"See who can kill your plan
+  before you ship it."* — the hook has to survive the first ~120 characters because that is all a
+  card shows before the fold.
+- **Logo.** `assets/logo.svg` — the stance axis with the ringed party who can stop the move. Used in
+  the README; the marketplace `image:` stays the wide banner.
+- **Banner + how-it-works redrawn** (`assets/banner.png`, `assets/how-it-works.png`, sources kept as
+  `.html` for the next edit). The old ones still said "veto player" and "2–4 falsifiable calls" —
+  terminology we retired. New copy: who can challenge / their conditions / testable claims.
+- **Catalog entry fixed.** The draft declared `capabilities.tools` and `hooks:`; the catalog schema
+  is `provides_tools` / `provides_hooks` / `provides_middleware` / `requires_env`. It also gained
+  `platforms`, the new pinned SHA, version 0.4.0 and the second screenshot.

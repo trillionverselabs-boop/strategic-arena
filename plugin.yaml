@@ -9,10 +9,12 @@ license: MIT
 homepage: https://github.com/trillionverselabs-boop/upfront-test
 tags: [strategy, simulation, stakeholders, decision-review, local-first, research]
 description: >-
-  A rehearsal with a scorecard for high-stakes moves. Feed it a decision (or a
-  URL) and it simulates stakeholder reactions, maps coalitions, finds your best
-  response, and delivers a competitive read — plus verifiable scorecards to track
-  prediction vs. reality. Runs on your own machine. Built for Hermes Agent.
+  See who can kill your plan before you ship it. Upfront Prediction is a
+  rehearsal with a scorecard for high-stakes moves: feed it a decision or a URL
+  and it simulates stakeholder reactions, names who can challenge the move and
+  on what conditions, finds your best response, and reads how competitive the
+  market is — then freezes testable claims you grade later, so the rehearsal
+  gets sharper every time. Runs on your own machine; no cloud account.
 provides_tools:
   - upfront_run
   - upfront_status

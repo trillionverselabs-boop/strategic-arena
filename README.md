@@ -1,14 +1,16 @@
 # Upfront Prediction (`upfront`)
 
+<img src="assets/logo.svg" alt="Upfront Prediction logo" width="72" height="72" align="left" hspace="0" vspace="0"/>
+
 ![Upfront — strategic-response review](assets/banner.png)
 
-> **A rehearsal with a scorecard for high-stakes moves.**
+> **See who can kill your plan before you ship it.**
 >
-> Feed it a strategic decision — a product launch, price change, breaking
-> announcement, API deprecation, or open-weight release — and it simulates
-> stakeholder reactions, maps emerging coalitions, finds your best response, and
-> delivers a competitive read. Complete with verifiable scorecards to track
-> prediction vs. reality.
+> A rehearsal with a scorecard for high-stakes moves. Feed it a strategic
+> decision — a product launch, price change, breaking announcement, API
+> deprecation, or open-weight release — and it simulates stakeholder reactions,
+> maps emerging coalitions, names who can challenge the move and on what
+> conditions, finds your best response, and delivers a competitive read.
 >
 > **Not a prediction. Not a guarantee. A zero-fluff auditing engine.**
 
@@ -22,7 +24,7 @@ Most AI tools act as conversational search engines. Upfront runs a **determinist
 2. **Friction & coalition mapping** — simulates how customers, competitors, and
    internal teams react, surfacing hidden technical or market risks.
 3. **Strategic synthesis & scorecard** — outputs an actionable competitive
-   response and freezes 2–4 verifiable claims you grade later.
+   response and freezes testable claims you grade later.
 
 ### Use cases
 

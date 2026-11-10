@@ -1,0 +1,67 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 600px; overflow: hidden; }
+  body {
+    background: #0a0c10;
+    background-image:
+      linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+    background-size: 44px 44px;
+    color: #fff;
+    font-family: -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+    padding: 46px 64px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .eyebrow { font-size: 15px; letter-spacing: .34em; text-transform: uppercase; color: #8b93a1; margin-bottom: 18px; }
+  h1 { font-size: 62px; line-height: .98; letter-spacing: -.02em; font-weight: 700; }
+  h1 span { color: #6ee7a8; }
+  .tag { font-size: 28px; line-height: 1.25; color: #e6e9ee; margin-top: 22px; max-width: 760px; font-weight: 500; }
+  .tag b { color: #fff; font-weight: 650; }
+  .sub { font-size: 17px; color: #98a0ad; margin-top: 14px; }
+  .axiswrap { margin-top: 28px; width: 640px; }
+  .axislabel { display: flex; justify-content: space-between; font-size: 14px; color: #8b93a1; margin-top: 12px; letter-spacing: .06em; }
+  .axis { position: relative; height: 6px; border-radius: 3px;
+    background: linear-gradient(90deg,#e5484d 0%,#8b5cf6 50%,#3b82f6 100%); }
+  .dot { position: absolute; top: 50%; transform: translate(-50%,-50%); border-radius: 50%;
+    background: #fff; border: 3px solid #0a0c10; box-shadow: 0 0 0 2px rgba(255,255,255,.25); }
+  .chips { display: flex; gap: 14px; margin-top: 26px; }
+  .chip { border: 1px solid rgba(255,255,255,.16); border-radius: 12px; padding: 11px 18px;
+    font-size: 16px; color: #dfe3e8; background: rgba(255,255,255,.03); }
+  .chip b { color: #fff; display: block; font-size: 18px; margin-bottom: 3px; }
+  .foot { display: flex; justify-content: space-between; align-items: flex-end;
+    border-top: 1px solid rgba(255,255,255,.1); padding-top: 16px; margin-top: 24px; }
+  .foot .l { font-size: 15px; color: #8b93a1; letter-spacing: .04em; }
+  .foot .r { font-size: 15px; color: #6ee7a8; letter-spacing: .12em; text-transform: uppercase; }
+</style></head>
+<body>
+  <div>
+    <div class="eyebrow">Upfront Prediction</div>
+    <h1>See who can kill<br>your plan <span>before</span><br>you ship it.</h1>
+    <div class="tag">A rehearsal with a scorecard — <b>not a prediction</b>.</div>
+    <div class="sub">Feed it a decision or a URL. It plays the room out, names who can challenge you, and writes down what it expects so you can grade it later.</div>
+
+    <div class="axiswrap">
+      <div class="axis">
+        <div class="dot" style="left:12%; width:22px;height:22px"></div>
+        <div class="dot" style="left:38%; width:30px;height:30px"></div>
+        <div class="dot" style="left:55%; width:18px;height:18px"></div>
+        <div class="dot" style="left:81%; width:26px;height:26px"></div>
+      </div>
+      <div class="axislabel"><span>against it</span><span>the room, after the run</span><span>behind it</span></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="chips">
+      <div class="chip"><b>Who can challenge</b>named, with their conditions</div>
+      <div class="chip"><b>How competitive</b>red · purple · blue, with the trigger</div>
+      <div class="chip"><b>Testable claims</b>frozen now, scored later</div>
+    </div>
+    <div class="foot">
+      <div class="l">local-first · runs on your own machine · no cloud account</div>
+      <div class="r">built for Hermes Agent</div>
+    </div>
+  </div>
+</body></html>

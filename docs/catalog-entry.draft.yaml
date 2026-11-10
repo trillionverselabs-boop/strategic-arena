@@ -1,20 +1,26 @@
 name: upfront
+repo: https://github.com/trillionverselabs-boop/upfront-test   # must stay PUBLIC
+sha: cc86222475d258a55b0b77486908417b292747be
 title: Upfront Prediction
 description: >-
-  A rehearsal with a scorecard for high-stakes moves. Feed it a decision (or a
-  URL) and it simulates stakeholder reactions, maps coalitions, finds your best
-  response, and delivers a competitive read — plus verifiable scorecards to track
-  prediction vs. reality. Runs on your own machine. Built for Hermes Agent.
-
-repo: https://github.com/trillionverselabs-boop/upfront-test   # must be PUBLIC before submission
-sha: d357d1aff6fb4b4185223464ffd30177e4021dd7
-tier: community
-category: general
+  See who can kill your plan before you ship it. Upfront Prediction is a
+  rehearsal with a scorecard for high-stakes moves: feed it a decision or a URL
+  and it simulates stakeholder reactions, maps the coalitions that form, names
+  who can challenge the move and on what conditions, finds your best response,
+  and reads how competitive the market is — then freezes testable claims you
+  grade later, so the rehearsal gets sharper every time. Runs on your own
+  machine; no cloud account.
 maintainer: LeMultiFox
-version: "0.3.0"
+tier: community
+category: tools
+version: "0.4.0"
 requires_hermes: ">=0.23.0"
+image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/cc86222475d258a55b0b77486908417b292747be/assets/banner.png
+screenshots:
+  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/cc86222475d258a55b0b77486908417b292747be/assets/how-it-works.png
+platforms: []
 capabilities:
-  tools:
+  provides_tools:
     - upfront_run
     - upfront_status
     - upfront_report
@@ -22,13 +28,12 @@ capabilities:
     - upfront_calibration
     - upfront_due
     - upfront_export
-  hooks: []
-  env: []
-image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/d357d1aff6fb4b4185223464ffd30177e4021dd7/assets/banner.png
-screenshots:
-  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/d357d1aff6fb4b4185223464ffd30177e4021dd7/assets/how-it-works.png
+  provides_hooks: []
+  provides_middleware: []
+  requires_env: []
 docs_url: https://github.com/trillionverselabs-boop/upfront-test/blob/main/docs/POSITIONING.md
 readme: true
 known_issues: >-
-  Choosing a model for the run requires the llm.model_override consent; without it the run uses
-  your active model. Live UI screenshots are pinned in the next entry update.
+  Choosing a model for a run needs the llm.model_override consent; without it the run uses your
+  active model. Free models are rate-limited and can take 15-30 minutes for a 24h review.
+  The desktop UI has been tested on Windows against a remote (SSH) backend.

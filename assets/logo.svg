@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Upfront Prediction — brand mark.
+       The axis is the product: left = against the move, right = behind it,
+       and the ringed dot is the party who can actually stop it. -->
+  <rect width="512" height="512" rx="112" fill="#0a0c10"/>
+  <g opacity="0.5">
+    <path d="M0 128h512M0 256h512M0 384h512M128 0v512M256 0v512M384 0v512"
+          stroke="#ffffff" stroke-opacity="0.05" stroke-width="1"/>
+  </g>
+  <line x1="76" y1="256" x2="436" y2="256" stroke="url(#axis)" stroke-width="10" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="axis" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e5484d"/>
+      <stop offset="0.5" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="256" r="22" fill="#e5484d"/>
+  <circle cx="212" cy="256" r="16" fill="#f5a524"/>
+  <circle cx="330" cy="256" r="30" fill="#46a758"/>
+  <circle cx="330" cy="256" r="42" fill="none" stroke="#6ee7a8" stroke-width="6"/>
+  <text x="256" y="404" text-anchor="middle" font-family="-apple-system, Segoe UI, Inter, Roboto, Helvetica, Arial, sans-serif"
+        font-size="40" font-weight="700" fill="#ffffff" letter-spacing="2">UPFRONT</text>
+  <text x="256" y="448" text-anchor="middle" font-family="-apple-system, Segoe UI, Inter, Roboto, Helvetica, Arial, sans-serif"
+        font-size="26" font-weight="500" fill="#8b93a1" letter-spacing="6">PREDICTION</text>
+</svg>
