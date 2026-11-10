@@ -23,7 +23,7 @@ def test_form_says_what_a_run_costs():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.5.5 · ui17" in UI.read_text()
+    assert "0.5.6 · ui18" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -92,9 +92,19 @@ def test_a_stale_window_is_told_the_truth_not_a_fairytale():
     assert "Download the UI file" not in js
 
 
+def test_the_word_rehearsal_is_gone():
+    """The user's call: no dress-rehearsal framing anywhere a reader can see it."""
+    js = UI.read_text().lower()
+    for banned in ("rehearse", "rehearsal", "rehearses", "dress rehearsal"):
+        assert banned not in js, banned
+    # the room is named, and consistent
+    assert "const ARENA = 'Strategic Arena'" in UI.read_text()
+    assert "is in session" in UI.read_text()
+
+
 def test_the_home_screen_says_what_you_get():
     js = UI.read_text()
-    assert "Rehearse the reaction before you commit." in js
+    assert 'Find out who can stop you — before you commit.' in js
     assert "who can stop you" in js
     assert "what they need" in js
     assert "A scorecard" in js

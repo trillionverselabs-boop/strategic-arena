@@ -1,6 +1,6 @@
 name: upfront
 label: Upfront Prediction
-version: "0.5.5"
+version: "0.5.6"
 manifest_version: 1
 kind: standalone
 requires_hermes: ">=0.23.0"
@@ -9,12 +9,12 @@ license: MIT
 homepage: https://github.com/trillionverselabs-boop/upfront-test
 tags: [strategy, simulation, stakeholders, decision-review, local-first, research]
 description: >-
-  See who can kill your plan before you ship it. Upfront Prediction is a
-  rehearsal with a scorecard for high-stakes moves: feed it a decision or a URL
-  and it simulates stakeholder reactions, names who can challenge the move and
-  on what conditions, finds your best response, and reads how competitive the
-  market is — then freezes testable claims you grade later, so the rehearsal
-  gets sharper every time. Runs on your own machine; no cloud account.
+  See who can kill your plan before you ship it. Open a Strategic Arena: feed it
+  a decision or a URL and it puts the people who will react into one room, names
+  who can challenge the move and on what conditions, prices each party's leverage
+  against the room's own friction, finds your best response, and reads how
+  competitive the market is — then freezes testable claims you grade later, so
+  the record gets sharper every time. Runs on your own machine; no cloud account.
 provides_tools:
   - upfront_run
   - upfront_status

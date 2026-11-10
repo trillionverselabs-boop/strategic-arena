@@ -41,9 +41,9 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.5.5 · ui17'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.5.6 · ui18'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront Prediction'   // display only — one line to rename the product
-const TAGLINE = 'Rehearse the reaction before you commit.'
+const TAGLINE = 'Find out who can stop you — before you commit.'
 // The room has a name, and the name is the vocabulary: a session opens a
 // Strategic Arena, the Arena debates, the Arena closes and writes the call.
 const ARENA = 'Strategic Arena'
@@ -193,7 +193,7 @@ const SOURCE_GUIDE = [
 
 // The sample is the demo. It has to show a real fight with a winnable middle, not a
 // room where everyone agrees: one party who can stop it, two with conditions, and the
-// people who gain. That is what "rehearsal" means on screen.
+// people who gain. That is what a dry run means on screen.
 const SAMPLE = {
   title: 'Open-weight Arete-27B',
   decision:
@@ -304,7 +304,7 @@ function Wordmark({ size = 40 }) {
     jsx(Mark, { size }),
     jsxs('div', { className: 'flex flex-col', children: [
       jsx('div', { className: 'text-[0.9375rem] font-semibold leading-none tracking-[-0.01em]', children: PRODUCT_NAME }),
-      jsx('div', { className: cn(T.label, 'mt-1 text-(--ui-text-quaternary)'), children: 'strategic rehearsal' }),
+      jsx('div', { className: cn(T.label, 'mt-1 text-(--ui-text-quaternary)'), children: 'strategic arena' }),
     ]}),
   ]})
 }
@@ -1159,7 +1159,7 @@ function Scorecard({ result, claimHits, setClaimHits, onVerify, record, due }) {
     ]}),
     jsx('div', { className: `${T.small} text-(--ui-text-secondary)`,
       children: scored
-        ? `You scored this run "${scored}". That is the whole point: a rehearsal you can audit, not a horoscope.`
+        ? `You scored this run "${scored}". That is the whole point: a call you can audit, not a horoscope.`
         : 'These were written at the moment the run finished, before anyone knew the answer. When the window closes, mark each one. That is how this becomes a track record instead of an opinion.' }),
 
     jsxs('div', { className: 'flex flex-col', children: claims.map(c =>
@@ -1355,7 +1355,7 @@ function Hero({ onStart }) {
         jsx('p', { className: `max-w-[44rem] ${T.body} text-(--ui-text-secondary)`,
           children: `Paste a decision — a launch note, a price change, a memo, or a URL. Upfront opens a ${ARENA}: the people who will react to it, drawn from your own text, arguing for as many rounds as you ask. What comes back is the call — who can stop you, what they need, and the move that gets you past them.` }),
         jsx('p', { className: `max-w-[44rem] ${T.small} text-(--ui-text-tertiary)`,
-          children: 'Every party and every condition comes from the text you paste — nothing is invented. It is a rehearsal, not a forecast.' }),
+          children: 'Every party and every condition comes from the text you paste — nothing is invented. It is a test, not a forecast.' }),
       ]}),
       jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
         jsx(PrimaryAction, { onClick: onStart, className: 'h-9 px-3.5 text-[0.875rem]', children: 'Open a session' }),
@@ -1384,7 +1384,7 @@ function WhatYouGet() {
       jsx(GetTile, { title: 'A scorecard', body: 'Claims frozen at run time. Score them when the window closes — that is our record, not our opinion.' }),
     ]}),
     jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`,
-      children: 'Not a forecast and not a guarantee. A rehearsal finds the fight before you are in it, and writes down its calls so you can grade them.' }),
+      children: 'Not a forecast and not a guarantee. A dry run finds the fight before you are in it, and writes down its calls so you can grade them.' }),
   ]})
 }
 
@@ -1565,7 +1565,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
       children: [
         jsxs(DialogHeader, { children: [
           jsx(DialogTitle, { children: `New ${ARENA} session` }),
-          jsx(DialogDescription, { children: 'Describe the move; Upfront rehearses the response to it.' }),
+          jsx(DialogDescription, { children: 'Describe the move; Upfront puts it in front of the room that will answer it.' }),
         ]}),
 
         jsxs('div', { className: 'flex max-h-[min(72vh,44rem)] flex-col gap-3 overflow-y-auto pr-0.5', children: [
