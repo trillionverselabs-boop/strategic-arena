@@ -1,6 +1,6 @@
 name: upfront
 repo: https://github.com/trillionverselabs-boop/upfront-test   # must stay PUBLIC
-sha: 4832360ee61f713ee5bb8ffee3205886fc907770
+sha: ad6b2291b1e81f2151ab1378c3b60980ac2d76eb
 title: Upfront Prediction
 description: >-
   See who can kill your plan before you ship it. Upfront Prediction is a
@@ -13,11 +13,11 @@ description: >-
 maintainer: LeMultiFox
 tier: community
 category: tools
-version: "0.4.4"
+version: "0.5.0"
 requires_hermes: ">=0.23.0"
-image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/4832360ee61f713ee5bb8ffee3205886fc907770/assets/banner.png
+image: https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/ad6b2291b1e81f2151ab1378c3b60980ac2d76eb/assets/banner.png
 screenshots:
-  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/4832360ee61f713ee5bb8ffee3205886fc907770/assets/how-it-works.png
+  - https://raw.githubusercontent.com/trillionverselabs-boop/upfront-test/ad6b2291b1e81f2151ab1378c3b60980ac2d76eb/assets/how-it-works.png
 platforms: []
 capabilities:
   provides_tools:
@@ -36,4 +36,6 @@ readme: true
 known_issues: >-
   Choosing a model for a run needs the llm.model_override consent; without it the run uses your
   active model. Free models are rate-limited and can take 15-30 minutes for a 24h review.
-  The desktop UI has been tested on Windows against a remote (SSH) backend.
+  The desktop UI has been tested on Windows against a remote (SSH) backend: the app loads its
+  plugin UI from the machine the window runs on, so a UI change needs Install from Git with the
+  Desktop target ticked on that machine (see docs/DESKTOP-UPDATES.md in the repo).

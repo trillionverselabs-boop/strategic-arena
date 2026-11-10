@@ -497,8 +497,10 @@ function MovementChart({ snapshots, height = 190 }) {
   const names = Object.keys(rows[rows.length - 1].stances)
   const xs = (i) => padL + (rows.length === 1 ? 0 : (i / (rows.length - 1)) * (w - padL - padR))
   const ys = (v) => padT + ((1 - Math.max(-1, Math.min(1, Number(v) || 0))) / 2) * (height - padT - padB)
+  // walk the labels top-to-bottom; walking bottom-up cascades every label into
+  // the lower half of the chart
   const ends = names.map(n => ({ name: n, v: Number(rows[rows.length - 1].stances[n]) || 0 }))
-    .sort((a, b) => a.v - b.v)
+    .sort((a, b) => b.v - a.v)
   // spread the end labels so they never overlap
   const gap = 14
   ends.forEach((e, i) => { e.y = Math.max(padT, Math.min(height - padB, ys(e.v))) })
@@ -540,7 +542,8 @@ function MovementChart({ snapshots, height = 190 }) {
             jsx('polyline', { points: d, fill: 'none',
               style: { stroke: tone, strokeWidth: 1.6, strokeLinejoin: 'round', opacity: 0.85 } }),
             jsx('circle', { cx: xs(rows.length - 1), cy: ys(rows[rows.length - 1].stances[n]), r: 2.6, fill: tone }),
-            jsx('text', { x: w - padR + 8, y: (end ? end.y : ys(0)) + 4, fontSize: '11.5', fontWeight: 600,
+            jsx('circle', { cx: w - padR + 3, cy: (end ? end.y : ys(0)), r: 2.4, fill: tone }),
+            jsx('text', { x: w - padR + 10, y: (end ? end.y : ys(0)) + 4, fontSize: '11.5', fontWeight: 600,
               style: { fill: 'var(--ui-text-secondary)', fontFamily: 'inherit',
                        paintOrder: 'stroke', stroke: 'var(--ui-bg-elevated)', strokeWidth: 4 },
               children: n.length > 24 ? n.slice(0, 23) + '…' : n }),
