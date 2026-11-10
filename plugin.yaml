@@ -1,13 +1,13 @@
 name: upfront
 label: Strategic Arena
-version: "0.6.0"
+version: "0.6.1"
 manifest_version: 1
 kind: standalone
 requires_hermes: ">=0.23.0"
 author: LeMultiFox
 license: MIT
 homepage: https://github.com/trillionverselabs-boop/upfront-test
-tags: [strategy, simulation, stakeholders, decision-review, local-first, research]
+tags: [strategy, stakeholders, artefact-review, reception, decision-review, local-first, research]
 description: >-
   Read the landscape before it reads you. Give it a link — a repo README, a launch
   post, a whitepaper, a case study, an announcement, a tweet — and Strategic Arena

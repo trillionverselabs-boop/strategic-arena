@@ -23,7 +23,7 @@ def test_form_says_what_a_run_costs():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.0 · ui22" in UI.read_text()
+    assert "0.6.1 · ui23" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -139,6 +139,23 @@ def test_the_result_leads_with_meaning_and_the_agreement_case():
     assert js.index("jsx(OnYourSide") < js.index("jsx(HeatLedger")
     # a supporter's own words carry the argument, not a paraphrase
     assert "(p.reasons || [])[0]" in js
+
+
+def test_the_wait_is_alive_and_reload_is_internal():
+    """A 30-60s first round must not look like a hang, and "Reload page" must
+    re-render this view rather than tear down the webview."""
+    js = UI.read_text()
+    assert "function WorkingBar(" in js
+    assert "repeatCount: 'indefinite'" in js          # the shimmer actually moves
+    assert "is the slow one" in js                      # and says why
+    assert "window.location.reload()" not in js         # no webview teardown
+    assert "setReloadNonce(n => n + 1)" in js           # remount the body instead
+    # one accent per surface: header CTA is the light action, in-panel stays blue
+    assert "function LightAction(" in js
+    assert "jsx(PrimaryAction, { onClick: inject" in js
+    # the label follows the contract vocabulary
+    assert "children: 'counter-moves'" in js
+    assert "change the situation" not in js.lower()
 
 
 def test_the_demo_path_is_one_click_from_a_cold_start():

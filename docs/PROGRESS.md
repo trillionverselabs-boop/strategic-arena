@@ -776,3 +776,40 @@ green→amber→red — now the same cool→warm ramp as the room.
 **Verified:** 174 tests green; `node --check` clean; `validate` passes; live ledger,
 timeline hint and the recommended tag rendered and confirmed in the harness.
 BUILD → `0.5.4 · ui16`, version 0.5.4.
+
+---
+
+## Final polish before the demo (2026-11-10, late)
+
+Four fixes from the screenshot review, all verified in the harness:
+
+1. **The wait is alive.** Round 0 takes 30–60s (one call to read the input, one per
+   party) and a static "reading your documents" read as a hang. A `WorkingBar` now
+   sits under the round track: an SMIL shimmer that actually moves (one `<animate>`
+   node, no injected stylesheet, no animation framework, stops on unmount), a staged
+   label that advances with elapsed time — *Reading what you gave it → Naming the
+   parties who will react → Working out who can stop it → Opening the arena* — and a
+   ticking `32s · round 0 is the slow one` so nobody wonders if it died.
+2. **One accent per surface.** The header CTA is now the highest-contrast action
+   (white on near-black, `#f1f4f9`); actions inside a panel stay brand blue. The
+   `Inject ⚡` button was the app's default green sitting next to a blue one — that
+   is how a palette starts looking accidental. Verified: inject `rgb(76,155,240)`,
+   header `rgb(241,244,249)`.
+3. **Vocabulary.** "Change the situation" → **counter-moves**, and the step copy now
+   says "inject a counter-move mid-run" instead of the old phrase.
+4. **Reload page was lying.** It called `window.location.reload()`, which tears down
+   the webview — losing the run you were watching — and cannot fetch a newer UI file
+   anyway. It now remounts the page body (`key` on the root) and re-reads its data:
+   a real reload of the view, no teardown. A test fails the build if
+   `window.location.reload()` comes back.
+
+**Marketplace copy synced.** `plugin.yaml` had `label: Strategic Arena` but the
+catalog draft still said "Upfront Prediction" and described a rehearsal. Title,
+description and tags now match the brand; the manifest description leads with the
+artefact framing. The plugin id, folder, tool prefixes, data dir and repo slug stay
+`upfront` — renaming those breaks installs, the catalog pin and the desktop folder.
+
+**Verified:** 202 tests green; `node --check` clean; `hermes plugins validate` passes;
+round-0 screen measured with the live fixture (stage label, 32s tick, 1 animate node,
+button colours).
+BUILD → `0.6.1 · ui23`, version 0.6.1.

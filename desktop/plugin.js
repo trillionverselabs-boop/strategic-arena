@@ -41,7 +41,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.0 · ui22'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.1 · ui23'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -71,6 +71,18 @@ const textTone = (hex) => `color-mix(in srgb, ${hex} 74%, white)`
 // The SDK's default Button wears the app's `bg-primary`. A plugin may not restyle
 // core UI, but it may style its own instance — so the product's primary action is
 // the brand blue here, on the button, and nowhere else in the app.
+// Two weights, one palette: the header carries the highest-contrast action (white
+// on near-black), and actions inside a panel stay on the brand blue. A green
+// button next to a blue one is how a palette starts looking accidental.
+function LightAction({ children, className, style, ...rest }) {
+  return jsx(Button, {
+    ...rest,
+    className: cn('transition-opacity hover:opacity-88', className),
+    style: { backgroundColor: '#f1f4f9', color: '#0a0d12', ...(style || {}) },
+    children,
+  })
+}
+
 function PrimaryAction({ children, className, style, ...rest }) {
   return jsx(Button, {
     ...rest,
@@ -1172,11 +1184,53 @@ function LoudestLine({ who, kind }) {
 
 // ── live: the floor ───────────────────────────────────────────────────
 
+// The first round takes real time — one model call to read the input and one per
+// party. Sitting on "Round 0 of 5" for a minute reads as a hang, so the screen
+// says what the machine is actually doing and moves while it does it. The shimmer
+// is SMIL inside the SVG the plugin already draws: no injected stylesheet, no
+// animation framework, and it stops when the element unmounts.
+const STAGES = [
+  [0,   'Reading what you gave it'],
+  [8,   'Naming the parties who will react'],
+  [20,  'Working out who can stop it'],
+  [35,  'Opening the arena — round 1'],
+  [60,  'Still going — a long input takes longer to read'],
+]
+
+function WorkingBar({ startedAt, round, label }) {
+  const [now, setNow] = React.useState(Date.now())
+  React.useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(t)
+  }, [])
+  const secs = startedAt ? Math.max(0, Math.round((now - startedAt) / 1000)) : 0
+  const stage = [...STAGES].reverse().find(([at]) => secs >= at) || STAGES[0]
+  return jsxs('div', { className: 'flex flex-col gap-1', children: [
+    jsxs('svg', { viewBox: '0 0 600 8', className: 'w-full', preserveAspectRatio: 'none',
+      style: { height: 8 }, children: [
+      jsx('rect', { x: 0, y: 0, width: 600, height: 8, rx: 4,
+        style: { fill: 'var(--ui-bg-quaternary)' } }),
+      jsx('rect', { y: 0, width: 90, height: 8, rx: 4,
+        style: { fill: C.for, opacity: 0.85 }, children:
+        jsx('animate', { attributeName: 'x', values: '-90;600', dur: '1.7s',
+          repeatCount: 'indefinite' }) }),
+    ]}),
+    jsxs('div', { className: `flex flex-wrap items-baseline justify-between gap-2 ${T.micro}`, children: [
+      jsx('span', { style: { color: textTone(C.for) },
+        children: label || `${stage[1]}…` }),
+      jsx('span', { className: `${NUM} text-(--ui-text-quaternary)`,
+        children: `${secs}s · round ${round || 0} is the slow one` }),
+    ]}),
+  ]})
+}
+
 function LiveFloor({ events }) {
   const list = (events || []).filter(e => e && (e.text || '').trim())
   if (!list.length) {
-    return jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`,
-      children: 'The room is reading your documents — the first statements land in a moment.' })
+    return jsxs('div', { className: 'flex flex-col gap-1.5', children: [
+      jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`,
+        children: 'The first statements land as soon as the room has read everything. Nothing is invented while you wait — the parties are being named from your text.' }),
+    ]})
   }
   return jsxs('div', { className: 'flex flex-col gap-1', children: [
     jsx(Label, { children: 'on the floor' }),
@@ -1470,7 +1524,7 @@ function Hero({ onStart }) {
         jsx(Step, { n: 1, title: 'Add the details',
           body: 'A repo README, a blog link, a launch post, a whitepaper, a case study, a press release, a tweet. One link is enough; more gives the room more to stand on.' }),
         jsx(Step, { n: 2, title: 'The arena opens',
-          body: 'The people, organisations, markets and stakeholders who will actually react take their seats and argue — three rounds, or as many as you ask. You can change the situation mid-run.' }),
+          body: 'The people, organisations, markets and stakeholders who will actually react take their seats and argue — three rounds, or as many as you ask. You can inject a counter-move mid-run and watch the board bend.' }),
         jsx(Step, { n: 3, title: 'Read the result',
           body: 'What it means, who is for it, who can stop it, what each concession buys — and the claims frozen so you can score them.' }),
       ]}),
@@ -1991,6 +2045,7 @@ function UpfrontPage({ ctx }) {
   const [running, setRunning] = React.useState(null)
   const [result, setResult] = React.useState(null)
   const [demo, setDemo] = React.useState(false)   // condensed finished-review view
+  const [reloadNonce, setReloadNonce] = React.useState(0)  // remount key for "Reload page"
   const [history, setHistory] = React.useState([])
   const [compare, setCompare] = React.useState(null)
   const [showCompare, setShowCompare] = React.useState(true)
@@ -2017,9 +2072,14 @@ function UpfrontPage({ ctx }) {
   function reloadUi() {
     haptic('tap')
     setReloading(true)
-    // A page reload re-runs the app's plugin scan, which re-reads the UI file
-    // from this machine. It cannot fetch a new one — see UpdateCard.
-    window.location.reload()
+    // Re-render THIS view and re-read its data. A window reload tears down the
+    // webview — and with it the run you are watching — to achieve nothing: the UI
+    // file is already in memory, and a reload cannot fetch a newer one anyway
+    // (see UpdateCard). Remounting the page body is what "reload" should mean here.
+    refreshHistory()
+    ctx.rest(`/ui?build=${encodeURIComponent(BUILD)}`).then(setUiBuild).catch(() => setUiBuild(null))
+    setReloadNonce(n => n + 1)
+    window.setTimeout(() => setReloading(false), 400)
   }
 
   function openPluginSettings() {
@@ -2155,6 +2215,9 @@ function UpfrontPage({ ctx }) {
   const shown = showAllPast ? history : history.slice(0, 6)
 
   return jsxs('div', {
+    // `key` remounts the body when "Reload page" is pressed: fresh state, fresh
+    // data, no webview teardown, and a run in progress is undisturbed.
+    key: `page-${reloadNonce}`,
     // scope the accent to this page only: every SDK control inside inherits it,
     // so the primary button is the product's blue without touching core UI
     style: { '--ui-accent': BRAND.blue },
@@ -2182,7 +2245,7 @@ function UpfrontPage({ ctx }) {
           variant: 'ghost', size: 'xs', onClick: () => setShowExplainer(v => !v),
           children: showExplainer ? 'hide what you get' : 'what you get',
         }),
-        jsx(PrimaryAction, {
+        jsx(LightAction, {
           onClick: () => { haptic('tap'); setModal(true) },
           children: '+ Start arena session',
         }),
@@ -2221,6 +2284,9 @@ function UpfrontPage({ ctx }) {
           ]}),
         ]}),
         jsx(RoundTrack, { round: running.round, total: running.total }),
+        (running.round || 0) === 0 && jsx(WorkingBar, {
+          startedAt, round: running.round,
+          label: (running.events || []).length ? 'Opening the arena' : undefined }),
         jsxs('div', { className: 'grid gap-2 md:grid-cols-2', children: [
           LoudestLine({ who: loudest('against'), kind: 'against' }),
           LoudestLine({ who: loudest('for'), kind: 'for' }),
@@ -2237,9 +2303,9 @@ function UpfrontPage({ ctx }) {
       ]}),
 
       jsxs(Card, { children: [
-        jsx(Label, { children: 'change the situation' }),
+        jsx(Label, { children: 'counter-moves' }),
         jsx('div', { className: `${T.small} text-(--ui-text-secondary)`,
-          children: 'Announce a concession, publish something first, bring a champion forward. Everyone hears it before they speak next round — and the board bends where you can see it.' }),
+          children: 'Change the room, not the record. Announce a concession, publish something first, bring a champion forward — everyone hears it before they speak next round, and the board bends where you can see it.' }),
         jsxs('div', { className: 'flex items-center gap-2', children: [
           jsx(Input, {
             className: 'flex-1',
@@ -2247,7 +2313,7 @@ function UpfrontPage({ ctx }) {
             value: injectText, onChange: e => setInjectText(e.target.value),
             onKeyDown: e => { if (e.key === 'Enter') inject() },
           }),
-          jsx(Button, { onClick: inject, children: 'Inject ⚡' }),
+          jsx(PrimaryAction, { onClick: inject, children: 'Inject ⚡' }),
         ]}),
         jsx('div', { className: 'flex flex-wrap gap-1.5', children: [
           'Publish the eval suite first',

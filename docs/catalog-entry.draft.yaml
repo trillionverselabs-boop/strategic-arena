@@ -1,15 +1,17 @@
 name: upfront
 repo: https://github.com/trillionverselabs-boop/upfront-test   # must stay PUBLIC
 sha: 08eae0a4236d6e8eb17393a397f3fbe30b6e33e0
-title: Upfront Prediction
+title: Strategic Arena
 description: >-
-  See who can kill your plan before you ship it. Upfront Prediction is a
-  rehearsal with a scorecard for high-stakes moves: feed it a decision or a URL
-  and it simulates stakeholder reactions, maps the coalitions that form, names
-  who can challenge the move and on what conditions, finds your best response,
-  and reads how competitive the market is — then freezes testable claims you
-  grade later, so the rehearsal gets sharper every time. Runs on your own
-  machine; no cloud account.
+  Read what it means before it reads you. Give it a link — a repo README, a blog
+  post, a whitepaper, a case study, an announcement, a tweet — and it opens a
+  room of the people who will actually react: maintainers and security reviewers
+  for a repository, buyers and competitors for a launch, the quote-tweeters for a
+  post. It names who holds real power over the outcome (who can block it, who can
+  amplify it, who can only complain), prices each party's leverage against the
+  room's own friction, and shows what each concession buys. Then it freezes
+  testable claims with dates and scores them, so the record argues for itself.
+  Runs on your own machine; no cloud account.
 maintainer: LeMultiFox
 tier: community
 category: tools
