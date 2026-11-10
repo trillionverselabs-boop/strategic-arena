@@ -64,6 +64,18 @@ const NUM = 'tabular-nums'
 const textTone = (hex) => `color-mix(in srgb, ${hex} 74%, white)`
 
 // One meaning per colour. Nothing decorative is coloured.
+// The SDK's default Button wears the app's `bg-primary`. A plugin may not restyle
+// core UI, but it may style its own instance — so the product's primary action is
+// the brand blue here, on the button, and nowhere else in the app.
+function PrimaryAction({ children, className, style, ...rest }) {
+  return jsx(Button, {
+    ...rest,
+    className: cn('transition-opacity hover:opacity-88', className),
+    style: { backgroundColor: BRAND.blue, color: '#04121f', ...(style || {}) },
+    children,
+  })
+}
+
 // One palette, built off the blue the product already reads as.
 //
 // Blue (behind it) and rose (will block it) are a complementary pair, with gold
@@ -1255,7 +1267,7 @@ function Hero({ onStart }) {
           children: 'Every party and every condition comes from the text you paste — nothing is invented. It is a rehearsal, not a forecast.' }),
       ]}),
       jsxs('div', { className: 'flex flex-wrap items-center gap-2', children: [
-        jsx(Button, { onClick: onStart, className: 'h-9 px-3.5 text-[0.875rem]', children: 'Rehearse a decision' }),
+        jsx(PrimaryAction, { onClick: onStart, className: 'h-9 px-3.5 text-[0.875rem]', children: 'Rehearse a decision' }),
         jsx('span', { className: `${T.micro} text-(--ui-text-tertiary)`,
           children: 'Three rounds takes about two minutes on a free model — a cheap way to find out whether anyone cares.' }),
       ]}),
@@ -1586,7 +1598,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
         jsxs(DialogFooter, { children: [
           jsx('div', { className: 'mr-auto text-[0.75rem] text-(--ui-text-tertiary)', children: hasInput ? 'Ready — one input is enough.' : 'Add a decision document or a URL to run.' }),
           jsx(Button, { variant: 'text', onClick: onClose, children: 'Cancel' }),
-          jsx(Button, { disabled: busy || !hasInput || !title.trim(), onClick: submit, children: busy ? 'Starting…' : 'Run review' }),
+          jsx(PrimaryAction, { disabled: busy || !hasInput || !title.trim(), onClick: submit, children: busy ? 'Starting…' : 'Run review' }),
         ]}),
       ],
     }),
@@ -1821,7 +1833,7 @@ function UpfrontPage({ ctx }) {
           variant: 'ghost', size: 'xs', onClick: () => setShowExplainer(v => !v),
           children: showExplainer ? 'hide overview' : 'what is this?',
         }),
-        jsx(Button, {
+        jsx(PrimaryAction, {
           onClick: () => { haptic('tap'); setModal(true) },
           children: '+ New review',
         }),
