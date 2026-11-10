@@ -18,6 +18,7 @@ node --check desktop/plugin.js
 | R3 — decision record export | shipped | 60 passed | see git log |
 | R4 — model-aware presets | shipped | 63 passed | see git log |
 | R5 — desktop UI: Recent block + graphical polish | shipped | node --check + render smoke | see git log |
+| R6 — desktop UI: Kanban look (SDK components) | shipped | node --check + render smoke | see git log |
 
 ---
 
@@ -215,3 +216,23 @@ reading the generated SVG, plus the requested polish.
 **Verified:** `node --check` clean; a headless render smoke test (stubbed `@hermes/plugin-sdk` +
 `react`) renders the page, the modal, and a finished result — asserting the SVG graph, the gradient
 axis, the styled SVG stroke/fill, the Recent block, and `<strong>` in the report. BUILD → `0.3.1 · ui2`.
+
+---
+
+## Desktop UI — the Kanban look (shipped 2026-11-09)
+
+The page now uses the app's own design language instead of hand-rolled controls, so it
+reads as part of Hermes rather than a page inside it.
+
+**What changed**
+
+- The form is a real `Dialog` (the Kanban new-task dialog shape): `Input`, `Textarea`,
+  `Select`, `Switch`, `Button`, and the `FIELD_LABEL` / `Section` / `Callout` chrome.
+- The results page is built from Kanban's card atom: elevated fill, hairline border,
+  optional coloured left rule, `Badge` for the sea state, `Callout` for the failed-run
+  banner and the "what you get" panel.
+- No hardcoded colours left in the controls — theme tokens and the primary button.
+
+**Verified:** `node --check` clean; the headless render smoke test renders the page, the
+dialog and a finished result, asserting the SVG graph, the gradient competition axis, the
+Recent block, the claim rows and `<strong>` in the report. BUILD → `0.3.2 · ui3`.

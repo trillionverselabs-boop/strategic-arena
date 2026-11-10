@@ -3,18 +3,44 @@
 // Loads UNCOMPILED: no JSX. Only imports @hermes/plugin-sdk, react, react/jsx-runtime.
 // Surfaces: LEFT sidebar nav row + full center page (ROUTES_AREA).
 //
-// Flow: "+ New review" opens a modal form (title, decision or URL, evidence,
-// timeline, model+cost). The run streams progress, can be injected mid-flight,
-// and finishes as: competition read -> graph -> report -> frozen claims you score.
-// Past runs of the same decision can be compared across timelines.
+// Look: the app's own design language — the same atoms the Kanban board uses
+// (SDK components, theme tokens, FIELD_LABEL / Section / Callout / card chrome).
+// No custom colours, no hand-rolled form controls: native is the look.
+//
+// Flow: "+ New review" opens a dialog (title, decision or URL, evidence, timeline,
+// model+cost). The run streams progress, can be injected mid-flight, and finishes
+// as: competition read -> graph -> report -> frozen claims you score.
 
-import { host, haptic, useValue, ROUTES_AREA, SIDEBAR_NAV_AREA } from '@hermes/plugin-sdk'
+import {
+  host,
+  haptic,
+  useValue,
+  cn,
+  Codicon,
+  Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Switch,
+  Textarea,
+  ROUTES_AREA,
+  SIDEBAR_NAV_AREA,
+} from '@hermes/plugin-sdk'
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.3.1 · ui2'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.3.2 · ui3'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Upfront'        // display only — one line to rename the product
-const GREEN = '#4caf50'
 
 const SEA = {
   red: { label: 'Red ocean', color: '#e5484d', level: 'high', meaning: 'everyone fighting for the same fish' },
@@ -110,25 +136,53 @@ const SAMPLE = {
     'commercial use.',
 }
 
-// ── small building blocks ─────────────────────────────────────────────
+// ── atoms (the Kanban board's shared chrome) ──────────────────────────
 
-function Label({ children }) {
-  return jsx('div', {
-    className: 'text-[0.6875rem] font-medium uppercase tracking-wide text-(--ui-text-tertiary)',
+const FIELD_LABEL = 'text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-(--ui-text-quaternary)'
+
+function Field({ label, hint, right, children }) {
+  return jsxs('label', { className: 'flex flex-col gap-1', children: [
+    jsxs('span', { className: 'flex items-center justify-between', children: [
+      jsx('span', { className: FIELD_LABEL, children: label }),
+      right || null,
+    ]}),
     children,
+    hint ? jsx('span', { className: 'text-[0.625rem] leading-tight text-(--ui-text-quaternary)', children: hint }) : null,
+  ]})
+}
+
+function Section({ label, action, children }) {
+  return jsxs('section', { className: 'flex flex-col gap-1.5', children: [
+    jsxs('div', { className: 'flex items-center justify-between', children: [
+      jsx('div', { className: FIELD_LABEL, children: label }),
+      action || null,
+    ]}),
+    children,
+  ]})
+}
+
+// Tinted advisory panel: a tone-washed body with a matching left rule.
+function Callout({ icon = 'info', title, tone = 'var(--ui-accent)', children }) {
+  return jsxs('div', {
+    className: 'flex flex-col gap-2 rounded-md p-2.5',
+    style: { backgroundColor: `color-mix(in srgb, ${tone} 7%, transparent)`, borderLeft: `2px solid ${tone}` },
+    children: [
+      jsxs('div', { className: 'flex items-start gap-1.5 text-[0.75rem] font-medium', style: { color: tone }, children: [
+        jsx(Codicon, { className: 'mt-px shrink-0', name: icon, size: '0.8rem' }),
+        jsx('span', { children: title }),
+      ]}),
+      children,
+    ],
   })
 }
 
-function Hint({ children }) {
-  return jsx('div', { className: 'text-[0.6875rem] leading-snug text-(--ui-text-tertiary)', children })
-}
-
-function Field({ label, hint, children, right }) {
-  return jsxs('div', { className: 'flex flex-col gap-1', children: [
-    jsxs('div', { className: 'flex items-center justify-between', children: [jsx(Label, { children: label }), right || null] }),
+// The board's card: elevated fill, hairline border, optional coloured left rule.
+function Card({ children, className, tone }) {
+  return jsx('div', {
+    className: cn('flex flex-col gap-2 rounded-md border border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) p-3', className),
+    style: tone ? { borderLeftWidth: 2, borderLeftColor: tone } : undefined,
     children,
-    hint ? jsx(Hint, { children: hint }) : null,
-  ]})
+  })
 }
 
 function stanceColor(s) {
@@ -153,7 +207,7 @@ function GraphSvg({ graph, height = 420 }) {
   const byId = Object.fromEntries(placed.map(n => [n.id, n]))
   return jsxs('svg', {
     viewBox: `0 0 ${w} ${height}`,
-    className: 'w-full rounded border border-(--ui-border) bg-(--ui-bg)',
+    className: 'w-full rounded-md border border-(--ui-stroke-tertiary) bg-(--ui-bg)',
     children: [
       ...edges.map((e, i) => {
         const a = byId[e.from], b = byId[e.to]
@@ -183,23 +237,17 @@ function GraphSvg({ graph, height = 420 }) {
 function SeaAxis({ sea }) {
   if (!sea || !sea.state) return null
   // Off-axis states (currently 'insufficient') are not a point on the competition
-  // scale — they are the absence of a read. Showing three unlit pills would read
-  // as "unclassified"; show the reason instead.
+  // scale — they are the absence of a read. Show the reason, not unlit pills.
   if (!SEA_ORDER.includes(sea.state)) {
-    return jsxs('div', { className: 'flex items-center gap-1', children: [
-      jsx('span', { className: 'mr-1 text-xs text-(--ui-text-tertiary)', children: 'competition' }),
-      jsx('span', {
-        title: sea.why || '',
-        className: 'rounded px-2 py-0.5 text-xs font-semibold text-white',
-        style: { backgroundColor: sea.color || '#6b7280' },
-        children: sea.label || 'insufficient input',
-      }),
-      sea.why && jsx('span', { className: 'ml-1 text-xs text-(--ui-text-secondary)', children: sea.why }),
+    return jsxs('div', { className: 'flex items-center gap-2', children: [
+      jsx('span', { className: FIELD_LABEL, children: 'competition' }),
+      jsx(Badge, { variant: 'muted', title: sea.why || '', children: sea.label || 'insufficient input' }),
+      sea.why && jsx('span', { className: 'text-[0.75rem] text-(--ui-text-secondary)', children: sea.why }),
     ]})
   }
   const idx = SEA_ORDER.indexOf(sea.state)
   return jsxs('div', { className: 'flex items-center gap-2', children: [
-    jsx('span', { className: 'text-xs text-(--ui-text-tertiary)', children: 'competition' }),
+    jsx('span', { className: FIELD_LABEL, children: 'competition' }),
     jsxs('div', {
       className: 'relative h-2 w-36 rounded-full',
       style: { background: 'linear-gradient(90deg, #e5484d 0%, #8b5cf6 50%, #3b82f6 100%)' },
@@ -214,7 +262,7 @@ function SeaAxis({ sea }) {
         }),
       ],
     }),
-    jsx('span', { className: 'text-xs font-medium', style: { color: SEA[sea.state].color }, children: sea.label }),
+    jsx(Badge, { variant: 'outline', style: { color: SEA[sea.state].color, borderColor: 'transparent' }, children: sea.label }),
   ]})
 }
 
@@ -232,7 +280,7 @@ function Markdown({ text }) {
     if (ln.startsWith('### ')) return jsx('div', { key, className: 'text-sm font-semibold', children: inline(ln.slice(4)) })
     if (ln.startsWith('## ')) return jsx('div', { key, className: 'mt-2 text-sm font-semibold', children: inline(ln.slice(3)) })
     if (ln.startsWith('# ')) return jsx('div', { key, className: 'text-lg font-semibold', children: inline(ln.slice(2)) })
-    if (ln.startsWith('> ')) return jsx('div', { key, className: 'border-l-2 pl-2 text-(--ui-text-tertiary)', children: inline(ln.slice(2)) })
+    if (ln.startsWith('> ')) return jsx('div', { key, className: 'border-l-2 border-(--ui-stroke-tertiary) pl-2 text-(--ui-text-tertiary)', children: inline(ln.slice(2)) })
     if (ln.startsWith('- ')) return jsx('div', { key, className: 'pl-3', children: inline(`• ${ln.slice(2)}`) })
     if (!ln.trim()) return jsx('div', { key, className: 'h-1' })
     return jsx('div', { key, children: inline(ln) })
@@ -241,28 +289,32 @@ function Markdown({ text }) {
 
 function FrictionBar({ friction, color }) {
   const pct = Math.max(0, Math.min(100, Number(friction) || 0))
-  const c = color || '#8b5cf6'
+  const c = color || 'var(--ui-accent)'
   return jsxs('div', { className: 'flex items-center gap-2', children: [
-    jsxs('div', { className: 'relative h-2.5 w-44 overflow-hidden rounded-full bg-(--ui-bg-secondary)', children: [
+    jsxs('div', { className: 'relative h-2.5 w-44 overflow-hidden rounded-full bg-(--ui-bg-quaternary)', children: [
       jsx('div', { className: 'h-full rounded-full', style: { width: `${pct}%`, backgroundColor: c } }),
-      jsx('div', { className: 'absolute inset-y-0 left-1/2 w-px bg-(--ui-border)' }),
+      jsx('div', { className: 'absolute inset-y-0 left-1/2 w-px bg-(--ui-stroke-secondary)' }),
     ]}),
     jsx('span', { className: 'text-xs tabular-nums text-(--ui-text-secondary)', children: `${pct.toFixed(0)}/100` }),
   ]})
 }
 
-// ── the "what you get" explainer ──────────────────────────────────────
+// ── "what you get" explainer ──────────────────────────────────────────
 
 function WhatYouGet() {
-  return jsxs('div', { className: 'flex flex-col gap-1 rounded border border-(--ui-border) bg-(--ui-bg-secondary) p-3 text-xs', children: [
-    jsx('div', { className: 'font-medium', children: 'What you get back — and what you do not' }),
-    jsx('div', { children: 'A structured review of the response to your move: who can veto it, which coalitions form, the best response, and how contested the ground is.' }),
-    jsx('div', { className: 'text-(--ui-text-secondary)', children: 'Not a prediction of the future and not a guarantee. It is rehearsal: it finds the fight before you are in it, and it freezes its calls so you can score them later.' }),
-    jsx('div', { className: 'text-(--ui-text-tertiary)', children: 'Use it to decide whether to launch, who to talk to first, which objection to answer, and whether the pushback is a real fight or just noise.' }),
-  ]})
+  return jsxs(Callout, {
+    icon: 'info',
+    tone: 'var(--ui-accent)',
+    title: 'What you get back — and what you do not',
+    children: [
+      jsx('div', { className: 'text-[0.75rem] leading-snug', children: 'A structured review of the response to your move: who can veto it, which coalitions form, the best response, and how contested the ground is.' }),
+      jsx('div', { className: 'text-[0.75rem] leading-snug text-(--ui-text-secondary)', children: 'Not a prediction of the future and not a guarantee. It is rehearsal: it finds the fight before you are in it, and it freezes its calls so you can score them later.' }),
+      jsx('div', { className: 'text-[0.6875rem] leading-snug text-(--ui-text-tertiary)', children: 'Use it to decide whether to launch, who to talk to first, which objection to answer, and whether the pushback is a real fight or just noise.' }),
+    ],
+  })
 }
 
-// ── new review modal (layout follows the task-create dialog) ───────────
+// ── new review dialog (mirrors Kanban's new-task dialog) ──────────────
 
 function NewReviewModal({ ctx, onClose, onStarted }) {
   const [title, setTitle] = React.useState('')
@@ -327,154 +379,128 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
     } finally { setBusy(false) }
   }
 
-  return jsx('div', {
-    className: 'fixed inset-0 z-50 flex items-start justify-center overflow-auto bg-black/50 p-6',
-    children: jsxs('div', {
-      className: 'w-full max-w-2xl rounded-lg border border-(--ui-border) bg-(--ui-bg) p-6 shadow-xl',
+  return jsx(Dialog, {
+    open: true,
+    onOpenChange: open => { if (!open) onClose() },
+    children: jsx(DialogContent, {
+      className: 'w-[min(42rem,94vw)] max-w-none overflow-visible',
       children: [
-        // header
-        jsxs('div', { className: 'mb-4 flex items-center justify-between', children: [
-          jsx('div', { className: 'text-base font-semibold', children: 'New review' }),
-          jsx('button', { type: 'button', className: 'text-(--ui-text-tertiary) hover:text-(--ui-text)', onClick: onClose, children: '✕' }),
+        jsxs(DialogHeader, { children: [
+          jsx(DialogTitle, { children: 'New review' }),
+          jsx(DialogDescription, { children: 'Describe the move; Upfront rehearses the response to it.' }),
         ]}),
 
-        // title (prominent, first)
-        jsxs('div', { className: 'flex flex-col gap-1', children: [
+        jsxs('div', { className: 'flex max-h-[min(72vh,44rem)] flex-col gap-3 overflow-y-auto pr-0.5', children: [
           jsx(Field, {
-            label: 'Title (required)',
-            hint: 'Add a title for your test — short and specific, the way you would say it out loud. It is what you will see in the run list, e.g. "Open-weight Arete-27B".',
-            children: jsx('input', {
+            label: 'Title',
+            hint: 'Short and specific, the way you would say it out loud — it is what you will see in the run list.',
+            children: jsx(Input, {
               autoFocus: true,
-              className: 'rounded border border-(--ui-border) bg-(--ui-bg-secondary) px-3 py-2 text-base focus:border-(--ui-accent) focus:outline-none',
               placeholder: 'Name this decision…',
               value: title, onChange: e => setTitle(e.target.value),
             }),
           }),
-        ]}),
 
-        // what kind of review + which sources produce it
-        jsxs('div', { className: 'mt-4 flex flex-col gap-2', children: [
-          jsx(Label, { children: 'Start from a recipe (optional) — it fills the fields, you edit them' }),
-          jsxs('div', { className: 'flex flex-wrap gap-1.5', children: [
-            ...RECIPES.map(r => jsx('button', {
-              type: 'button', key: r.id,
-              className: 'rounded-full border border-(--ui-border) px-3 py-1 text-xs hover:border-(--ui-accent)',
-              onClick: () => applyRecipe(r),
-              children: r.label,
-            })),
-            jsx('button', {
-              type: 'button',
-              className: 'rounded-full border border-(--ui-border) px-3 py-1 text-xs text-(--ui-text-tertiary) hover:text-(--ui-text)',
+          jsxs(Section, {
+            label: 'Start from a recipe (optional)',
+            action: jsx(Button, {
+              size: 'xs', variant: 'ghost',
               onClick: () => setShowGuide(v => !v),
               children: showGuide ? 'hide what to paste' : 'what should I paste?',
             }),
-          ]}),
-          showGuide && jsxs('div', { className: 'flex flex-col gap-1 rounded border border-(--ui-border) p-2', children: [
-            jsx('div', { className: 'text-[0.6875rem] uppercase tracking-wide text-(--ui-text-tertiary)', children: 'source → what it buys the review' }),
-            ...SOURCE_GUIDE.map(([k, v]) => jsxs('div', { key: k, className: 'grid grid-cols-2 gap-2 text-[0.6875rem]', children: [
-              jsx('span', { children: k }),
-              jsx('span', { className: 'text-(--ui-text-tertiary)', children: v }),
-            ]})),
-            jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-tertiary)', children: 'Two sources that disagree beat five that agree. A decision plus one piece of real evidence is the best cheap run.' }),
-          ]}),
-        ]}),
+            children: [
+              jsx('div', { className: 'flex flex-wrap gap-1.5', children: RECIPES.map(r => jsx(Button, {
+                key: r.id, size: 'xs', variant: 'chip',
+                onClick: () => applyRecipe(r),
+                children: r.label,
+              })) }),
+              showGuide && jsxs('div', { className: 'flex flex-col gap-1 rounded-md border border-(--ui-stroke-tertiary) p-2', children: [
+                jsx('div', { className: FIELD_LABEL, children: 'source → what it buys the review' }),
+                ...SOURCE_GUIDE.map(([k, v]) => jsxs('div', { className: 'grid grid-cols-2 gap-2 text-[0.6875rem]', children: [
+                  jsx('span', { children: k }),
+                  jsx('span', { className: 'text-(--ui-text-tertiary)', children: v }),
+                ]})),
+                jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-tertiary)', children: 'Two sources that disagree beat five that agree. A decision plus one piece of real evidence is the best cheap run.' }),
+              ]}),
+            ],
+          }),
 
-        // decision or URL
-        jsxs('div', { className: 'mt-4 flex flex-col gap-3', children: [
           jsx(Field, {
-            label: 'Decision document — OR — URLs below (one of the two is required)',
-            hint: 'Paste the plan, launch note or proposal being reacted to. Be concrete about what changes and for whom — vague input produces vague stakeholders. If you have no text, a URL is enough.',
-            right: jsx('button', {
-              type: 'button',
-              className: 'rounded border border-(--ui-border) px-2 py-0.5 text-[0.6875rem] hover:border-(--ui-accent)',
-              onClick: useSample,
-              children: 'Use a sample',
-            }),
-            children: jsx('textarea', {
-              className: 'rounded border border-(--ui-border) bg-(--ui-bg-secondary) px-3 py-2 text-sm',
+            label: 'Decision document — or URLs below',
+            hint: 'Paste the plan, launch note or proposal being reacted to. Vague input produces vague stakeholders.',
+            right: jsx(Button, { size: 'xs', variant: 'outline', onClick: useSample, children: 'Use a sample' }),
+            children: jsx(Textarea, {
+              className: 'min-h-20',
               placeholder: 'The decision — what you are launching, changing or removing, and who is affected…',
-              rows: 6, value: decision, onChange: e => setDecision(e.target.value),
+              value: decision, onChange: e => setDecision(e.target.value),
             }),
           }),
+
           jsx(Field, {
-            label: 'Evidence (optional, but it is the biggest driver of quality)',
-            hint: 'Real numbers, quotes, survey results, competitor facts. Anything factual that a stakeholder would react to. This is what separates a grounded review from an invented one.',
-            children: jsx('textarea', {
-              className: 'rounded border border-(--ui-border) bg-(--ui-bg-secondary) px-3 py-2 text-sm',
+            label: 'Evidence (optional, biggest quality lever)',
+            hint: 'Real numbers, quotes, survey results, competitor facts — anything factual a stakeholder would react to.',
+            children: jsx(Textarea, {
+              className: 'min-h-12',
               placeholder: 'e.g. "Q2 survey of 400 CIOs: 61% cannot route inference through an external API…"',
-              rows: 3, value: evidence, onChange: e => setEvidence(e.target.value),
+              value: evidence, onChange: e => setEvidence(e.target.value),
             }),
           }),
+
           jsx(Field, {
             label: 'URLs (optional — one per line)',
-            hint: `Each line is fetched and treated as a real document, with the URL kept as provenance. Good sources: ${URL_TYPES.join(' · ')}. A GitHub repo URL ingests its README, not the page chrome.`,
-            children: jsx('textarea', {
-              className: 'rounded border border-(--ui-border) bg-(--ui-bg-secondary) px-3 py-2 text-sm',
+            hint: `Each line is fetched as a real document, with the URL kept as provenance. Good sources: ${URL_TYPES.join(' · ')}.`,
+            children: jsx(Textarea, {
+              className: 'min-h-10',
               placeholder: 'https://github.com/owner/repo\nhttps://example.com/blog-post',
-              rows: 2, value: urls, onChange: e => setUrls(e.target.value),
+              value: urls, onChange: e => setUrls(e.target.value),
             }),
           }),
-        ]}),
 
-        // timeline + model
-        jsxs('div', { className: 'mt-4 grid grid-cols-2 gap-4', children: [
-          jsx(Field, {
-            label: 'Timeline',
-            hint: tl.note,
-            children: jsx('div', { className: 'flex flex-wrap gap-1', children: TIMELINES.map(t => {
-              const active = t.v === window
-              return jsx('button', {
-                type: 'button', key: t.v, title: t.note,
-                className: 'rounded-full border px-2.5 py-1 text-xs ' + (active ? 'font-semibold text-white' : 'text-(--ui-text-tertiary) hover:text-(--ui-text)'),
-                style: active ? { backgroundColor: GREEN, borderColor: GREEN } : { borderColor: 'var(--ui-border)' },
-                onClick: () => setWindow(t.v),
-                children: t.label,
-              })
-            }) }),
-          }),
-          jsx(Field, {
-            label: 'Model',
-            hint: 'Leave on active model to use whatever Hermes already runs. Free models cost nothing but have rate limits.',
-            children: jsxs('div', { className: 'flex flex-col gap-1', children: [
-              jsx('select', {
-                className: 'rounded border border-(--ui-border) bg-(--ui-bg-secondary) px-2 py-1.5 text-sm',
-                value: modelId, onChange: e => setModelId(e.target.value),
-                children: [
-                  jsx('option', { value: '', children: 'active model (default)' }),
-                  ...visibleModels.map(m => jsx('option', {
-                    key: m.id, value: m.id,
-                    children: `${m.free ? 'FREE · ' : ''}${m.name} — $${m.prompt_per_m}/M in`,
-                  })),
-                ],
-              }),
-              jsx('label', { className: 'flex items-center gap-1 text-[0.6875rem] text-(--ui-text-tertiary)', children: [
-                jsx('input', { type: 'checkbox', checked: freeOnly, onChange: e => setFreeOnly(e.target.checked) }),
-                jsx('span', { children: 'free models only' }),
+          jsxs('div', { className: 'grid grid-cols-2 gap-3', children: [
+            jsx(Field, {
+              label: 'Timeline',
+              hint: tl.note,
+              children: jsxs(Select, { value: window, onValueChange: setWindow, children: [
+                jsx(SelectTrigger, { children: jsx(SelectValue, {}) }),
+                jsx(SelectContent, { children: TIMELINES.map(t => jsx(SelectItem, {
+                  key: t.v, value: t.v, children: `${t.label} — ${t.rounds} rounds`,
+                })) }),
               ]}),
-            ]}),
-          }),
-        ]}),
-        jsx('div', { className: 'mt-2 text-[0.6875rem] text-(--ui-text-tertiary)', children: `${calls} model calls · ${cost}${note ? ' · ' + note : ''}` }),
-        jsx('div', { className: 'mt-1 text-[0.6875rem] text-(--ui-text-tertiary)', children: 'For a first pass: a flash-class model at 24h. Spend on 48h and a bigger model only when the decision is expensive.' }),
-
-        jsx('div', { className: 'mt-4', children: jsx(WhatYouGet, {}) }),
-
-        error && jsx('div', { className: 'mt-3 text-sm text-red-500', children: error }),
-
-        // footer
-        jsxs('div', { className: 'mt-5 flex items-center justify-between', children: [
-          jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-tertiary)', children: hasInput ? 'Ready — one input is enough.' : 'Add a decision document or a URL to run.' }),
-          jsxs('div', { className: 'flex items-center gap-2', children: [
-            jsx('button', { type: 'button', className: 'px-3 py-1.5 text-sm text-(--ui-text-secondary) hover:text-(--ui-text)', onClick: onClose, children: 'Cancel' }),
-            jsx('button', {
-              type: 'button',
-              className: 'rounded px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50',
-              style: { backgroundColor: GREEN },
-              disabled: busy || !hasInput || !title.trim(),
-              onClick: submit,
-              children: busy ? 'Starting…' : 'Run review',
+            }),
+            jsx(Field, {
+              label: 'Model',
+              hint: 'Leave on active model to use whatever Hermes already runs. Free models cost nothing but have rate limits.',
+              children: jsxs('div', { className: 'flex flex-col gap-1', children: [
+                jsxs(Select, { value: modelId || 'active', onValueChange: v => setModelId(v === 'active' ? '' : v), children: [
+                  jsx(SelectTrigger, { children: jsx(SelectValue, {}) }),
+                  jsx(SelectContent, { children: [
+                    jsx(SelectItem, { value: 'active', children: 'active model (default)' }),
+                    ...visibleModels.map(m => jsx(SelectItem, {
+                      key: m.id, value: m.id,
+                      children: `${m.free ? 'FREE · ' : ''}${m.name} — $${m.prompt_per_m}/M in`,
+                    })),
+                  ]}),
+                ]}),
+                jsxs('label', { className: 'flex cursor-pointer items-center gap-2 text-[0.75rem] text-(--ui-text-secondary)', children: [
+                  jsx(Switch, { 'aria-label': 'free models only', checked: freeOnly, onCheckedChange: setFreeOnly, size: 'xs' }),
+                  'free models only',
+                ]}),
+              ]}),
             }),
           ]}),
+
+          jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: `${calls} model calls · ${cost}${note ? ' · ' + note : ''}` }),
+          jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: 'For a first pass: a flash-class model at 24h. Spend on 48h and a bigger model only when the decision is expensive.' }),
+
+          jsx(WhatYouGet, {}),
+
+          error && jsx('span', { className: 'text-[0.75rem] text-destructive', children: error }),
+        ]}),
+
+        jsxs(DialogFooter, { children: [
+          jsx('div', { className: 'mr-auto text-[0.75rem] text-(--ui-text-tertiary)', children: hasInput ? 'Ready — one input is enough.' : 'Add a decision document or a URL to run.' }),
+          jsx(Button, { variant: 'text', onClick: onClose, children: 'Cancel' }),
+          jsx(Button, { disabled: busy || !hasInput || !title.trim(), onClick: submit, children: busy ? 'Starting…' : 'Run review' }),
         ]}),
       ],
     }),
@@ -485,7 +511,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
 
 function ComparePanel({ cmp }) {
   if (!cmp || !cmp.rows || !cmp.rows.length) return null
-  return jsxs('div', { className: 'flex flex-col gap-2 rounded border border-(--ui-border) p-4', children: [
+  return jsxs(Card, { children: [
     jsxs('div', { className: 'flex items-center justify-between', children: [
       jsx('div', { className: 'text-sm font-medium', children: `Same decision across timelines — ${cmp.runs} run(s)` }),
       jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-tertiary)',
@@ -497,13 +523,17 @@ function ComparePanel({ cmp }) {
         jsx('span', { children: 'timeline' }), jsx('span', { children: 'friction' }),
         jsx('span', { children: 'competition' }), jsx('span', { children: 'veto player' }), jsx('span', { children: 'scored' }),
       ]}),
-      ...cmp.rows.map(r => jsxs('div', { key: r.run_id, className: 'grid grid-cols-5 items-center gap-2 text-xs', children: [
-        jsx('span', { children: `${r.rounds ?? '?'} rounds` }),
-        jsx(FrictionBar, { friction: r.friction, color: SEA[r.sea_state] ? SEA[r.sea_state].color : '#8b5cf6' }),
-        jsx('span', { children: r.sea_label || '—' }),
-        jsx('span', { children: r.blocker || 'none' }),
-        jsx('span', { children: r.verified && r.verified.verdict ? r.verified.verdict : '—' }),
-      ]})),
+      ...cmp.rows.map(r => jsxs('div', {
+        key: r.run_id,
+        className: 'grid grid-cols-5 items-center gap-2 text-xs',
+        children: [
+          jsx('span', { children: `${r.rounds ?? '?'} rounds` }),
+          jsx(FrictionBar, { friction: r.friction, color: SEA[r.sea_state] ? SEA[r.sea_state].color : 'var(--ui-accent)' }),
+          jsx('span', { children: r.sea_label || '—' }),
+          jsx('span', { children: r.blocker || 'none' }),
+          jsx('span', { children: r.verified && r.verified.verdict ? r.verified.verdict : '—' }),
+        ],
+      })),
     ]}),
   ]})
 }
@@ -511,16 +541,16 @@ function ComparePanel({ cmp }) {
 // ── one run row (shared by Recent and Past reviews) ─────────────────
 
 function RunRow({ h, onOpen }) {
-  return jsxs('button', {
-    type: 'button',
-    className: 'flex w-full items-center gap-3 rounded px-1 py-1 text-left text-sm text-(--ui-text-secondary) hover:bg-(--ui-bg-secondary) hover:text-(--ui-text)',
+  return jsxs(Button, {
+    variant: 'ghost',
+    className: 'h-auto w-full justify-start gap-3 px-2 py-1.5 text-left font-normal',
     onClick: () => onOpen(h.run_id, h.title),
     children: [
-      jsx('span', { className: 'h-2 w-2 rounded-full', style: { backgroundColor: SEA[h.sea_state] ? SEA[h.sea_state].color : '#555' } }),
-      jsx('span', { className: 'flex-1 truncate', children: h.title }),
-      jsx('span', { className: 'text-xs tabular-nums', children: h.rounds ? `${h.rounds} rounds` : '' }),
-      jsx('span', { className: 'text-xs tabular-nums', children: h.friction != null ? `friction ${h.friction}` : '' }),
-      jsx('span', { className: 'text-xs', children: h.verified && h.verified.verdict ? h.verified.verdict : '' }),
+      jsx('span', { className: 'size-2 shrink-0 rounded-full', style: { backgroundColor: SEA[h.sea_state] ? SEA[h.sea_state].color : '#555' } }),
+      jsx('span', { className: 'flex-1 truncate text-[0.8125rem]', children: h.title }),
+      jsx('span', { className: 'text-[0.6875rem] tabular-nums text-(--ui-text-tertiary)', children: h.rounds ? `${h.rounds} rounds` : '' }),
+      jsx('span', { className: 'text-[0.6875rem] tabular-nums text-(--ui-text-tertiary)', children: h.friction != null ? `friction ${h.friction}` : '' }),
+      jsx('span', { className: 'text-[0.6875rem] text-(--ui-text-tertiary)', children: h.verified && h.verified.verdict ? h.verified.verdict : '' }),
     ],
   })
 }
@@ -607,18 +637,15 @@ function UpfrontPage({ ctx }) {
 
   const recent = history.slice(0, 2)
 
-  return jsxs('div', { className: 'flex h-full flex-col gap-4 overflow-auto p-4', children: [
-    // header + the "+ New review" pill (green, like the reference button)
+  return jsxs('div', { className: 'flex h-full flex-col gap-3 overflow-auto p-4', children: [
+    // header
     jsxs('div', { className: 'flex items-center justify-between', children: [
       jsxs('div', { className: 'flex flex-col', children: [
         jsx('div', { className: 'text-lg font-semibold', children: PRODUCT_NAME }),
         jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-tertiary)',
           children: `strategic-response review · gateway: ${gateway} · build ${BUILD}` }),
       ]}),
-      jsx('button', {
-        type: 'button',
-        className: 'flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-white',
-        style: { backgroundColor: GREEN },
+      jsx(Button, {
         onClick: () => { haptic('tap'); setModal(true) },
         children: '+ New review',
       }),
@@ -627,64 +654,62 @@ function UpfrontPage({ ctx }) {
     modal && jsx(NewReviewModal, { ctx, onClose: () => setModal(false), onStarted: started }),
 
     // live run
-    running && !running.error && jsxs('div', { className: 'flex flex-col gap-2 rounded border border-(--ui-border) p-4', children: [
+    running && !running.error && jsxs(Card, { children: [
       jsxs('div', { className: 'flex items-center justify-between', children: [
         jsx('div', { className: 'text-sm font-medium', children: 'Review in progress' }),
         jsx('div', { className: 'text-xs text-(--ui-text-tertiary)',
           children: running.total ? `Round ${running.round} of ${running.total} — ${running.progress}%` : `${running.progress}%` }),
       ]}),
-      jsxs('div', { className: 'h-2 w-full overflow-hidden rounded bg-(--ui-bg-secondary)', children: [
-        jsx('div', { className: 'h-full transition-all', style: { width: `${running.progress}%`, backgroundColor: GREEN } }),
+      jsxs('div', { className: 'h-2 w-full overflow-hidden rounded-full bg-(--ui-bg-quaternary)', children: [
+        jsx('div', { className: 'h-full rounded-full bg-primary transition-all', style: { width: `${running.progress}%` } }),
       ]}),
       liveGraph && jsx(GraphSvg, { graph: liveGraph, height: 300 }),
       jsxs('div', { className: 'flex items-center gap-2', children: [
-        jsx('input', {
-          className: 'flex-1 rounded border border-(--ui-border) bg-(--ui-bg-secondary) px-2 py-1 text-sm',
+        jsx(Input, {
+          className: 'flex-1',
           placeholder: 'Inject a counter-move mid-run — e.g. "Publish the eval suite first"',
           value: injectText, onChange: e => setInjectText(e.target.value),
         }),
-        jsx('button', {
-          type: 'button', className: 'rounded px-3 py-1 text-sm text-white disabled:opacity-50',
-          style: { backgroundColor: GREEN }, disabled: !injectText.trim(), onClick: inject,
-          children: 'Inject ⚡',
-        }),
+        jsx(Button, { disabled: !injectText.trim(), onClick: inject, children: 'Inject ⚡' }),
       ]}),
     ]}),
-    running && running.error && jsx('div', { className: 'rounded border border-red-500/40 p-3 text-sm text-red-500', children: `Run failed: ${running.error}` }),
+    running && running.error && jsx(Callout, { icon: 'error', tone: 'var(--destructive)', title: 'Run failed', children: running.error }),
 
     // finished result
     result && jsxs('div', { className: 'flex flex-col gap-3', children: [
-      jsxs('div', { className: 'flex flex-wrap items-center gap-3', children: [
-        jsx(SeaAxis, { sea: result.sea }),
-        result.friction != null && jsx(FrictionBar, { friction: result.friction, color: result.sea ? result.sea.color : '#8b5cf6' }),
-        result.blocker && jsx('span', { className: 'text-xs text-(--ui-text-secondary)', children: `veto player: ${result.blocker}` }),
+      jsxs(Card, { children: [
+        jsx('div', { className: FIELD_LABEL, children: 'Competition read' }),
+        jsxs('div', { className: 'flex flex-wrap items-center gap-3', children: [
+          jsx(SeaAxis, { sea: result.sea }),
+          result.friction != null && jsx(FrictionBar, { friction: result.friction, color: result.sea ? result.sea.color : 'var(--ui-accent)' }),
+          result.blocker && jsx('span', { className: 'text-xs text-(--ui-text-secondary)', children: `veto player: ${result.blocker}` }),
+        ]}),
       ]}),
-      jsxs('div', { className: 'grid grid-cols-2 gap-4', children: [
-        jsx(GraphSvg, { graph: result.graph }),
-        jsx('div', { className: 'max-h-[520px] overflow-auto rounded border border-(--ui-border) p-3',
-          children: jsx(Markdown, { text: result.report }) }),
+      jsxs('div', { className: 'grid grid-cols-2 gap-3', children: [
+        jsx(Card, { children: jsx(GraphSvg, { graph: result.graph }) }),
+        jsx(Card, { className: 'max-h-[520px] overflow-auto', children: jsx(Markdown, { text: result.report }) }),
       ]}),
-      result.claims && result.claims.length > 0 && jsxs('div', { className: 'flex flex-col gap-2 rounded border border-(--ui-border) p-3', children: [
+      result.claims && result.claims.length > 0 && jsxs(Card, { children: [
         jsx('div', { className: 'text-sm font-medium', children: 'Score the claims — did the review call it?' }),
         ...result.claims.map(c => jsxs('div', { key: c.id, className: 'flex items-start gap-2 text-xs', children: [
-          jsx('span', { className: 'flex-1', children: c.claim }),
-          jsx('button', { type: 'button',
-            className: 'rounded border px-1.5 py-0.5 text-xs',
-            style: claimHits[c.id] === true
-              ? { borderColor: '#46a758', backgroundColor: 'rgba(70,167,88,0.15)', color: '#46a758', fontWeight: 600 }
-              : { borderColor: 'var(--ui-border)', color: 'var(--ui-text-tertiary)' },
-            onClick: () => setClaimHits({ ...claimHits, [c.id]: true }), children: '✓' }),
-          jsx('button', { type: 'button',
-            className: 'rounded border px-1.5 py-0.5 text-xs',
-            style: claimHits[c.id] === false
-              ? { borderColor: '#e5484d', backgroundColor: 'rgba(229,72,77,0.15)', color: '#e5484d', fontWeight: 600 }
-              : { borderColor: 'var(--ui-border)', color: 'var(--ui-text-tertiary)' },
-            onClick: () => setClaimHits({ ...claimHits, [c.id]: false }), children: '✗' }),
+          jsx('span', { className: 'flex-1 text-(--ui-text-secondary)', children: c.claim }),
+          jsx(Button, {
+            size: 'xs',
+            variant: claimHits[c.id] === true ? 'secondary' : 'outline',
+            onClick: () => setClaimHits({ ...claimHits, [c.id]: true }),
+            children: '✓',
+          }),
+          jsx(Button, {
+            size: 'xs',
+            variant: claimHits[c.id] === false ? 'destructive' : 'outline',
+            onClick: () => setClaimHits({ ...claimHits, [c.id]: false }),
+            children: '✗',
+          }),
         ]})),
         jsxs('div', { className: 'flex items-center gap-2 pt-1', children: [
           jsx('span', { className: 'text-xs text-(--ui-text-tertiary)', children: 'overall verdict:' }),
-          ...['right', 'partial', 'wrong'].map(v => jsx('button', {
-            key: v, type: 'button', className: 'rounded border border-(--ui-border) px-2 py-0.5 text-xs',
+          ...['right', 'partial', 'wrong'].map(v => jsx(Button, {
+            key: v, size: 'xs', variant: 'outline',
             onClick: () => verify(v), children: v,
           })),
         ]}),
@@ -693,13 +718,13 @@ function UpfrontPage({ ctx }) {
 
     compare && showCompare && jsxs('div', { className: 'flex flex-col gap-1', children: [
       jsx(ComparePanel, { cmp: compare }),
-      jsx('button', { type: 'button', className: 'self-start text-[0.6875rem] text-(--ui-text-tertiary) hover:text-(--ui-text)',
+      jsx(Button, { size: 'xs', variant: 'ghost', className: 'self-start',
         onClick: () => setShowCompare(false), children: 'hide comparison' }),
     ]}),
 
     // recent — the two latest runs, above the full list
-    recent.length > 0 && jsxs('div', { className: 'flex flex-col gap-1 rounded border border-(--ui-accent) p-4', children: [
-      jsx('div', { className: 'flex items-center justify-between', children: [
+    recent.length > 0 && jsxs(Card, { tone: 'var(--ui-accent)', children: [
+      jsxs('div', { className: 'flex items-center justify-between', children: [
         jsx('div', { className: 'text-sm font-medium', children: 'Recent' }),
         jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-tertiary)', children: 'latest 2 runs' }),
       ]}),
@@ -707,10 +732,10 @@ function UpfrontPage({ ctx }) {
     ]}),
 
     // history
-    jsxs('div', { className: 'flex flex-col gap-1 rounded border border-(--ui-border) p-4', children: [
+    jsxs(Card, { children: [
       jsx('div', { className: 'text-sm font-medium', children: 'Past reviews' }),
       history.length === 0
-        ? jsx('div', { className: 'text-sm text-(--ui-text-tertiary)', children: 'No runs yet — press + New review.' })
+        ? jsx('div', { className: 'py-2 text-sm text-(--ui-text-tertiary)', children: 'No runs yet — press + New review.' })
         : history.map(h => jsx(RunRow, { key: h.run_id, h, onOpen: openRun })),
     ]}),
   ]})
