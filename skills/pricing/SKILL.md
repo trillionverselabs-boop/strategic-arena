@@ -1,5 +1,5 @@
 ---
-name: upfront-pricing
+name: pricing
 description: Use when briefing a price change — grandfathering, churn risk, and how competitors frame it.
 ---
 
@@ -10,7 +10,7 @@ whose usage jumped, the competitor who announces "we're cheaper" the same week. 
 surface those edges by name.
 
 **Not a prediction.** Upfront is a strategic-response review grounded in the text you paste. Its
-track record is the scored ledger (`upfront_calibration`), and it needs `n >= 10` before it means
+track record is the scored ledger (`arena_calibration`), and it needs `n >= 10` before it means
 anything.
 
 ## What to paste
@@ -25,8 +25,8 @@ Paste the **grandfathering rule** verbatim. "Existing customers keep their plan 
 "existing customers keep their price forever" produce different stakeholders and a different veto
 player.
 
-Run it with `upfront_run` (`documents` or `urls`, `goal`, `window`); read the result with
-`upfront_report(run_id)`.
+Run it with `arena_run` (`documents` or `urls`, `goal`, `window`); read the result with
+`arena_report(run_id)`.
 
 ## What the read must tell you
 
@@ -54,7 +54,7 @@ Run it with `upfront_run` (`documents` or `urls`, `goal`, `window`); read the re
 - [ ] `goal: "campaign"` when the change is also a repositioning, else `adoption`
 - [ ] Report's veto player checked against the segment that actually carries the increase
 - [ ] Counter-moves compared: phased rollout vs grandfathering vs grandfathered-with-cap
-- [ ] Follow-up scheduled with `upfront_due`
+- [ ] Follow-up scheduled with `arena_due`
 
 ## Worked example
 
@@ -69,5 +69,5 @@ The counter-move is to move the effective date past the renewals — not to soft
 
 ## After the run
 
-`upfront_export(run_id)` puts the review in `decisions/` next to the pricing memo, so it can be
+`arena_export(run_id)` puts the review in `decisions/` next to the pricing memo, so it can be
 linked from the change ticket. Score the claims at the window close.

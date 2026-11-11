@@ -1,5 +1,5 @@
 ---
-name: upfront-openweight
+name: openweight
 description: Use when briefing an open-weight, licence or evals decision — compliance objections and community expectations.
 ---
 
@@ -10,7 +10,7 @@ legitimate: licence scope, safety evaluation, liability, and the community's exp
 "open" means. The review's job is to name who will object and on what grounds.
 
 **Not a prediction.** Upfront is a strategic-response review grounded in the documents you supply.
-Its accuracy claim is a scored ledger (`upfront_calibration`), never a single report.
+Its accuracy claim is a scored ledger (`arena_calibration`), never a single report.
 
 ## What to paste
 
@@ -23,8 +23,8 @@ Its accuracy claim is a scored ledger (`upfront_calibration`), never a single re
 The **licence id** is not a detail. Apache-2.0, a custom community licence, and "weights on request"
 produce three different stakeholder sets.
 
-Run it with `upfront_run` (`documents` or `urls`, `goal: "open_weight"`, `window`); read the result
-with `upfront_report(run_id)`.
+Run it with `arena_run` (`documents` or `urls`, `goal: "open_weight"`, `window`); read the result
+with `arena_report(run_id)`.
 
 ## What the read must tell you
 
@@ -52,7 +52,7 @@ with `upfront_report(run_id)`.
 - [ ] `goal: "open_weight"`
 - [ ] Report checked for a compliance player and a commercial/sales player
 - [ ] Counter-moves compared: gated weights vs ungated, eval-first vs simultaneous
-- [ ] Follow-up scheduled with `upfront_due`
+- [ ] Follow-up scheduled with `arena_due`
 
 ## Worked example
 
@@ -68,5 +68,5 @@ today, with the release date unchanged — the objection is procedural, not subs
 
 ## After the run
 
-`upfront_export(run_id)` files the review with the release checklist; the decision record is what a
+`arena_export(run_id)` files the review with the release checklist; the decision record is what a
 reviewer will ask for six months later. Score the claims when the window closes.

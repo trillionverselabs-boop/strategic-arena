@@ -44,11 +44,11 @@ Legal moves the call from a fight to quiet ground with no veto left.
 
 | Surface | Use |
 |---|---|
-| `register_tools` (7 tools) | `upfront_run`, `upfront_status`, `upfront_report`, `upfront_history`, `upfront_calibration`, `upfront_due`, `upfront_export` |
+| `register_tools` (7 tools) | `arena_run`, `arena_status`, `arena_report`, `arena_history`, `arena_calibration`, `arena_due`, `arena_export` |
 | `ctx.llm` | every model call; credentials stay host-owned, no key is read or stored |
 | `ctx.has_capability("llm.model_override")` | **asked**, never granted — the plugin reads the permission and never writes config |
 | `ctx.register_skill` | 5 bundled skills (launch, pricing, deprecation, open-weight, the review loop) |
-| `dashboard/plugin_api.py` | backend at `/api/plugins/upfront/` (run, status, report, graph, claims, events, leverage, history, calibration, due, verify, compare, presets, models) |
+| `dashboard/plugin_api.py` | backend at `/api/plugins/strategic-arena/` (run, status, report, graph, claims, events, leverage, history, calibration, due, verify, compare, presets, models) |
 | `desktop/plugin.js` | the whole UI: sidebar nav + route, SDK components and theme tokens only |
 
 ## Rule 13 disclosure

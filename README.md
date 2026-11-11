@@ -131,7 +131,7 @@ credentials — see [How it works](#how-it-works) and the [repo layout](#repo-la
 ### What "local-first" means
 
 Everything runs on **your own machine**. Your documents and results stay in the
-plugin's own data root (`<hermes home>/plugin-data/upfront/`, per-profile when
+plugin's own data root (`<hermes home>/plugin-data/strategic-arena/`, per-profile when
 multiplexing). Nothing is sent to a
 cloud service, no account is required, and no data leaves unless you choose to
 fetch a URL or use your own model provider. You can unplug from the internet
@@ -208,7 +208,7 @@ Under the hood it is a small, clean-room implementation of five research ideas:
 | **MASS** (Qian et al.) | Replication manifest, scheduling discipline, and the 8 known failure modes, reported per run |
 | **CAMEL** | Role-play framing + inception-style prompt templates |
 
-Everything is local-first: the graph and every past run are stored in `~/.hermes/upfront/`
+Everything is local-first: the graph and every past run are stored in `<hermes home>/plugin-data/strategic-arena/`
 on your machine. No cloud graph service, no Zep, no Docker. Runs on **your active Hermes
 model** via `ctx.llm` — the plugin never sees or stores a credential.
 
@@ -292,7 +292,7 @@ If the answer moves with how long you run it, the panel says so and shows the st
 between the shortest and longest run. That is a finding, not a failure — and it is the
 reason to run 30m, 4h and 24h on the same decision rather than trusting one report.
 
-**Opt-in deep dive:** `upfront_report(run_id, full=true)` (or `GET /report/{id}?full=true`)
+**Opt-in deep dive:** `arena_report(run_id, full=true)` (or `GET /report/{id}?full=true`)
 returns the long-form `report_full.md` — same grounded content, expanded with
 per-stakeholder narratives, round-by-round trajectories, camp structure, and the MASS
 failure-mode audit.
@@ -352,12 +352,12 @@ stated, and their conditions are printed as sentences you can act on.
 
 ### Uninstalling
 
-`hermes plugins remove upfront` leaves 18 paths behind (dependency venvs, source
+`hermes plugins remove strategic-arena` leaves 18 paths behind (dependency venvs, source
 snapshots, run history). Use the one-command purge and its built-in proof:
 
 ```bash
-hermes plugins remove upfront
-python3 scripts/uninstall-clean.py upfront      # add --keep-data to keep run history
+hermes plugins remove strategic-arena
+python3 scripts/uninstall-clean.py strategic-arena      # add --keep-data to keep run history
 ```
 
 Full detail: [`docs/UNINSTALL.md`](docs/UNINSTALL.md).
@@ -445,11 +445,11 @@ What a user would want to know before installing, stated plainly:
   text. Fetched URLs are capped (http/https only, size and length limited, hard timeout).
 - **Background processes:** a simulation runs in a background thread while it streams
   progress to the desktop UI. No long-running daemon, no auto-update, no telemetry.
-- **Data:** reads and writes live only under `~/.hermes/upfront/` (graph + run history)
+- **Data:** reads and writes live only under `<hermes home>/plugin-data/strategic-arena/` (graph + run history)
   plus the plugin's own package files. Nothing leaves the machine except the inference
   and URL-fetch calls above.
 - **UI build readback:** `GET /ui` reads this plugin's own `desktop/plugin.js` and the
-  app-level copy at `<hermes home>/desktop-plugins/upfront/plugin.js` — a read *outside* the
+  app-level copy at `<hermes home>/desktop-plugins/strategic-arena/plugin.js` — a read *outside* the
   plugin's data directory, but of this plugin's own file only — so the header can tell you the
   window is stale. `POST /ui/refresh` writes nothing anywhere; the **Reload UI** button simply
   reloads the page, and the app's own plugin scan is what re-copies the desktop half.
@@ -464,7 +464,7 @@ What a user would want to know before installing, stated plainly:
   answer.
 - **Credentials:** none stored, none read. All model access goes through the
   host's own `PluginLlm` facade — the same object `ctx.llm` is built from
-  (`agent.plugin_llm.PluginLlm(plugin_id="upfront")`), used by the backend routes
+  (`agent.plugin_llm.PluginLlm(plugin_id="strategic-arena")`), used by the backend routes
   when they run in a process that never saw `register(ctx)`. The plugin never
   reads `.env`, `auth.json`, or any vendor token file (catalog admission rule 11),
   and never builds an `Authorization` header itself.
@@ -477,8 +477,8 @@ Hermes plugins only load when the plugin is enabled. From the desktop app:
 From the CLI:
 
 ```bash
-hermes plugins install /path/to/upfront   # or by catalog name once listed
-hermes plugins enable upfront
+hermes plugins install /path/to/strategic-arena   # or by catalog name once listed
+hermes plugins enable strategic-arena
 ```
 
 The desktop half is opt-in by design: it inventories in Capabilities → Plugins and stays
@@ -520,10 +520,10 @@ What that means in practice:
   Until that clone exists the Plugins page shows this plugin's Desktop half as
   **unavailable (remote backend)** — with a tooltip pointing at **Install from Git** with the
   Desktop target checked. That state is the diagnosis; a stale local copy is the other one.
-- `hermes plugins doctor upfront` warns when the copy differs from the installed source and
+- `hermes plugins doctor strategic-arena` warns when the copy differs from the installed source and
   names the copy it found.
 
-Running `hermes plugins update upfront` on the **server** updates the engine and the half the
+Running `hermes plugins update strategic-arena` on the **server** updates the engine and the half the
 server can see; it cannot reach a window on another computer. The header's build badge is the
 one honest check: it compares the build this window runs with the build beside it, and the
 callout names the fix when they differ.
@@ -531,7 +531,7 @@ callout names the fix when they differ.
 ### Where data lives
 
 Run history, the graph, the manifests and the calibration ledger live in the plugin's
-sanctioned data root (`plugin_data_dir("upfront")` — `<hermes home>/plugin-data/upfront/`),
+sanctioned data root (`plugin_data_dir("strategic-arena")` — `<hermes home>/plugin-data/strategic-arena/`),
 which survives plugin updates and removal and follows the active profile.
 
 ## Develop / run as a test
@@ -557,9 +557,9 @@ Manual smoke check (also what the backend loader does):
 ```bash
 python -c "
 import sys, importlib.util
-spec = importlib.util.spec_from_file_location('hermes_dashboard_plugin_upfront', 'dashboard/plugin_api.py')
+spec = importlib.util.spec_from_file_location('hermes_dashboard_plugin_strategic_arena', 'dashboard/plugin_api.py')
 m = importlib.util.module_from_spec(spec)
-sys.modules['hermes_dashboard_plugin_upfront'] = m
+sys.modules['hermes_dashboard_plugin_strategic_arena'] = m
 spec.loader.exec_module(m)
 print('router:', m.router)  # should print an APIRouter, no import errors
 "
@@ -575,7 +575,7 @@ hermes plugins validate . --install-deps
 ## Repo layout
 
 ```
-strategic-arena/             # product: Strategic Arena · plugin id: `upfront`
+strategic-arena/             # the product, and the plugin id (`strategic-arena`)
 ├── plugin.yaml              # plugin manifest: label, capabilities, provides_tools
 ├── __init__.py              # register(ctx): tools + ctx.llm bind
 ├── pyproject.toml           # no deps of our own — pydantic/fastapi are Hermes core
@@ -584,8 +584,8 @@ strategic-arena/             # product: Strategic Arena · plugin id: `upfront`
 ├── CODE_OF_CONDUCT.md       # short, project-specific, enforceable
 ├── README.md                # what it is, the contract, the lens, the rules we hold to
 ├── dashboard/
-│   ├── manifest.json        # {"name": "upfront", "api": "plugin_api.py"}
-│   └── plugin_api.py        # FastAPI backend at /api/plugins/upfront/
+│   ├── manifest.json        # {"name": "strategic-arena", "api": "plugin_api.py"}
+│   └── plugin_api.py        # FastAPI backend at /api/plugins/strategic-arena/
 │       routes: /run /status /report /graph /claims /events /leverage /history
 │               /calibration /due /verify /compare /presets /models /model-access
 ├── desktop/plugin.js        # the whole desktop UI — uncompiled ESM, no JSX, no build
@@ -610,12 +610,12 @@ strategic-arena/             # product: Strategic Arena · plugin id: `upfront`
 
 ## Tools exposed
 
-- `upfront_run` → `{ run_id }`
-- `upfront_status(run_id)` → status / progress / snapshot
-- `upfront_report(run_id)` → markdown report text
-- `upfront_history([limit])`
-- `upfront_calibration()` → the scored track record (runs, hit rate, friction error)
-- `upfront_due([as_of])` → reviews whose window closed and are still unscored
+- `arena_run` → `{ run_id }`
+- `arena_status(run_id)` → status / progress / snapshot
+- `arena_report(run_id)` → markdown report text
+- `arena_history([limit])`
+- `arena_calibration()` → the scored track record (runs, hit rate, friction error)
+- `arena_due([as_of])` → reviews whose window closed and are still unscored
 
 ## Who built this
 
@@ -658,10 +658,10 @@ Registered under the plugin namespace, available in `skills_list` while Strategi
 
 | Skill | For |
 |---|---|
-| `upfront:upfront-launch` | product/feature launches |
-| `upfront:upfront-pricing` | price changes, grandfathering, churn risk |
-| `upfront:upfront-deprecation` | sunsets, breaking changes, notice periods |
-| `upfront:upfront-openweight` | licence/weights/evals releases |
-| `upfront:upfront-review` | closing the loop: score claims at the window close |
+| `strategic-arena:launch` | product/feature launches |
+| `strategic-arena:pricing` | price changes, grandfathering, churn risk |
+| `strategic-arena:deprecation` | sunsets, breaking changes, notice periods |
+| `strategic-arena:openweight` | licence/weights/evals releases |
+| `strategic-arena:review` | closing the loop: score claims at the window close |
 
 

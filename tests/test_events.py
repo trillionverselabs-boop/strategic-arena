@@ -41,8 +41,8 @@ def test_events_route_serves_the_frozen_log():
     spec.loader.exec_module(mod)
 
     app = FastAPI()
-    app.include_router(mod.router, prefix="/api/plugins/upfront")
-    body = TestClient(app).get(f"/api/plugins/upfront/events/{res.run_id}").json()
+    app.include_router(mod.router, prefix="/api/plugins/strategic-arena")
+    body = TestClient(app).get(f"/api/plugins/strategic-arena/events/{res.run_id}").json()
 
     assert "events" in body and "snapshots" in body
     assert len(body["events"]) == len(res.events)

@@ -26,7 +26,7 @@ def _client():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     app = FastAPI()
-    app.include_router(mod.router, prefix="/api/plugins/upfront")
+    app.include_router(mod.router, prefix="/api/plugins/strategic-arena")
     return TestClient(app)
 
 
@@ -42,7 +42,7 @@ def test_the_ui_ships_no_way_to_replace_itself():
 
 
 def test_the_ui_never_fetches_anything_but_its_own_backend():
-    """The page talks to its own /api/plugins/upfront namespace through ctx.rest.
+    """The page talks to its own /api/plugins/strategic-arena namespace through ctx.rest.
     A raw fetch() would be a second, unreviewed network path."""
     assert "fetch(" not in UI
     assert "XMLHttpRequest" not in UI
@@ -50,7 +50,7 @@ def test_the_ui_never_fetches_anything_but_its_own_backend():
 
 def test_the_backend_registers_no_update_routes():
     c = _client()
-    for route in ("/api/plugins/upfront/ui/download", "/api/plugins/upfront/ui/refresh"):
+    for route in ("/api/plugins/strategic-arena/ui/download", "/api/plugins/strategic-arena/ui/refresh"):
         assert c.get(route).status_code in (404, 405), route
         assert c.post(route).status_code in (404, 405), route
 
@@ -72,7 +72,7 @@ def test_a_stale_window_is_still_told_and_still_has_a_way_forward():
 
 
 def test_the_status_route_is_a_read_only_report():
-    body = _client().get("/api/plugins/upfront/ui?build=0.0.1").json()
+    body = _client().get("/api/plugins/strategic-arena/ui?build=0.0.1").json()
     assert set(body) >= {"running", "installed", "up_to_date", "hint"}
     assert body["up_to_date"] is False
     assert "Reload the page" not in body["hint"]

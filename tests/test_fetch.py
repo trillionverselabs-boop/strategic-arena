@@ -17,7 +17,7 @@ def test_clean_keeps_content_and_caps_noise():
     assert "\n\n\n" not in out
 
 
-# --- regression: a real Next.js page (nousresearch.com/arete, 1.66 MB)
+# --- regression: a real Next.js page (1.66 MB of framework markup around the text)
 # put 3,211 SVG path-coordinate tokens in front of every sentence of prose.
 # The engine graded a move off a title and a pile of coordinates.
 

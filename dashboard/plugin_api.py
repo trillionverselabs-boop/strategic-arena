@@ -1,4 +1,4 @@
-# Upfront — backend namespace /api/plugins/upfront/
+# Upfront — backend namespace /api/plugins/strategic-arena/
 # Mounted by the dashboard plugin loader. Exports a FastAPI APIRouter.
 # Desktop reaches these routes via ctx.rest('/...').
 #
@@ -144,7 +144,7 @@ def _override_allowed() -> bool:
         from hermes_cli.config import load_config_readonly
 
         cfg = (load_config_readonly() or {}).get("plugins") or {}
-        entry = ((cfg.get("entries") or {}).get("upfront") or {})
+        entry = ((cfg.get("entries") or {}).get("strategic-arena") or {})
         return bool((entry.get("llm") or {}).get("allow_model_override"))
     except Exception:
         return False
@@ -490,7 +490,7 @@ async def model_access():
     except Exception:
         pass
     return {"allowed": allowed, "allowed_models": allowed_models,
-            "config_key": "plugins.entries.upfront.llm.allow_model_override"}
+            "config_key": "plugins.entries.strategic-arena.llm.allow_model_override"}
 
 
 @router.get("/models")
@@ -525,7 +525,7 @@ async def history(limit: int = 20):
 async def due():
     """Runs whose window has closed and that are still unscored.
 
-    The desktop and `upfront_due` both read this — one payload, one truth.
+    The desktop and `arena_due` both read this — one payload, one truth.
     """
     rows = reporting.due_claims()
     return {"due": rows, "count": len(rows)}

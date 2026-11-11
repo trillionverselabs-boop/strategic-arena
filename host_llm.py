@@ -71,7 +71,7 @@ class HostLlm:
                 self.override_denied_note = (
                     f"Your model choice ({model}) was not permitted by the host, so this "
                     "run used your active model. To enable the picker, set "
-                    "plugins.entries.upfront.llm.allow_model_override: true in config.yaml."
+                    "plugins.entries.strategic-arena.llm.allow_model_override: true in config.yaml."
                 )
                 try:
                     from . import paths

@@ -19,7 +19,7 @@
 # dependency prompt.
 
 [project]
-name = "hermes-upfront"
+name = "hermes-strategic-arena"
 version = "0.6.2"
 description = "Strategic Arena — read what it means before it reads you: give it an artefact (README, post, whitepaper, announcement) and it returns the room that reacts, who holds power, what each condition costs, and the frozen call."
 requires-python = ">=3.11"

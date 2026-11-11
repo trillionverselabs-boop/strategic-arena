@@ -83,15 +83,15 @@ def test_due_route_serves_the_same_payload():
     spec.loader.exec_module(mod)
 
     app = FastAPI()
-    app.include_router(mod.router, prefix="/api/plugins/upfront")
-    body = TestClient(app).get("/api/plugins/upfront/due").json()
+    app.include_router(mod.router, prefix="/api/plugins/strategic-arena")
+    body = TestClient(app).get("/api/plugins/strategic-arena/due").json()
 
     assert [r["run_id"] for r in body["due"]] == [res.run_id]
     assert body["count"] == 1
 
 
 def test_register_registers_bundled_skills():
-    """Skills ship inside the plugin and resolve as `upfront:<name>`."""
+    """Skills ship inside the plugin and resolve as `strategic-arena:<name>`."""
     from upfront import register
 
     class Ctx:
@@ -115,9 +115,9 @@ def test_register_registers_bundled_skills():
 
     c = Ctx()
     register(c)
-    assert "upfront-review" in c.skills
-    assert c.skills["upfront-review"].name == "SKILL.md"
-    assert "upfront_due" in c.tools
+    assert "review" in c.skills
+    assert c.skills["review"].name == "SKILL.md"
+    assert "arena_due" in c.tools
 
 
 def test_due_tool_is_registered():
@@ -130,5 +130,5 @@ def test_due_tool_is_registered():
 
     c = Ctx()
     register_tools(c)
-    assert "upfront_due" in c.schemas
-    assert c.schemas["upfront_due"]["parameters"]["type"] == "object"
+    assert "arena_due" in c.schemas
+    assert c.schemas["arena_due"]["parameters"]["type"] == "object"

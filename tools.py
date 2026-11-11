@@ -1,4 +1,4 @@
-# Tool registration — upfront_run/status/report/history/calibration as agent tools.
+# Tool registration — arena_run/status/report/history/calibration as agent tools.
 # Handlers are thin: build a Scenario, run the engine, return JSON.
 
 from __future__ import annotations
@@ -45,9 +45,9 @@ def _scenario_from(params: dict) -> Scenario:
 
 
 def register_tools(ctx, allow_model_override: bool = False) -> None:
-    # ── upfront_run ──────────────────────────────────────────────────
+    # ── arena_run ──────────────────────────────────────────────────
     run_schema = {
-        "name": "upfront_run",
+        "name": "arena_run",
         "description": (
             "Run a stakeholder reaction review on a decision (a strategic-response read, not a "
             "forecast). Give a title and at least one document (type=decision, content=text) or "
@@ -55,7 +55,7 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
             "(adoption/open_weight/deprecation/campaign), a window (6h/12h/24h/48h), and "
             "mid-run interventions. Returns a run with friction, the veto player, coalitions, "
             "best responses, the red/purple/blue competition read, and frozen claims you can "
-            "score later. Use upfront_calibration for the track record."
+            "score later. Use arena_calibration for the track record."
         ),
         "parameters": {
             "type": "object",
@@ -67,7 +67,7 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
                     "type": "string",
                     "description": (
                         "Optional model id from the live catalogue (see the desktop form, "
-                        "or GET /api/plugins/upfront/models). Empty / 'default' runs on the "
+                        "or GET /api/plugins/strategic-arena/models). Empty / 'default' runs on the "
                         "user's active model. Only honoured when the user granted "
                         "llm.model_override."
                     ),
@@ -132,11 +132,11 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
             "personas": [{"name": p.name, "stance": round(p.stance, 2)} for p in result.personas],
         })
 
-    ctx.register_tool(name="upfront_run", toolset="upfront", schema=run_schema, handler=handle_run)
+    ctx.register_tool(name="arena_run", toolset="arena", schema=run_schema, handler=handle_run)
 
-    # ── upfront_status / report / history / calibration ─────────────
+    # ── arena_status / report / history / calibration ─────────────
     status_schema = {
-        "name": "upfront_status",
+        "name": "arena_status",
         "description": "Check the status of a review run (running/done + progress).",
         "parameters": {"type": "object", "properties": {
             "run_id": {"type": "string"}}, "required": ["run_id"]},
@@ -145,10 +145,10 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
     def handle_status(params, **kwargs):
         return json.dumps(engine.get_progress(params.get("run_id", "")))
 
-    ctx.register_tool(name="upfront_status", toolset="upfront", schema=status_schema, handler=handle_status)
+    ctx.register_tool(name="arena_status", toolset="arena", schema=status_schema, handler=handle_status)
 
     report_schema = {
-        "name": "upfront_report",
+        "name": "arena_report",
         "description": "Return the report for a past run. By default the short report; "
                        "pass full=true for the opt-in long-form analysis.",
         "parameters": {"type": "object", "properties": {
@@ -163,10 +163,10 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
         key = "report_full" if params.get("full") else "report"
         return json.dumps({"run_id": params.get("run_id", ""), "report": data.get(key, "")})
 
-    ctx.register_tool(name="upfront_report", toolset="upfront", schema=report_schema, handler=handle_report)
+    ctx.register_tool(name="arena_report", toolset="arena", schema=report_schema, handler=handle_report)
 
     history_schema = {
-        "name": "upfront_history",
+        "name": "arena_history",
         "description": "List past review runs (most recent first) so you can verify results over time.",
         "parameters": {"type": "object", "properties": {
             "limit": {"type": "integer", "default": 20}}},
@@ -176,10 +176,10 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
         from . import reporting
         return json.dumps(reporting.list_runs(params.get("limit", 20)))
 
-    ctx.register_tool(name="upfront_history", toolset="upfront", schema=history_schema, handler=handle_history)
+    ctx.register_tool(name="arena_history", toolset="arena", schema=history_schema, handler=handle_history)
 
     cal_schema = {
-        "name": "upfront_calibration",
+        "name": "arena_calibration",
         "description": "The track record: runs, how many were scored, claim hit rate and "
                        "friction error. Judge accuracy by this, never by a single report.",
         "parameters": {"type": "object", "properties": {}},
@@ -189,12 +189,12 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
         from . import reporting
         return json.dumps(reporting.calibration())
 
-    ctx.register_tool(name="upfront_calibration", toolset="upfront",
+    ctx.register_tool(name="arena_calibration", toolset="arena",
                       schema=cal_schema, handler=handle_calibration)
 
-    # ── upfront_due ──────────────────────────────────────────────────
+    # ── arena_due ──────────────────────────────────────────────────
     due_schema = {
-        "name": "upfront_due",
+        "name": "arena_due",
         "description": (
             "Reviews whose window has closed and that nobody has scored yet. Call this when a "
             "review's timeline is up: it returns {due: [{run_id, title, due_at, window, claims}]} "
@@ -211,11 +211,11 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
         rows = reporting.due_claims(as_of=params.get("as_of") or None)
         return json.dumps({"due": rows, "count": len(rows)})
 
-    ctx.register_tool(name="upfront_due", toolset="upfront", schema=due_schema, handler=handle_due)
+    ctx.register_tool(name="arena_due", toolset="arena", schema=due_schema, handler=handle_due)
 
-    # ── upfront_export ───────────────────────────────────────────────
+    # ── arena_export ───────────────────────────────────────────────
     export_schema = {
-        "name": "upfront_export",
+        "name": "arena_export",
         "description": (
             "Write a review to a decision record file (`decisions/<slug>.md`) and return the path. "
             "The file keeps the run metadata, the competition read, the frozen claims as a score "
@@ -239,7 +239,7 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
             return json.dumps({"error": "run not found", "run_id": params.get("run_id", "")})
         return json.dumps({"run_id": params.get("run_id", ""), "path": path})
 
-    ctx.register_tool(name="upfront_export", toolset="upfront",
+    ctx.register_tool(name="arena_export", toolset="arena",
                       schema=export_schema, handler=handle_export)
 
 

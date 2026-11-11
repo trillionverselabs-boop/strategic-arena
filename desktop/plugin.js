@@ -1640,7 +1640,7 @@ function UpdateCard({ uiBuild, onOpenPlugins }) {
     ]}),
     jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
       jsx('strong', { children: 'Or drop the file in yourself: ' }),
-      'replace `%USERPROFILE%\\.hermes\\desktop-plugins\\upfront\\plugin.js`. The app watches that file and reloads the page in place.',
+      'replace `%USERPROFILE%\\.hermes\\desktop-plugins\\strategic-arena\\plugin.js`. The app watches that file and reloads the page in place.',
     ]}),
   ]})
 }
@@ -2496,13 +2496,13 @@ function Markdown({ text }) {
 }
 
 export default {
-  id: 'upfront',
+  id: 'strategic-arena',
   name: PRODUCT_NAME,
   defaultEnabled: false,
   register(ctx) {
     ctx.registerMany([
-      { id: 'page', area: ROUTES_AREA, data: { path: '/upfront' }, render: () => jsx(UpfrontPage, { ctx }) },
-      { id: 'nav', area: SIDEBAR_NAV_AREA, data: { path: '/upfront', label: PRODUCT_NAME, codicon: 'graph' } },
+      { id: 'page', area: ROUTES_AREA, data: { path: '/strategic-arena' }, render: () => jsx(UpfrontPage, { ctx }) },
+      { id: 'nav', area: SIDEBAR_NAV_AREA, data: { path: '/strategic-arena', label: PRODUCT_NAME, codicon: 'graph' } },
     ])
   },
 }

@@ -13,7 +13,7 @@ published on purpose — a security mailbox that nobody monitors is worse than n
 ## Scope
 
 Strategic Arena (`upfront`) runs locally and stores every run under the plugin's
-own data directory — `~/.hermes/plugin-data/upfront/runs/<run_id>/` on a single
+own data directory — `~/.hermes/plugin-data/strategic-arena/runs/<run_id>/` on a single
 profile, or the same path under `~/.hermes/profiles/<profile>/` under multiplexing.
 It does not store credentials: model access goes through Hermes' host-owned
 `ctx.llm`, and the plugin never reads `.env`, `auth.json`, a vendor CLI token or a
@@ -21,7 +21,7 @@ keychain. URL fetching is capped (http/https only, size and length limits, hard
 timeout, no redirect to a non-http scheme).
 
 **In scope:** the plugin's own code — prompt construction, the extraction and
-friction paths, the `/api/plugins/upfront/` routes, the desktop UI file, and the
+friction paths, the `/api/plugins/strategic-arena/` routes, the desktop UI file, and the
 run data on disk.
 
 **Out of scope:** the model's output (a wrong answer is a product limitation, not a

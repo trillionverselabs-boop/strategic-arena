@@ -3,7 +3,7 @@
 **The finding (2026-11-10, corrected the same day).** The plugin has two halves
 and they can live on different machines. The app loads `desktop/plugin.js`
 **from the machine the window runs on** — which, in this setup, is the user's
-computer, not the lisacore backend. `hermes plugins update upfront` on the
+computer, not the lisacore backend. `hermes plugins update strategic-arena` on the
 server updates the engine; it never reaches that window.
 
 **The second finding, the one that matters day to day:** *reloading the page
@@ -32,7 +32,7 @@ On the machine running the app: **Capabilities → Plugins → Install from Git*
 **2. Save the file over the copy** (fallback, one file)
 
 Save the new UI file to
-`%USERPROFILE%\.hermes\desktop-plugins\upfront\plugin.js` on the window's
+`%USERPROFILE%\.hermes\desktop-plugins\strategic-arena\plugin.js` on the window's
 machine, replacing the existing one. The app fs-watches that file, so it
 hot-reloads the page **in place — no restart, no ⌘K**.
 
@@ -57,7 +57,7 @@ Also worth knowing: toggling a desktop plugin off/on does **not** re-read
 
 ## How to tell which build the window is on
 
-The header prints `build <version> · ui<N>`. `GET /api/plugins/upfront/ui`
+The header prints `build <version> · ui<N>`. `GET /api/plugins/strategic-arena/ui`
 compares it against the build the backend has installed and returns an honest
 hint — it no longer says "reload the page".
 
@@ -69,10 +69,10 @@ hint — it no longer says "reload the page".
 ## Known core behaviour to remember
 
 - Old copies of the desktop half accumulate under
-  `~/.hermes/installs/<env>/…/plugin-sources/upfront-*/desktop/plugin.js`. They
+  `~/.hermes/installs/<env>/…/plugin-sources/strategic-arena-*/desktop/plugin.js`. They
   are inert, but they make a "which build is live?" search confusing — read the
   `BUILD` constant in the file the window actually loads
-  (`~/.hermes/desktop-plugins/upfront/plugin.js`), not the newest one found.
+  (`~/.hermes/desktop-plugins/strategic-arena/plugin.js`), not the newest one found.
 - A headless backend has no window at all: verifying "the UI looks right"
   remotely requires the user's eyes, or a screenshot from their machine.
 

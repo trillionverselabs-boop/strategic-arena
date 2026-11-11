@@ -34,11 +34,12 @@ def test_the_readme_is_the_product_not_the_old_one():
 
 
 def test_the_manifest_is_brand_aligned():
-    assert "label: Strategic Arena" in MANIFEST
     assert "Upfront Prediction" not in MANIFEST
     assert "rehearsal" not in MANIFEST.lower()
-    # the id is deliberately stable: renaming it breaks installs and the pin
-    assert MANIFEST.startswith("name: upfront\n")
+    # the id IS the display name in the Plugins list (`PluginManifest` has no `label`
+    # field), so it has to be the product name, hyphenated like the repo
+    assert MANIFEST.startswith("name: strategic-arena\n")
+    assert "\nlabel:" not in MANIFEST, "label is a provider field, not a plugin field"
 
 
 def test_the_catalog_entry_is_brand_aligned_and_pinned():
@@ -188,6 +189,25 @@ def test_no_public_document_links_to_a_file_that_is_not_there():
             if not (ROOT / target).exists():
                 broken.append(f"{name} -> {target}")
     assert not broken, broken
+
+
+def test_no_third_party_document_is_bundled():
+    """MIT covers what we wrote. A demo preset that quotes a real company's article
+    puts their words under our copyright line — so the example documents must be
+    ours and fictional, and say so."""
+    places = list((ROOT / "data" / "presets").glob("*.json")) + \
+             list((ROOT / "tests" / "fixtures").glob("*"))
+    assert places, "expected at least one example document"
+    banned = ("Nous Research", "NousResearch", "Arete", "Propaganda_Eval",
+              "Qwen", "arete-data-pairs")
+    for p in places:
+        if p.is_dir():
+            continue
+        text = p.read_text(errors="ignore")
+        for word in banned:
+            assert word not in text, f"{p.name} carries third-party text: {word}"
+    for p in (ROOT / "data" / "presets").glob("*.json"):
+        assert "fictional" in p.read_text().lower(), f"{p.name} is not labelled fictional"
 
 
 def test_no_third_party_code_is_bundled():

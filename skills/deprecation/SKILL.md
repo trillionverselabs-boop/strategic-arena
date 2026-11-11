@@ -1,5 +1,5 @@
 ---
-name: upfront-deprecation
+name: deprecation
 description: Use when briefing a sunset or breaking change — affected segments, migration path, notice period.
 ---
 
@@ -9,7 +9,7 @@ A sunset is only contested where the migration path is missing or the notice per
 The review should rank segments by *how much work you are asking of them*, not by how loud they are.
 
 **Not a prediction.** Upfront reads the reaction of the players named in your input. It does not
-forecast whether the deprecation succeeds; the scored ledger (`upfront_calibration`) is the only
+forecast whether the deprecation succeeds; the scored ledger (`arena_calibration`) is the only
 accuracy claim, and only after enough runs have been checked.
 
 ## What to paste
@@ -23,8 +23,8 @@ accuracy claim, and only after enough runs have been checked.
 Quantify who is affected. "Some customers use v1" produces a fictional stakeholder; "412 accounts,
 60 of them enterprise API integrations" produces the real one.
 
-Run it with `upfront_run` (`documents` or `urls`, `goal: "deprecation"`, `window`); read the result
-with `upfront_report(run_id)`.
+Run it with `arena_run` (`documents` or `urls`, `goal: "deprecation"`, `window`); read the result
+with `arena_report(run_id)`.
 
 ## What the read must tell you
 
@@ -51,7 +51,7 @@ with `upfront_report(run_id)`.
 - [ ] `goal: "deprecation"`
 - [ ] Report checked for support/services as a named player, not only customers
 - [ ] Counter-moves compared: longer notice vs read-only bridge vs per-account extension
-- [ ] Follow-up scheduled with `upfront_due`
+- [ ] Follow-up scheduled with `arena_due`
 
 ## Worked example
 
@@ -66,5 +66,5 @@ bridge to Q3, which converts a contract breach into a schedule.*
 
 ## After the run
 
-`upfront_report(run_id)` for the announcement brief, `upfront_export` to file it beside the
+`arena_report(run_id)` for the announcement brief, `arena_export` to file it beside the
 deprecation notice. Score the claims when the window closes.

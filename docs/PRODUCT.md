@@ -100,7 +100,7 @@ Read against the three published guides. These are the rules that bite, not the 
 | 11 — credentials through Hermes | Already correct: `ctx.llm` with host-owned credentials. Never read a key from a file. Extraction must go through the same `ctx.llm`. |
 | 08 — desktop stays inside the SDK | `desktop/plugin.js` imports only `@hermes/plugin-sdk`, `react`, `react/jsx-runtime`. Keep it that way; no `eval`, no DOM patching of app markup. |
 | 09 — no core overrides | Skills register via `ctx.register_skill` (already). Nothing patches a core module. |
-| 05, 01 — owner submission, human-merged | We are the owner of the repo; one `plugin-catalog/upfront.yaml`, one PR, reviewed pin. |
+| 05, 01 — owner submission, human-merged | We are the owner of the repo; one `plugin-catalog/strategic-arena.yaml`, one PR, reviewed pin. |
 | Before you submit | Public repo, `hermes plugins validate <path> --install-deps` green, screenshots in `assets/`, README rendered as the docs page. |
 
 **Deadline logic:** the catalog PR is due **Nov 11, 5PM EST**. The document-reader rebuild is not a
@@ -113,7 +113,7 @@ decline.
 
 ## Build order
 
-- **R5 — Document reader.** `Brief` extraction with spans and assumptions; `upfront_run` accepts a URL and fills the form fields itself. Fixture: the real Arete page. *Acceptance: the extracted brief names Alibaba/Qwen, Nous, the eval, and the 52.8M-token figure, each with a span; a junk page yields a degraded run, not a brief.*
+- **R5 — Document reader.** `Brief` extraction with spans and assumptions; `arena_run` accepts a URL and fills the form fields itself. Fixture: the real Arete page. *Acceptance: the extracted brief names Alibaba/Qwen, Nous, the eval, and the 52.8M-token figure, each with a span; a junk page yields a degraded run, not a brief.*
 - **R6 — Roster split + blue must be earned.** *(half shipped 2026-11-09: blue must be earned is live — see
   `docs/PROGRESS.md`; the stakeholder/field split is not built)* `stakeholder` vs `field`; sea state cannot be blue without a contestable party. *Acceptance: a run whose input names no opponent returns "insufficient input", never "blue ocean".*
 - **R7 — Field read.** Displaced/threatened/enabled parties ranked, counter-moves with timing, field claims scoreable. *Acceptance: report section renders with ≥3 ranked parties and ≥1 timed counter-move, each traceable to a span or labelled inferred.*

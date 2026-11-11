@@ -1,5 +1,5 @@
 ---
-name: upfront-launch
+name: launch
 description: Use when briefing a product or feature launch before it ships — what to paste, what evidence to demand, which timeline.
 ---
 
@@ -10,11 +10,11 @@ Run it before the announcement, not after the pushback.
 
 **Not a prediction.** Upfront returns a structured read of how the named players react to your
 move, grounded in text you paste. Its accuracy is only ever the scored ledger
-(`upfront_calibration`) — never a single run.
+(`arena_calibration`) — never a single run.
 
 ## What to paste
 
-Give `upfront_run` a `documents` array, or a `urls` array when the material lives online:
+Give `arena_run` a `documents` array, or a `urls` array when the material lives online:
 
 | Type | Content | Why it matters |
 |---|---|---|
@@ -53,7 +53,7 @@ Spend rounds on decisions you cannot take back, not on ones you can.
 - [ ] Timeline chosen before the run, not after seeing the result
 - [ ] Report read against the claim list — every claim is something you can check in the window
 - [ ] Veto player's cited reason maps to a document paragraph you supplied
-- [ ] Follow-up scheduled with `upfront_due` at the window close
+- [ ] Follow-up scheduled with `arena_due` at the window close
 
 ## Worked example
 
@@ -68,5 +68,5 @@ the same decision at `6h` with that counter-move injected and compare.
 
 ## After the run
 
-`upfront_report(run_id)` for the markdown, `upfront_export` to keep it next to the launch ticket.
+`arena_report(run_id)` for the markdown, `arena_export` to keep it next to the launch ticket.
 Score the claims when the window closes — an unscored launch review teaches you nothing.

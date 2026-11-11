@@ -4,9 +4,9 @@ Why this file exists
 --------------------
 There are two importers of this plugin in a running Hermes process:
 
-1. the **agent half** (`upfront/__init__.py`), loaded by the agent plugin loader
+1. the **agent half** (`strategic-arena/__init__.py`), loaded by the agent plugin loader
    under one module name, where `ctx.llm` exists;
-2. the **dashboard namespace** (`upfront/dashboard/plugin_api.py`), which the
+2. the **dashboard namespace** (`strategic-arena/dashboard/plugin_api.py`), which the
    dashboard loader imports *standalone from its file path* under a different
    module name, and where the FastAPI routes live.
 

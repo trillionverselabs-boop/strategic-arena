@@ -45,7 +45,7 @@ class FakeLLM:
 
 
 def main():
-    preset = json.loads(Path(__file__).resolve().parent.parent.joinpath("data/presets/arete.json").read_text())
+    preset = json.loads(Path(__file__).resolve().parent.parent.joinpath("data/presets/model-release.json").read_text())
     scenario = Scenario(**preset)
     llm = FakeLLM()
 

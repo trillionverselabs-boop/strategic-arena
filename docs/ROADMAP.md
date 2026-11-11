@@ -16,13 +16,13 @@ ledger stays empty — which makes the whole differentiator invisible.
 1. `reporting.due_claims(as_of=None)` — every run whose `created_at + window` has passed and that has
    no `verified` block. Returns `[{run_id, title, due_at, claims[]}]`.
 2. `GET /due` on the backend returning that list.
-3. Tool `upfront_due()` — same payload, so an agent can act on it.
+3. Tool `arena_due()` — same payload, so an agent can act on it.
 4. A bundled skill `upfront-review` (see R2) that instructs the agent: *when a review is filed, schedule
-   a cron job at the window close that calls `upfront_due` and asks the user to score it.*
+   a cron job at the window close that calls `arena_due` and asks the user to score it.*
 
 **Acceptance:**
 - `tests/test_due.py`: a run with `window="30m"` and a faked `created_at` 1h ago appears in `due_claims()`;
-  a scored run does not. `upfront_due` registered in the schema set.
+  a scored run does not. `arena_due` registered in the schema set.
 - Manual: `HERMES_HOME=<tmp>` + engine run → `/due` returns 1 row, JSON fields as above.
 
 **Do not** build a scheduler inside the plugin. Use Hermes cron (`cronjob` tool) — a plugin-owned timer
@@ -71,7 +71,7 @@ gets read again, linked in PRs, and compared against reality by the people who s
 _unscored_
 ```
 
-Plus `GET /export/{run_id}` and tool `upfront_export(run_id, out_dir?)` returning the path written.
+Plus `GET /export/{run_id}` and tool `arena_export(run_id, out_dir?)` returning the path written.
 When a verdict exists, the export fills `## Verdict` with it and appends the per-claim ✓/✗.
 
 **Acceptance:** `tests/test_export.py` — after a run, export creates the file; it contains the claim ids
@@ -99,14 +99,14 @@ The user installs the UI copy themselves; the agent must never leave an install 
    (private repo: uses the `gh` login or `GITHUB_TOKEN` in the profile `.env`).
 2. Agent: `hermes plugins list | grep upfront` → expect `enabled`, version `0.3.0`.
 3. User supplies **one URL** (repo README, blog post, or article).
-4. Agent: `upfront_run` with `title`, `urls: [<that URL>]`, `window: "6h"`.
+4. Agent: `arena_run` with `title`, `urls: [<that URL>]`, `window: "6h"`.
    Report **the real returned JSON**: friction, uncertainty, confidence, sea (state/level/why),
    veto player, claims (kinds + text), `degraded`, and the run id.
-5. Agent: `upfront_report(run_id)` → confirm the markdown has the competition line, claims section,
-   and no `DEGRADED RUN` banner. `upfront_calibration()` → counts.
+5. Agent: `arena_report(run_id)` → confirm the markdown has the competition line, claims section,
+   and no `DEGRADED RUN` banner. `arena_calibration()` → counts.
 6. Review together: does the output make sense for that URL? If not, record *why* before changing code.
 7. Agent: **uninstall completely** — `hermes plugins remove upfront`, remove
-   `~/.hermes/desktop-plugins/upfront`, uninstall `hermes-upfront` from every managed venv, then
+   `~/.hermes/desktop-plugins/strategic-arena`, uninstall `hermes-upfront` from every managed venv, then
    `find ~/.hermes -iname '*upfront*'` must print nothing (see HANDOFF do-not list).
 
 ### Phase B — user installs and tests the UI

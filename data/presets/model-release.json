@@ -1,0 +1,17 @@
+{
+  "title": "Example (fictional): should we open-weight our model?",
+  "goal": "open_weight",
+  "window": "48h",
+  "documents": [
+    {
+      "type": "decision",
+      "content": "Northwind Research is considering open-weighting Fieldnote-9B, our newest model. The weights would be released under a permissive licence, with the evaluation suite and a sample of training pairs published alongside. Weights go to Hugging Face on release day. The hosted API stays free for the first 90 days so people can try it before committing. This memo was written for a rehearsal run; the company, the model and the numbers below are invented to give the engine something with the shape of a real release.",
+      "source": "Example release memo (fictional)"
+    },
+    {
+      "type": "evidence",
+      "content": "Enterprise IT is the largest blocker class for cloud AI. In a survey of 400 enterprise CIOs, 61% said they cannot route inference through an external API for compliance reasons, and 44% require a data-residency commitment in writing. Two downstream platform vendors have told us privately they would adopt an open-weight build within a quarter if the licence permitted redistribution. The community mailing list has asked three times for the eval suite to be published before the weights, not after.",
+      "source": "Example evidence pack (fictional)"
+    }
+  ]
+}

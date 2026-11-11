@@ -18,11 +18,11 @@ from upfront.reporting import list_runs, load_run
 
 def make_real_llm():
     from agent.plugin_llm import PluginLlm
-    return LlmAdapter(PluginLlm(plugin_id="upfront"))
+    return LlmAdapter(PluginLlm(plugin_id="strategic-arena"))
 
 
 def main():
-    preset = json.loads((PLUGIN / "data/presets/arete-real.json").read_text())
+    preset = json.loads((PLUGIN / "data/presets/model-release-replay.json").read_text())
     scenario = Scenario(**preset)
     # 48h = 20 rounds; that's ~67 live calls. For a snappier proof use 24h (16).
     scenario.window = scenario.window  # keep preset window

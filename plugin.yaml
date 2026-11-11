@@ -1,5 +1,4 @@
-name: upfront
-label: Strategic Arena
+name: strategic-arena
 version: "0.6.2"
 manifest_version: 1
 kind: standalone
@@ -17,13 +16,13 @@ description: >-
   claims with dates, and scores them, so the record gets sharper every time. Runs
   on your own machine; no cloud account.
 provides_tools:
-  - upfront_run
-  - upfront_status
-  - upfront_report
-  - upfront_history
-  - upfront_calibration
-  - upfront_due
-  - upfront_export
+  - arena_run
+  - arena_status
+  - arena_report
+  - arena_history
+  - arena_calibration
+  - arena_due
+  - arena_export
 capabilities:
   - llm.model_override
 # No Python dependencies are declared, on purpose: pydantic and fastapi are

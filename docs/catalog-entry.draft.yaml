@@ -1,4 +1,4 @@
-name: upfront
+name: strategic-arena
 repo: https://github.com/trillionverselabs-boop/strategic-arena   # must stay PUBLIC
 sha: e06d9fa696526b5605828a3f21afee486811018f
 title: Strategic Arena
@@ -23,13 +23,13 @@ screenshots:
 platforms: []
 capabilities:
   provides_tools:
-    - upfront_run
-    - upfront_status
-    - upfront_report
-    - upfront_history
-    - upfront_calibration
-    - upfront_due
-    - upfront_export
+    - arena_run
+    - arena_status
+    - arena_report
+    - arena_history
+    - arena_calibration
+    - arena_due
+    - arena_export
   provides_hooks: []
   provides_middleware: []
   requires_env: []

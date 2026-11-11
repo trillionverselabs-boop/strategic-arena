@@ -118,7 +118,7 @@ Identity (`upfront`) is deliberately kept separate from the display name so a la
 | **Display name** (what a user reads) | 1 line | `PRODUCT_NAME` in `desktop/plugin.js`, README title, this file |
 | **Catalog / marketing name** | low | `docs/catalog-entry.draft.yaml` `name:` + `title:`, then the `plugin-catalog/` PR |
 | **Repo name** | low | GitHub rename (301-redirects), `git remote set-url origin`, local folder name |
-| **Plugin id** (`upfront`) | **high — plan a migration** | tool names `upfront_*`, data path `$HERMES_HOME/upfront/`, install folder `plugins/upfront`, history provenance. Needs: rename data dir, rewrite manifest/tool prefixes, keep old tool names as aliases for one release |
+| **Plugin id** (`upfront`) | **high — plan a migration** | tool names `upfront_*`, data path `$HERMES_HOME/upfront/`, install folder `plugins/strategic-arena`, history provenance. Needs: rename data dir, rewrite manifest/tool prefixes, keep old tool names as aliases for one release |
 
 Default decision until the user says otherwise: **keep the id `upfront`, change only the display name.**
 

@@ -3,7 +3,7 @@
 # scans this folder) + dashboard/plugin_api.py (FastAPI backend namespace).
 #
 # ctx.llm only exists inside register(ctx) (host-owned model+auth). We bind it
-# into the dashboard backend module so /api/plugins/upfront/* can run reviews.
+# into the dashboard backend module so /api/plugins/strategic-arena/* can run reviews.
 # Choosing a model for those calls needs the consent-gated `llm.model_override`
 # capability; we probe it and degrade to the active model when it is absent.
 

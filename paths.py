@@ -16,17 +16,17 @@ def _hermes_home() -> Path:
 
 
 def data_root() -> Path:
-    """`<hermes home>/plugin-data/upfront`, or `<hermes home>/upfront` as a fallback."""
+    """`<hermes home>/plugin-data/strategic-arena`, or `<hermes home>/strategic-arena` as a fallback."""
     home = _hermes_home()
     try:
         from plugins.plugin_storage import plugin_data_dir  # type: ignore
 
-        p = Path(plugin_data_dir("upfront"))
+        p = Path(plugin_data_dir("strategic-arena"))
         if str(p).startswith(str(home)):      # never escape the active home
             return p
     except Exception:
         pass
-    return home / "upfront"
+    return home / "strategic-arena"
 
 
 def runs_dir() -> Path:

@@ -10,7 +10,7 @@ import yaml
 
 REPO = Path(__file__).resolve().parent.parent
 SKILLS = REPO / "skills"
-PACKS = ["upfront-launch", "upfront-pricing", "upfront-deprecation", "upfront-openweight"]
+PACKS = ["launch", "pricing", "deprecation", "openweight"]
 
 
 def _frontmatter(md: Path) -> dict:
@@ -34,7 +34,7 @@ def test_pack_teaches_a_checklist_and_states_the_boundary(pack):
     body = (SKILLS / pack / "SKILL.md").read_text()
     assert "- [ ]" in body, "every pack needs a checklist the agent can tick"
     assert "not a prediction" in body.lower(), "the boundary must be stated once"
-    assert "upfront_run" in body, "the pack must say which tool runs the review"
+    assert "arena_run" in body, "the pack must say which tool runs the review"
     lines = body.splitlines()
     assert 35 <= len(lines) <= 110, f"{pack} is {len(lines)} lines (target 40-80)"
 
@@ -63,7 +63,7 @@ def test_all_packs_register_under_the_plugin_namespace():
 
     c = Ctx()
     register(c)
-    for pack in PACKS + ["upfront-review"]:
+    for pack in PACKS + ["review"]:
         assert pack in c.skills, f"{pack} did not register"
 
 

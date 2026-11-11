@@ -12,7 +12,7 @@ class Ctx:
 def test_interventions_and_urls_are_offered_to_the_model():
     c = Ctx()
     register_tools(c)
-    props = c.schemas["upfront_run"]["parameters"]["properties"]
+    props = c.schemas["arena_run"]["parameters"]["properties"]
     assert "interventions" in props
     assert "urls" in props
-    assert "upfront_calibration" in c.schemas
+    assert "arena_calibration" in c.schemas

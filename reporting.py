@@ -490,7 +490,7 @@ def export_decision(run_id: str, out_dir: str = "decisions") -> str:
             lines.append(f"- actual friction: {verified['actual_friction']}/100 "
                          f"(error {verified.get('friction_error')})")
     else:
-        lines.append("_unscored_ — run `upfront_due` when the window closes, score each claim, "
+        lines.append("_unscored_ — run `arena_due` when the window closes, score each claim, "
                      "then re-export to fill this section.")
 
     out_base = Path(out_dir)

@@ -72,4 +72,4 @@ def test_export_tool_is_registered():
 
     c = Ctx()
     register_tools(c)
-    assert "upfront_export" in c.schemas
+    assert "arena_export" in c.schemas
