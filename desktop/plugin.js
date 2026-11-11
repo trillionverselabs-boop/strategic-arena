@@ -41,7 +41,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.2 · ui25'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.2 · ui26'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -1979,14 +1979,19 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
     open: true,
     onOpenChange: open => { if (!open) onClose() },
     children: jsx(DialogContent, {
-      className: 'w-[min(42rem,94vw)] max-w-none overflow-visible',
+      // A flex column with a hard cap, not a tall box with a scroll area inside:
+      // the header and footer stay pinned and only the middle scrolls. The old
+      // max-h-[72vh] on the inner div left header+footer outside the budget, so
+      // on a short window the form ran off the bottom and the footer sat half
+      // off-screen with nothing to scroll it back into view.
+      className: 'flex max-h-[92vh] w-[min(42rem,94vw)] max-w-none flex-col overflow-hidden',
       children: [
         jsxs(DialogHeader, { children: [
           jsx(DialogTitle, { children: `New ${ARENA} session` }),
           jsx(DialogDescription, { children: 'Add a link or the text — a README, a post, a whitepaper, an announcement. It opens the arena the room will answer in.' }),
         ]}),
 
-        jsxs('div', { className: 'flex max-h-[min(72vh,44rem)] flex-col gap-3 overflow-y-auto pr-0.5', children: [
+        jsxs('div', { className: 'flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-0.5', children: [
           jsx(Field, {
             label: 'Title',
             hint: 'Short and specific, the way you would say it out loud — it is what you will see in the run list.',
