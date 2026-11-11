@@ -105,6 +105,7 @@ def _sub(name: str):
 engine = _sub("engine")
 leverage = _sub("leverage")
 llm_binding = _sub("llm_binding")
+prices = _sub("prices")
 reporting = _sub("reporting")
 LlmAdapter = _sub("llm_adapter").LlmAdapter
 _models = _sub("models")
@@ -251,6 +252,15 @@ async def run(body: dict):
                     (reporting.runs_dir() / run_id / "model-note.txt").write_text(note)
                 except Exception:
                     pass
+            # the host reported real token usage and its own cost estimate per
+            # call; that sum is the only honest "what this run cost" number.
+            try:
+                usage = dict(getattr(llm, "usage", None) or {})
+                if usage:
+                    (reporting.runs_dir() / run_id / "usage.json").write_text(
+                        json.dumps(usage))
+            except Exception:
+                pass
             engine._emit(run_id, "done", result.rounds, result.rounds,
                          {p.name: round(p.stance, 3) for p in result.personas})
         except engine.SimulationCancelled:
@@ -347,12 +357,18 @@ async def report(run_id: str, full: bool = False):
         model_note = (reporting.runs_dir() / run_id / "model-note.txt").read_text().strip()
     except Exception:
         pass
+    usage: dict = {}
+    try:
+        usage = json.loads((reporting.runs_dir() / run_id / "usage.json").read_text())
+    except Exception:
+        pass
     return {
         "report": data[key], "full": full, "model_note": model_note,
         "model_requested": meta.get("model_requested") or meta.get("model") or "",
         "model_served": meta.get("model_served") or "",
         "model_served_provider": meta.get("model_served_provider") or "",
         "model_fallback_note": meta.get("model_fallback_note") or "",
+        "usage": usage,
         "recommendation": meta.get("recommendation") or "",
         "summary": meta.get("summary") or "",
         "kind": meta.get("kind") or "",
@@ -487,6 +503,32 @@ async def ui_status(build: str = ""):
     route instead of making the user guess.
     """
     return _ui_status(build)
+
+
+@router.get("/price")
+async def price(model: str = "", tin: int = 0, tout: int = 0):
+    """The published price for one model id, and what those tokens would cost.
+
+    Read-only by construction: this route cannot choose a model, hold a
+    credential, or fail a run. When the catalogue does not carry the model (or is
+    unreachable) it answers `found: false` and the form falls back to tokens —
+    a made-up price would look like data, which is the one thing this product
+    will not print.
+    """
+    try:
+        hit = prices.price_for(model)
+    except Exception as exc:
+        return {"found": False, "model": model, "why": f"price lookup failed: {exc}"}
+    if not hit:
+        return {"found": False, "model": model,
+                "why": "the Nous catalogue does not publish a price for this model"}
+    cost = None
+    if tin or tout:
+        cost = round((max(0, tin) / 1_000_000) * hit["prompt_per_m"]
+                     + (max(0, tout) / 1_000_000) * hit["completion_per_m"], 4)
+    return {"found": True, "model": model, "matched": hit.get("id", ""),
+            "prompt_per_m": hit["prompt_per_m"], "completion_per_m": hit["completion_per_m"],
+            "free": hit["free"], "cost_usd": cost}
 
 
 @router.get("/compare")

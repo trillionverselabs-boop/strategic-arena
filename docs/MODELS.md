@@ -16,9 +16,12 @@ model is best, and the app has already made that decision.
   from whichever machine the window runs on *and* the host permission
   `plugins.entries.<id>.llm.allow_model_override`, which the desktop app does not grant — so it
   could only ever disagree with the run. The honest fix was to stop offering the choice.
-- **The cost estimate is tokens, not money**, because tokens are arithmetic we can defend
-  (rounds x parties x the bounded prompt window) and a price is not. `free` is printed only when
-  the model's own slug says `:free`; every finished run records the model that actually served it.
+- **Money is read, never guessed.** Tokens are arithmetic (rounds x parties x the bounded prompt
+  window) and are always shown. A price comes from the public catalogue for that exact model, or
+  it is absent — never interpolated. After a run, the host's own usage and cost estimate are
+  reported instead, which is the number that actually happened.
+- **The price route cannot choose a model.** It answers `price_for(model_id)` and nothing else;
+  there is no list, no picker and no permission involved.
 
 ## What the plugin does not assume about a model
 

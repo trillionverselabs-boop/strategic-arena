@@ -44,10 +44,14 @@ class HostLlm:
         self.override_denied_note = ""
 
     class _Result:
-        def __init__(self, text: str, provider: str = "", model: str = ""):
+        def __init__(self, text: str, provider: str = "", model: str = "", usage=None):
             self.text = text
             self.provider = provider
             self.model = model
+            # the host's own token + cost accounting for this call; None when the
+            # facade does not report it. The run's cost line is built from this,
+            # never from a price table we invented.
+            self.usage = usage
 
     def complete(self, messages, temperature=None, model=None, timeout=None, **kwargs):
         self.calls += 1
@@ -93,7 +97,7 @@ class HostLlm:
                 provider = getattr(res, "provider", "") or ""
                 model = getattr(res, "model", "") or ""
                 self.last_provider, self.last_model = provider, model
-                return self._Result(text, provider, model)
+                return self._Result(text, provider, model, getattr(res, "usage", None))
             # surface the real reason: "the model call failed" hides a trust
             # error, an auth problem and a network problem behind one sentence
             try:
@@ -116,7 +120,7 @@ class HostLlm:
         provider = getattr(res, "provider", "") or ""
         model = getattr(res, "model", "") or ""
         self.last_provider, self.last_model = provider, model
-        return self._Result(text, provider, model)
+        return self._Result(text, provider, model, getattr(res, "usage", None))
 
 
 def build_host_llm(model: str = "") -> HostLlm:

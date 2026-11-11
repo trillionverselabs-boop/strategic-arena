@@ -40,7 +40,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.3 · ui29'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.3 · ui30'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -1989,6 +1989,25 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
   const suggested = suggestWindow(shape)
   const hasInput = decision.trim().length > 0 || urls.trim().length > 0
 
+  // What those tokens would cost, if the catalogue publishes a price for exactly
+  // this model. Read-only: this cannot pick a model or fail a run, and when the
+  // price is unknown the form shows tokens and says nothing about money.
+  const [price, setPrice] = React.useState(null)
+  React.useEffect(() => {
+    if (!sessionModel) { setPrice(null); return }
+    let live = true
+    ctx.rest(`/price?model=${encodeURIComponent(sessionModel)}&tin=${est.tin}&tout=${est.tout}`)
+      .then(r => { if (live) setPrice(r) })
+      .catch(() => { if (live) setPrice(null) })
+    return () => { live = false }
+  }, [sessionModel, est.tin, est.tout])
+
+  const costLine = !price || !price.found ? ''
+    : price.free ? 'free'
+    : price.cost_usd != null ? `≈$${Number(price.cost_usd).toFixed(3)} at the published price`
+    : ''
+
+
   function applyRecipe(r) {
     setGoal(r.goal)
     setTitle(r.title)
@@ -2146,9 +2165,9 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
                 jsx('div', { className: `truncate text-[0.75rem] font-medium text-(--ui-text-secondary)`, children: modelLabel }),
                 jsxs('div', { className: `${T.micro} ${NUM} text-(--ui-text-tertiary)`, children: [
                   `${est.calls} calls · ≈${kTokens(est.tin)} tokens in / ≈${kTokens(est.tout)} tokens out`,
-                  modelIsFree ? ' · free' : '',
+                  costLine ? ` · ${costLine}` : '',
                 ]}),
-                jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'Tokens are the run\u2019s own arithmetic — rounds × parties × the prompt window. Money is not shown because a price needs the live catalogue; the finished run records the model that actually served it.' }),
+                jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'Tokens are the run\u2019s own arithmetic — rounds × parties × the prompt window. Money appears only when the catalogue publishes a price for this exact model; the finished run prints what it actually cost.' }),
               ]}),
             }),
           ]}),
@@ -2159,7 +2178,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
             title: 'This session is on a free model: rate-limited and slow',
             children: `Expect roughly ${tl.eta} for this timeline, sometimes more. A short window is a fast sanity check; the longer ones are where positions actually move.` }),
 
-          jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: `${est.calls} model calls · ≈${kTokens(est.tin)} tokens in / ≈${kTokens(est.tout)} tokens out · ${modelLabel}` }),
+          jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: `${est.calls} model calls · ≈${kTokens(est.tin)} tokens in / ≈${kTokens(est.tout)} tokens out${costLine ? ' · ' + costLine : ''} · ${modelLabel}` }),
           jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: 'For a first pass: whatever model the session is on, at 4–6 hours.' }),
           jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: 'Go to 24h only when the parties are external and the decision is expensive.' }),
 
@@ -2293,6 +2312,7 @@ function UpfrontPage({ ctx }) {
       modelRequested: rep.model_requested || '',
       modelServed: rep.model_served || '',
       modelFallback: rep.model_fallback_note || '',
+      cost: rep.usage || null,
       // "your side": parties grounded in the decision document itself
       ownSide: (rep.personas || []).filter(p => (p.reasons?.[0] || '').includes('[decision')).map(p => p.name),
     })
@@ -2535,6 +2555,12 @@ function UpfrontPage({ ctx }) {
           result.window ? ` · ${result.window} window` : '',
           result.personas?.length ? ` · ${result.personas.length} parties` : '',
           result.claims?.length ? ` · ${result.claims.length} claims frozen` : '',
+          result.cost && result.cost.calls
+            ? ` · ${result.cost.calls} calls, ${kTokens(result.cost.tokens_total || 0)} tokens`
+            : '',
+          result.cost && result.cost.cost_known
+            ? ` · $${Number(result.cost.cost_usd).toFixed(3)} spent`
+            : '',
         ]}),
       ]}),
 

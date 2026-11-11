@@ -11,6 +11,8 @@
 
 from __future__ import annotations
 
+from . import prices
+
 # The host's auxiliary default is 30 seconds. That is fine for a title or a
 # one-line summary and hopeless for a review call on a free, rate-limited model
 # — the first extraction times out, the recovery ladder finds no fallback and
@@ -39,6 +41,8 @@ class LlmAdapter:
         self.served_provider = ""
         self.served_model = ""
         self.fallback_note = ""
+        # real usage, summed from the host's report — the number the run prints
+        self.usage = prices.blank_usage()
 
     def _kwargs(self) -> dict:
         kwargs = {"temperature": self.temperature}
@@ -80,6 +84,7 @@ class LlmAdapter:
                 result = self._once(messages, dict(temperature=self.temperature, **extra))
         else:
             result = self._once(messages, dict(temperature=self.temperature, **extra))
+        prices.add_usage(self.usage, getattr(result, "usage", None))
         self.served_provider = getattr(result, "provider", "") or ""
         self.served_model = getattr(result, "model", "") or ""
         if isinstance(result, str):

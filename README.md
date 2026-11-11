@@ -472,10 +472,15 @@ What the form does show is **the run's arithmetic**, before you commit to it:
 ≈80k tokens in / ≈7k tokens out, at about 6 parties
 ```
 
-- **Tokens, not money.** Rounds × parties × the prompt window is arithmetic we can stand behind.
-  A price is not: it needs the live catalogue and the provider's own rate, and a number we
-  invented would look like data. So the form never prints a price. It says **free** only when the
-  model's own slug says `:free`, and every finished run records the model that actually served it.
+- **Tokens always; money only when it is published.** Rounds × parties × the prompt window is
+  arithmetic we can stand behind, so tokens are always shown. Money is shown when the public
+  Nous catalogue publishes a price for *that exact model* — `≈$0.016 at the published price` —
+  and when it does not, the form says nothing about money rather than multiplying by a number we
+  invented. A model the catalogue does not carry is a real case (`nous/arete-27b` today), and
+  "price unknown" is the honest answer there.
+- **After the run, the real number.** The host reports actual token usage and its own cost
+  estimate per call; the run sums them and prints `38 calls, 41k tokens · $0.021 spent`. That is
+  the number to trust — the estimate above it is only there so nobody is surprised.
 - **The window is bounded**, so the estimate does not drift with the length of the document or
   paper you paste: a document is windowed to a fixed prompt budget, head and tail, with the
   omitted middle marked. See `ingestion.excerpt`.
@@ -490,10 +495,12 @@ What the form does show is **the run's arithmetic**, before you commit to it:
 
 What a user would want to know before installing, stated plainly:
 
-- **Network calls:** to the inference endpoint serving your active Hermes model
-  (via `ctx.llm`) — nothing else, except when you provide URLs, which are fetched as text.
-  The plugin makes **no** catalogue, pricing or telemetry call. Fetched URLs are capped
-  (http/https only, size and length limited, hard timeout).
+- **Network calls:** to the inference endpoint serving your active Hermes model (via `ctx.llm`);
+  to the public Nous model catalogue (`inference-api.nousresearch.com/v1/models`, anonymous,
+  no credentials, cached 6h) **only to read the price of the model you are already on** — it can
+  never select one; and, only when you provide URLs, to fetch those URLs as text. Fetched URLs are
+  capped (http/https only, size and length limited, hard timeout). If the catalogue is
+  unreachable the form shows tokens and no money; nothing about a run depends on it.
 - **Background processes:** a simulation runs in a background thread while it streams
   progress to the desktop UI. No long-running daemon, no auto-update, no telemetry.
 - **Dependencies:** the manifest declares **none**, and that is deliberate. The only

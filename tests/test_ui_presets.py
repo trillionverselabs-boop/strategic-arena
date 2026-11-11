@@ -33,8 +33,18 @@ def test_the_timeline_suggests_a_length_and_says_why():
     assert "rarely needed" in low
 
 
+def test_the_run_says_what_it_actually_cost():
+    """Estimated money before (published price for THIS model) and real money
+    after (the host's own usage), and neither can be a made-up number."""
+    js = UI.read_text()
+    assert "/price?" in js
+    assert "at the published price" in js
+    assert "cost_known" in js
+    assert "spent" in js
+
+
 def test_build_stamp_is_the_current_one():
-    assert "0.6.3 · ui29" in UI.read_text()
+    assert "0.6.3 · ui30" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():

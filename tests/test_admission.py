@@ -16,7 +16,7 @@ REPO = Path(__file__).resolve().parent.parent
 # shipped, and docs must be able to describe the rule.
 SCAN_DIRS = ["dashboard", "tools"]
 SCAN_FILES = ["__init__.py", "host_llm.py", "llm_adapter.py", "engine.py",
-              "moat.py", "reporting.py"]
+              "moat.py", "reporting.py", "prices.py", "fetch.py"]
 
 
 def _sources():
