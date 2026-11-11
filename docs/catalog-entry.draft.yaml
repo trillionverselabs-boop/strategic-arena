@@ -1,6 +1,6 @@
 name: upfront
 repo: https://github.com/trillionverselabs-boop/strategic-arena   # must stay PUBLIC
-sha: e3638f6a7300b0620e8f9c7eca998ecb3840df92
+sha: e06d9fa696526b5605828a3f21afee486811018f
 title: Strategic Arena
 description: >-
   Read what it means before it reads you. Give it a link — a repo README, a blog
@@ -17,9 +17,9 @@ tier: community
 category: tools
 version: "0.6.2"
 requires_hermes: ">=0.23.0"
-image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/e3638f6a7300b0620e8f9c7eca998ecb3840df92/assets/banner.png
+image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/e06d9fa696526b5605828a3f21afee486811018f/assets/banner.png
 screenshots:
-  - https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/e3638f6a7300b0620e8f9c7eca998ecb3840df92/assets/how-it-works.png
+  - https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/e06d9fa696526b5605828a3f21afee486811018f/assets/how-it-works.png
 platforms: []
 capabilities:
   provides_tools:
