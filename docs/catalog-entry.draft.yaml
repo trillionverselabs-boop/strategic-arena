@@ -1,25 +1,20 @@
 name: strategic-arena
 repo: https://github.com/trillionverselabs-boop/strategic-arena   # must stay PUBLIC
-sha: dd02c2dc23a2877a0cb0233e1e18469c03ca4ab6
+sha: 28d5fd908e39bb956c2527e3909e2e93f20cd251
 title: Strategic Arena
+# One line: this is what the catalogue card shows. The long form lives in the
+# README, which renders on /docs/plugins/strategic-arena at the pinned sha.
 description: >-
-  Read what it means before it reads you. Give it a link — a repo README, a blog
-  post, a whitepaper, a case study, an announcement, a tweet — and it opens a
-  room of the people who will actually react: maintainers and security reviewers
-  for a repository, buyers and competitors for a launch, the quote-tweeters for a
-  post. It names who holds real power over the outcome (who can block it, who can
-  amplify it, who can only complain), prices each party's leverage against the
-  room's own friction, and shows what each concession buys. Then it freezes
-  testable claims with dates and scores them, so the record argues for itself.
-  Runs on your own machine; no cloud account.
+  Give it a link, get the room that reacts: who can block it, what each concession
+  buys, and the claims you can score later. Research papers also get a replication clock.
 maintainer: LeMultiFox
 tier: community
 category: tools
 version: "0.6.2"
 requires_hermes: ">=0.23.0"
-image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/dd02c2dc23a2877a0cb0233e1e18469c03ca4ab6/assets/banner.png
+image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/28d5fd908e39bb956c2527e3909e2e93f20cd251/assets/banner.png
 screenshots:
-  - https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/dd02c2dc23a2877a0cb0233e1e18469c03ca4ab6/assets/how-it-works.png
+  - https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/28d5fd908e39bb956c2527e3909e2e93f20cd251/assets/how-it-works.png
 platforms: []
 capabilities:
   provides_tools:
@@ -35,9 +30,11 @@ capabilities:
   requires_env: []
 docs_url: https://github.com/trillionverselabs-boop/strategic-arena/blob/main/docs/POSITIONING.md
 readme: true
-known_issues: >-
-  Choosing a model for a run needs the llm.model_override consent; without it the run uses your
-  active model. Free models are rate-limited and can take 15-30 minutes for a 24h review.
-  The desktop UI has been tested on Windows against a remote (SSH) backend: the app loads its
-  plugin UI from the machine the window runs on, so a UI change needs Install from Git with the
-  Desktop target ticked on that machine (see docs/DESKTOP-UPDATES.md in the repo).
+# known_issues is a list of short strings, shown at the install prompt.
+# Informational, never blocks. It was a folded string here, which the schema
+# does not allow.
+known_issues:
+  - "Choosing a model for a run needs the llm.model_override consent; without it the run uses your active model."
+  - "Free models are rate-limited — a 24h review can take 15–30 minutes."
+  - "The desktop UI loads from the machine running the app, so a UI change needs Install from Git with the Desktop target on that machine."
+  - "Generic PDFs outside arXiv cannot be read without a text-layer dependency. A link that cannot be read is reported as SKIPPED in the run's provenance, never silently dropped."
