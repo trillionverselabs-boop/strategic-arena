@@ -11,6 +11,37 @@ cannot fix a stale window.* The Reload button only reloads the page; the file it
 would need to change is on another machine. The old UI said "press Reload UI" —
 that was a lie, and it is why the button looked broken.
 
+## While the plugin is still being tested: install it UNPINNED
+
+A pinned install (one made with `--ref <sha>`) refuses to move: the app's install
+dialog answers
+
+    Plugin 'strategic-arena' is pinned. Reinstall it with an explicit
+    `--ref <40-character commit SHA>` to change its source or revision.
+
+and the CLI refuses the same way. That is correct for a submitted plugin and
+wrong for a plugin under active development, because every wording change would
+need a fresh SHA and a fresh install.
+
+So until the submission is locked: **install with no `--ref`** (in the app, leave
+**Pin to commit** empty; on the CLI, omit the flag). The install record then
+carries `"pinned": false` and the app's install/Force-reinstall path works
+normally. Re-check it with:
+
+```bash
+python3 -c "import json;d=json.load(open('$HOME/.hermes/profiles/charlene/plugins/.install-metadata.json'));print(d['strategic-arena'])"
+# expect: {'pinned': False, ...}
+```
+
+If it is already pinned and you want it unpinned:
+
+```bash
+hermes plugins remove strategic-arena          # plugin-data survives the removal
+hermes plugins install trillionverselabs-boop/strategic-arena --yes-deps --enable
+```
+
+Pin only at submission time, and only to the commit whose tree a reviewer will read.
+
 ## What each thing actually does
 
 | Action | What it really does | Fixes a stale window? |
