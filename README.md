@@ -366,7 +366,7 @@ strategic-arena/             # the product, and the plugin id (`strategic-arena`
 │                            #   /graph /claims /events /leverage /history /calibration /due
 │                            #   /verify /compare /ui /health
 ├── desktop/plugin.js        # the whole desktop UI — uncompiled ESM, no JSX, no build
-├── skills/  assets/  docs/  tests/   # presets, diagrams (drawn here, MIT), notes, suite (~5s)
+├── skills/  assets/  docs/  tests/   # presets, diagrams + store card (drawn here, MIT), suite
 └── engine modules:
     ingestion.py artifact → parties (+ the lens)   moat.py  paper → product + clock
     agents.py    memory, retrieval, reflection     simulation.py  the round loop

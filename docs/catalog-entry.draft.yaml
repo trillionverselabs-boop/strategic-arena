@@ -21,7 +21,7 @@ tier: community
 category: tools
 version: "0.6.3"
 requires_hermes: ">=0.23.0"
-image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/3f44ca1c28c5b851070083659e0427bdf4c041be/assets/banner.png
+image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/3f44ca1c28c5b851070083659e0427bdf4c041be/assets/marketplace.png
 screenshots:
   - https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/3f44ca1c28c5b851070083659e0427bdf4c041be/assets/how-it-works.png
 platforms: []

@@ -1,0 +1,94 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 600px; overflow: hidden; }
+  body {
+    background: #0b0d10;
+    background-image:
+      radial-gradient(90% 120% at 8% 10%, rgba(76,155,240,.16) 0%, transparent 58%),
+      radial-gradient(80% 120% at 96% 92%, rgba(217,83,143,.10) 0%, transparent 60%),
+      linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+    color: #e8ecf2;
+    font-family: -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+    display: flex; align-items: center; gap: 56px;
+    padding: 0 72px;
+  }
+
+  /* the logo panel: the mark on its own tinted plate, the way a store card does it.
+     The mark is a wide, low graphic (an axis), so the plate is wide too — a square
+     plate left it stranded in empty space. */
+  .plate {
+    flex: 0 0 360px; width: 360px; height: 240px; border-radius: 28px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(155deg, rgba(76,155,240,.16) 0%, rgba(76,155,240,.04) 55%, rgba(217,83,143,.07) 100%);
+    border: 1px solid rgba(76,155,240,.30);
+    box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+
+  .right { flex: 1 1 auto; min-width: 0; }
+  h1 { font-size: 62px; line-height: 1.02; letter-spacing: -.03em; font-weight: 700; }
+  .tag { font-size: 25px; line-height: 1.34; color: #b9c3d2; margin-top: 14px; max-width: 620px; font-weight: 500; }
+  .tag b { color: #e8ecf2; font-weight: 650; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 10px; margin-top: 26px;
+    background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.14);
+    border-radius: 10px; padding: 11px 16px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 17px;
+  }
+  .pill .p { color: #4c9bf0; font-weight: 600; }
+  .pill .r { color: #e8ecf2; }
+
+  .badges { display: flex; gap: 9px; margin-top: 22px; }
+  .b {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(255,255,255,.12); border-radius: 999px;
+    padding: 7px 14px; font-size: 14.5px; color: #c3ccd9;
+    background: rgba(255,255,255,.03);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .url { margin-top: 18px; font-size: 14.5px; color: #96a1b0; letter-spacing: .01em; }
+</style></head>
+<body>
+
+  <!-- the mark: the axis is the product. left = will block it, right = behind it,
+       and the ringed dot is the party who can actually stop it. -->
+  <div class="plate">
+    <svg width="330" height="234" viewBox="5 10 48 34" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="upaxis" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#d9538f"/>
+          <stop offset="0.55" stop-color="#e5b54a"/>
+          <stop offset="1" stop-color="#4c9bf0"/>
+        </linearGradient>
+      </defs>
+      <line x1="7" y1="27" x2="41" y2="27" stroke="url(#upaxis)" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="11" cy="27" r="3.4" fill="#9aa4b2"/>
+      <circle cx="24" cy="27" r="4.8" fill="#d5dbe4"/>
+      <circle cx="37" cy="27" r="6.6" fill="#e8ecf2"/>
+      <circle cx="37" cy="27" r="10.4" stroke="#4c9bf0" stroke-width="1.8"/>
+      <circle cx="37" cy="27" r="13.6" stroke="#4c9bf0" stroke-width="0.9" opacity="0.45"/>
+    </svg>
+  </div>
+
+  <div class="right">
+    <h1>Strategic Arena</h1>
+    <div class="tag">Add a link — <b>yours or someone else's</b> — and know how contested
+      the ground already is, who can stop it, and what each objection costs.</div>
+
+    <div class="pill"><span class="p">hermes</span><span class="r">plugins install strategic-arena</span></div>
+
+    <div class="badges">
+      <span class="b"><span class="dot" style="background:#4c9bf0"></span>Agent + Desktop</span>
+      <span class="b"><span class="dot" style="background:#e5b54a"></span>7 tools</span>
+      <span class="b"><span class="dot" style="background:#d9538f"></span>MIT</span>
+    </div>
+
+    <div class="url">github.com/trillionverselabs-boop/strategic-arena</div>
+  </div>
+
+</body></html>
