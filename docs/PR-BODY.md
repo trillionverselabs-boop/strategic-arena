@@ -1,4 +1,4 @@
-# PR body — catalogue submission (`plugin-catalog/upfront.yaml`)
+# PR body — catalogue submission (`plugin-catalog/strategic-arena.yaml`)
 
 Paste this into the pull request against `NousResearch/hermes-agent`. Rule 13 asks
 for disclosure; rule 05 asks that the submitter be the repo owner or a major
@@ -8,7 +8,7 @@ contributor — the first line is what makes that legible.
 
 ## What this is
 
-**Strategic Arena** (`upfront`) — read what it means before it reads you.
+**Strategic Arena** (`strategic-arena`) — read what it means before it reads you.
 
 Give it a link — a repo README, a blog post, a whitepaper, a case study, a press
 release, a tweet — and it opens a room of the people who will actually react. It
@@ -45,11 +45,10 @@ Legal moves the call from a fight to quiet ground with no veto left.
 | Surface | Use |
 |---|---|
 | `register_tools` (7 tools) | `arena_run`, `arena_status`, `arena_report`, `arena_history`, `arena_calibration`, `arena_due`, `arena_export` |
-| `ctx.llm` | every model call; credentials stay host-owned, no key is read or stored |
-| `ctx.has_capability("llm.model_override")` | **asked**, never granted — the plugin reads the permission and never writes config |
+| `ctx.llm` | every model call; credentials stay host-owned, no key is read or stored. A run uses the **session's** model: no picker, and the manifest declares no capability |
 | `ctx.register_skill` | 5 bundled skills (launch, pricing, deprecation, open-weight, the review loop) |
-| `dashboard/plugin_api.py` | backend at `/api/plugins/strategic-arena/` (run, status, report, graph, claims, events, leverage, history, calibration, due, verify, compare, presets, models) |
-| `desktop/plugin.js` | the whole UI: sidebar nav + route, SDK components and theme tokens only |
+| `dashboard/plugin_api.py` | backend at `/api/plugins/strategic-arena/` (run, status, report, graph, claims, events, leverage, history, calibration, due, verify, compare, price, ui, health) |
+| `desktop/plugin.js` | the whole UI: sidebar nav + route, SDK components and theme tokens only; the model readout is `host.state.model`, read-only |
 
 ## Rule 13 disclosure
 
@@ -64,11 +63,19 @@ Legal moves the call from a fight to quiet ground with no veto left.
   `data-slot` queries, no injected stylesheets, no `eval`.
 - **No credentials from files** (rule 11). No `.env`, no `auth.json`, no vendor CLI
   token, no keychain. Model access is `ctx.llm`.
-- **No approvals bypassed** (rule 12). A picked model is used only when the host's
-  own permission allows it; the plugin requests and reads, never enables.
-- **No Python dependencies** (rule 10). `pydantic` and `fastapi` come from Hermes
-  core; `pyproject.toml` declares none, so a non-interactive install cannot stall on
-  a dependency-consent prompt.
+- **No approvals bypassed** (rule 12). No auto-approval, no guard disabled. There is no
+  model override to gate: a run uses the session's model, read from the app
+  (`host.state.model`) and never set by the plugin.
+- **Network calls, disclosed.** `ctx.llm` for the model; the public Nous catalogue
+  (anonymous, no credentials, cached 6h) only to read the published price of the model
+  already in use — it cannot select one, and if it is unreachable the form shows tokens
+  and no money; and, only when the user supplies links, those links are fetched as text
+  (http/https, size- and length-capped, hard timeout). No telemetry.
+- **No Python dependencies** (rule 10). The only third-party modules the shipped code
+  imports are `pydantic` and `fastapi`, both required and pinned by Hermes
+  (`pydantic==2.14.1`, `fastapi>=0.104,<1`). The manifest declares none so a plugin floor
+  cannot try to move a Hermes pin; `tests/test_packaging_declares_nothing.py` pins the
+  imported set and checks it against Hermes's own dependency list, so the repo proves it.
 
 ## Licensing and attribution
 
@@ -92,7 +99,7 @@ $ hermes plugins validate . --install-deps
 Validation passed.        # desktop surface ✓ · no core override ✓ · security scan clean
 
 $ python -m pytest -q
-213 passed
+291 passed
 ```
 
 Runs entirely on the user's machine. No account, no cloud service, no telemetry.
