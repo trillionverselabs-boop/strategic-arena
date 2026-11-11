@@ -43,8 +43,34 @@ def test_the_run_says_what_it_actually_cost():
     assert "spent" in js
 
 
+def test_the_answer_comes_before_the_evidence():
+    """The reader's complaint was ordering: six sections of evidence before the
+    answer. Five lines at the top, two lines each, then the proof."""
+    js = UI.read_text()
+    assert "function AnswerCard(" in js
+    for row in ("you could build", "who pays", "lead time", "the market", "what to do"):
+        assert row in js, row
+    # the card reads the decoded moat, and states the standpoint it answers from
+    assert "read as an entrepreneur deciding whether to build it" in js
+    assert "jsx(AnswerCard" in js
+    assert js.index("jsx(AnswerCard") < js.index("jsx(PaperRead")
+    assert js.index("jsx(AnswerCard") < js.index("jsx(VerdictPanel")
+    # nothing in it may become a paragraph again
+    assert "WebkitLineClamp: 2" in js
+    assert "function firstSentence(" in js
+
+
+def test_the_paper_evidence_is_opt_in():
+    """Gives-away / holds-back is evidence for the clock; it used to print two
+    bullet lists and three paragraphs unconditionally."""
+    js = UI.read_text()
+    assert "How long the lead lasts" in js
+    assert "'show the evidence'" in js
+    assert "things a rebuilder gets free from the PDF" in js
+
+
 def test_build_stamp_is_the_current_one():
-    assert "0.6.3 · ui31" in UI.read_text()
+    assert "0.6.3 · ui32" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():

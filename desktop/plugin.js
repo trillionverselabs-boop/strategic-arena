@@ -40,7 +40,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.3 · ui31'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.3 · ui32'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -786,6 +786,12 @@ const CLOCK_WORD = {
 }
 
 function PaperRead({ moat }) {
+  // Collapsed by default. The answer card above already states the product, the
+  // buyer and the clock; this is the *evidence* for the clock, and evidence is
+  // something a reader chooses to open. The old version printed two bullet lists
+  // and three paragraphs unconditionally, which is most of why the page read as
+  // a wall.
+  const [open, setOpen] = React.useState(false)
   if (!moat || (!moat.product && !moat.error)) return null
   if (moat.error && !moat.product) {
     return jsx(Callout, { icon: 'warning', tone: C.hold, title: 'The paper decode did not complete',
@@ -796,52 +802,46 @@ function PaperRead({ moat }) {
   const tone = CLOCK_TONE[moat.clock] || C.grey
   const months = typeof moat.replication_months === 'number' ? moat.replication_months : null
   const clockBig = months == null ? 'unknown' : `~${Math.round(months)} ${Math.round(months) === 1 ? 'month' : 'months'}`
+  const nDis = (moat.disclosed || []).length
+  const nTac = (moat.tacit || []).length
   return jsxs(Card, { tone, children: [
     jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
-      jsx('div', { className: T.h2, children: 'The paper, read as a product' }),
-      jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'decoded from the text — not a forecast' }),
-    ]}),
-
-    moat.product ? jsx('div', { className: `${T.body}`, children: moat.product }) : null,
-    jsxs('div', { className: 'grid gap-1 sm:grid-cols-2', children: [
-      moat.buyer ? jsxs('div', { className: 'flex flex-col gap-0.5', children: [
-        jsx('div', { className: `${T.label} text-(--ui-text-quaternary)`, children: 'who pays' }),
-        jsx('div', { className: `${T.small} text-(--ui-text-secondary)`, children: moat.buyer }),
-      ]}) : null,
-      moat.replaces ? jsxs('div', { className: 'flex flex-col gap-0.5', children: [
-        jsx('div', { className: `${T.label} text-(--ui-text-quaternary)`, children: 'replaces' }),
-        jsx('div', { className: `${T.small} text-(--ui-text-secondary)`, children: moat.replaces }),
-      ]}) : null,
-    ]}),
-
-    jsxs('div', { className: 'flex flex-wrap items-baseline gap-x-2 border-t border-(--ui-stroke-tertiary) pt-2', children: [
-      jsx('span', { className: T.label + ' text-(--ui-text-quaternary)', children: 'replication clock' }),
-      jsx('span', { className: `${NUM} text-[1.25rem] font-semibold leading-none`, style: { color: textTone(tone) }, children: clockBig }),
-      jsx('span', { className: `${T.small}`, style: { color: textTone(tone) }, children: CLOCK_WORD[moat.clock] || '' }),
-    ]}),
-    jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: moat.clock_why || '' }),
-    moat.replication_basis ? jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: `basis: ${moat.replication_basis}` }) : null,
-
-    ((moat.disclosed || []).length || (moat.tacit || []).length) ? jsx('div', { className: 'grid gap-3 border-t border-(--ui-stroke-tertiary) pt-2 sm:grid-cols-2', children: [
-      jsxs('div', { className: 'flex flex-col gap-1', children: [
-        jsx('div', { className: `${T.label}`, style: { color: textTone(C.against) }, children: 'gives away' }),
-        jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'anyone with the PDF can rebuild this' }),
-        ...(moat.disclosed || []).map(d => jsxs('div', { className: `${T.small} text-(--ui-text-secondary)`, children: ['· ', d] })),
+      jsxs('div', { className: 'flex items-baseline gap-2', children: [
+        jsx('div', { className: T.h2, children: 'How long the lead lasts' }),
+        jsx('span', { className: `${NUM} text-[0.9375rem] font-semibold leading-none`,
+          style: { color: textTone(tone) }, children: clockBig }),
+        jsx('span', { className: `${T.small}`, style: { color: textTone(tone) }, children: CLOCK_WORD[moat.clock] || '' }),
       ]}),
-      jsxs('div', { className: 'flex flex-col gap-1', children: [
-        jsx('div', { className: `${T.label}`, style: { color: textTone(C.for) }, children: 'holds back' }),
-        jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'the only thing a rebuilder has to guess' }),
-        (moat.tacit || []).length
-          ? jsx('div', { children: (moat.tacit || []).map(d => jsxs('div', { className: `${T.small} text-(--ui-text-secondary)`, children: ['· ', d] })) })
-          : jsx('div', { className: `${T.small} text-(--ui-text-quaternary)`, children: 'nothing — the paper is complete, so nothing here slows a copy' }),
-      ]}),
-    ]}) : null,
+      jsx(Button, { size: 'xs', variant: 'ghost', onClick: () => setOpen(v => !v),
+        children: open ? 'hide the evidence' : 'show the evidence' }),
+    ]}),
+    jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`,
+      children: moat.clock_why || '' }),
+    jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`,
+      children: `${nDis} things a rebuilder gets free from the PDF · ${nTac} it holds back`
+        + (moat.replication_basis ? ` · basis: ${moat.replication_basis}` : '') }),
 
-    (moat.nearest_prior_art || moat.authors_position || moat.scale_dependence) ? jsxs('div', { className: 'flex flex-col gap-1 border-t border-(--ui-stroke-tertiary) pt-2', children: [
-      moat.scale_dependence ? jsxs('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: ['Scale dependence: ', jsx('span', { className: 'text-(--ui-text-secondary)', children: moat.scale_dependence })] }) : null,
-      moat.nearest_prior_art ? jsxs('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: ['Nearest prior art: ', jsx('span', { className: 'text-(--ui-text-secondary)', children: moat.nearest_prior_art })] }) : null,
-      moat.authors_position ? jsxs('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: ['The authors: ', jsx('span', { className: 'text-(--ui-text-secondary)', children: moat.authors_position })] }) : null,
-    ]}) : null,
+    open && jsxs('div', { className: 'flex flex-col gap-2' , children: [
+      nDis || nTac ? jsx('div', { className: 'grid gap-3 border-t border-(--ui-stroke-tertiary) pt-2 sm:grid-cols-2', children: [
+        jsxs('div', { className: 'flex flex-col gap-1', children: [
+          jsx('div', { className: `${T.label}`, style: { color: textTone(C.against) }, children: 'gives away' }),
+          jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'anyone with the PDF can rebuild this' }),
+          ...(moat.disclosed || []).map(d => jsxs('div', { className: `${T.small} text-(--ui-text-secondary)`, children: ['· ', d] })),
+        ]}),
+        jsxs('div', { className: 'flex flex-col gap-1', children: [
+          jsx('div', { className: `${T.label}`, style: { color: textTone(C.for) }, children: 'holds back' }),
+          jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'the only thing a rebuilder has to guess' }),
+          nTac
+            ? (moat.tacit || []).map(d => jsxs('div', { className: `${T.small} text-(--ui-text-secondary)`, children: ['· ', d] }))
+            : jsx('div', { className: `${T.small} text-(--ui-text-quaternary)`, children: 'nothing — the paper is complete, so nothing here slows a copy' }),
+        ]}),
+      ]}) : null,
+      (moat.scale_dependence || moat.nearest_prior_art || moat.authors_position) ? jsxs('div', { className: 'flex flex-col gap-1 border-t border-(--ui-stroke-tertiary) pt-2', children: [
+        moat.scale_dependence ? jsxs('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: ['Scale dependence: ', jsx('span', { className: 'text-(--ui-text-secondary)', children: moat.scale_dependence })] }) : null,
+        moat.nearest_prior_art ? jsxs('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: ['Nearest prior art: ', jsx('span', { className: 'text-(--ui-text-secondary)', children: moat.nearest_prior_art })] }) : null,
+        moat.authors_position ? jsxs('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: ['The authors: ', jsx('span', { className: 'text-(--ui-text-secondary)', children: moat.authors_position })] }) : null,
+      ]}) : null,
+    ]}),
   ]})
 }
 
@@ -854,6 +854,68 @@ const KIND_LABEL = {
   paper: 'a research paper',
   case_study: 'a case study', press: 'a press release', tweet: 'a social post',
   decision: 'an internal decision',
+}
+
+// ── the answer, in five lines ─────────────────────────────────────────
+// Everything below this card is evidence. The card is the decision: what could
+// you build, who pays, who else can build it and how long you have, what the
+// market looks like, and the one next move. Two lines per row, hard cap — a
+// reader should be able to stop after this card and still act.
+
+function firstSentence(text, cap = 200) {
+  const s = String(text || '').replace(/\s+/g, ' ').trim()
+  if (!s) return ''
+  const m = s.match(/^.{20,}?[.!?](\s|$)/)
+  const cut = m ? m[0] : s
+  return cut.length > cap ? cut.slice(0, cap - 1).trimEnd() + '…' : cut
+}
+
+function AnswerRow({ label, value, title, tone }) {
+  if (!value) return null
+  return jsxs('div', {
+    className: 'grid grid-cols-[7.5rem_minmax(0,1fr)] items-baseline gap-3 border-t border-(--ui-stroke-tertiary) py-1.5 first:border-t-0 first:pt-0',
+    children: [
+      jsx('div', { className: `${T.label} uppercase tracking-[0.1em]`, style: tone ? { color: tone } : undefined,
+        children: label }),
+      jsx('div', {
+        className: `${T.small} leading-snug text-(--ui-text-secondary)`,
+        title: title || value,
+        // two lines, then stop: the long form is one click away, in the audit
+        style: { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+        children: value,
+      }),
+    ],
+  })
+}
+
+function AnswerCard({ result }) {
+  if (!result) return null
+  const m = result.moat || {}
+  const read = result.read || {}
+  const sea = result.sea || {}
+  const isPaper = result.kind === 'paper'
+  const clock = m.clock && m.clock !== 'unknown'
+    ? `${m.clock}${m.replication_months != null ? ` · ~${Math.round(m.replication_months)} months to rebuild` : ''}`
+    : 'unknown — the paper states no basis for a number'
+  const competitors = isPaper
+    ? `${m.nearest_prior_art || 'no prior art named'}${m.authors_position ? ' · ' + m.authors_position : ''}`
+    : (result.blocker ? `${result.blocker} can stop it outright` : 'nobody with power has engaged')
+  return jsxs(Card, { children: [
+    jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2 pb-2', children: [
+      jsx('div', { className: T.h2, children: isPaper ? 'What this paper is worth building' : 'What this means for you' }),
+      jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`,
+        children: isPaper ? 'read as an entrepreneur deciding whether to build it — not a review of the method'
+                          : 'read as the person who has to decide whether to do it' }),
+    ]}),
+
+    jsx(AnswerRow, { label: 'you could build', value: m.product || read.opening || read.claim }),
+    jsx(AnswerRow, { label: isPaper ? 'who pays' : 'who decides',
+      value: m.buyer || (result.blocker ? `${result.blocker} — the one who can stop it` : 'nobody with power has engaged') }),
+    isPaper && jsx(AnswerRow, { label: 'lead time', value: clock, tone: m.clock === 'commodity' ? C.against : undefined }),
+    jsx(AnswerRow, { label: isPaper ? 'who else can build it' : 'who else could', value: competitors }),
+    jsx(AnswerRow, { label: 'the market', value: sea.label ? `${sea.label} — ${firstSentence(sea.why, 150)}` : read.displaces }),
+    jsx(AnswerRow, { label: 'what to do', value: firstSentence(result.recommendation, 220), tone: C.ink }),
+  ]})
 }
 
 function WhatItMeans({ read, kind }) {
@@ -2316,7 +2378,9 @@ function UpfrontPage({ ctx }) {
       runId, report: rep.report, graph: g, claims: cl.claims || [], leverage: lev,
       read: rep.read || {}, kind: rep.kind || '', moat: rep.moat || {},
       events: ev.events || [], snapshots: ev.snapshots || [],
-      sea: meta.sea_state ? { state: meta.sea_state, label: meta.sea_label, color: meta.sea_color,
+      sea: meta.sea_state ? { state: meta.sea_state,
+                             label: (SEA[meta.sea_state] && SEA[meta.sea_state].label) || meta.sea_label,
+                             color: meta.sea_color,
                              why: meta.sea_why, meaning: SEA[meta.sea_state] ? SEA[meta.sea_state].meaning : '' } : null,
       friction: meta.friction, blocker: meta.blocker, blockerStance: meta.blocker_stance,
       recommendation: rep.recommendation, summary: rep.summary,
@@ -2580,9 +2644,14 @@ function UpfrontPage({ ctx }) {
         ]}),
       ]}),
 
+      jsx(AnswerCard, { result }),
+
       jsx(PaperRead, { moat: result.moat }),
 
-      jsx(WhatItMeans, { read: result.read, kind: result.kind }),
+      // the three-line read is folded into the answer card for a paper — the
+      // claim is already line one, and repeating it is the "ton of text" the
+      // reader complained about
+      result.kind === 'paper' ? null : jsx(WhatItMeans, { read: result.read, kind: result.kind }),
 
       jsx(VerdictPanel, { result }),
 
