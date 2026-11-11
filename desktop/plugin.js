@@ -45,7 +45,7 @@ import { jsx, jsxs } from 'react/jsx-runtime'
 
 const BUILD = '0.6.3 · ui36'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
-const TAGLINE = 'Read what it means before it reads you.'
+const TAGLINE = 'Point it at a repo, a paper, a post — yours or someone else’s.'
 // The line under the wordmark: what the product is *for*, in the fewest words
 // that still say "this costs money you have not spent yet".
 const SUBTITLE = 'Understand the landscape before investing valuable resources'
@@ -1781,7 +1781,7 @@ function Hero({ onStart }) {
       jsxs('div', { className: 'flex flex-col gap-1.5', children: [
         jsx('h1', { className: T.display, children: TAGLINE }),
         jsx('p', { className: `${T.body} text-(--ui-text-secondary)`,
-          children: `Add what you want evaluated — a repo README, a blog link, a launch post, a whitepaper, a case study, a press release, a tweet. ${PRODUCT_NAME} opens a stage: the people, organisations, markets and stakeholders who will actually react, drawn from the text and links you give it, arguing for as few as three rounds or as many as you ask. What comes back is the result — what the request means, who is for it and who can stop it, how contested the ground already is, and what each concession buys.` }),
+          children: `Add what you want evaluated — a repo README, a paper, a blog link, a launch post, a case study, an announcement. ${PRODUCT_NAME} opens a stage: the parties who will actually react, drawn from the text and links you give it, arguing for as few as three rounds or as many as you ask. Yours or someone else's — what comes back is what it means, who is for it and who can stop it, how contested the ground already is, and what each concession buys.` }),
         jsx('p', { className: `${T.small} text-(--ui-text-tertiary)`,
           children: 'Every party, every condition and every quote comes from what you gave it — nothing is invented. It is a test, not a forecast: the claims are frozen with dates and scored later, so the record argues for itself.' }),
       ]}),
@@ -1794,7 +1794,7 @@ function Hero({ onStart }) {
         jsx(Step, { n: 1, title: 'Add the details',
           body: 'A repo README, a blog link, a launch post, a whitepaper, a case study, a press release, a tweet. One link is enough; more gives the room more to stand on.' }),
         jsx(Step, { n: 2, title: 'The arena opens',
-          body: 'The people, organisations, markets and stakeholders who will actually react take their seats and argue — three rounds, or as many as you ask. You can inject a counter-move mid-run and watch the board bend.' }),
+          body: 'The parties who will actually react take their seats and argue — three rounds, or as many as you ask. You can inject a counter-move mid-run and watch the board bend.' }),
         jsx(Step, { n: 3, title: 'Read the result',
           body: 'What it means, who is for it, who can stop it, what each concession buys — and the claims frozen so you can score them.' }),
       ]}),

@@ -29,7 +29,7 @@ import re
 def test_the_readme_is_the_product_not_the_old_one():
     # the H1 is centered in a <div> now, so it is near the top rather than line 1
     assert "# Strategic Arena\n" in README[:400]
-    assert "Read what it means before it reads you." in README
+    assert "Understand the landscape before investing valuable resources" in README
     for banned in ("rehears", "Upfront Prediction"):
         assert banned.lower() not in README.lower(), banned
 

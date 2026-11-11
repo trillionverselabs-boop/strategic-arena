@@ -180,12 +180,12 @@ def test_the_word_rehearsal_is_gone():
 
 def test_the_home_screen_says_what_you_get():
     js = UI.read_text()
-    assert 'Read what it means before it reads you.' in js
+    assert "Point it at a repo, a paper, a post" in js
     # the output contract: an artifact goes in, a landscape read comes out
     for tile in ("What it means", "The room", "Who decides", "The field",
                  "The price", "The record"):
         assert tile in js, tile
-    assert "a repo README, a blog link, a launch post, a whitepaper, a case study" in js
+    assert "a repo README, a paper, a blog link, a launch post, a case study" in js
 
 
 def test_the_input_is_an_artifact_not_a_decision_form():

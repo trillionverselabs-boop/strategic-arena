@@ -17,8 +17,6 @@
 
 </div>
 
-> **Read what it means before it reads you.**
->
 > Strategic Arena is a multi-agent simulation plugin for Hermes that ingests GitHub repos, arXiv
 > research papers, tech blogs, and announcements to model real-world ecosystem friction. It maps
 > out who will block adoption, simulates competitor reactions, and stress-tests your strategy
@@ -386,11 +384,9 @@ Three names, three jobs, and none of them hides behind another:
 | **LeMultiFox** | the author | the handle the community knows; credit and questions live here |
 | **TrillionVerse Labs** | the studio | the name the work is made under |
 | **Lisa Martin** | the copyright holder | owns this code personally; the license grant is hers |
-| **LDMA Partners** | the payout path | receives prize and commercial payments where applicable — not the owner |
+| **LDMA Partners** | the payout entity | receives prize and commercial payments where applicable — not the copyright holder |
 
-The code is mine, personally. If a prize has to be paid to an entity, or a contract has to be signed,
-that goes through LDMA Partners; the copyright does not move unless there is a written assignment. I'd
-rather say that here than have it discovered in a payout form.
+The code is mine, personally: the copyright and the license grant are the author's, and neither moves without a written assignment.
 
 I built it because I kept doing the same thing badly: shipping a post, a launch, a README, and finding
 out who it annoyed *after* it was public. Everything here is the tool I wanted — a room of the people
