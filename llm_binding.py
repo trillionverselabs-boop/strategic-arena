@@ -25,7 +25,7 @@ from __future__ import annotations
 import sys
 import types
 
-_HOLDER_KEY = "_upfront_llm_binding"   # not a real module name: pure shared state
+_HOLDER_KEY = "_strategic_arena_llm_binding"   # not a real module name: pure shared state
 
 
 def _holder() -> types.ModuleType:

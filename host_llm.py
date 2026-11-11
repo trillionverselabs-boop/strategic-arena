@@ -21,7 +21,7 @@ no route for something, ask for one instead of reading around it.
 
 from __future__ import annotations
 
-PLUGIN_ID = "upfront"
+PLUGIN_ID = "strategic-arena"
 
 
 class HostLlm:
@@ -57,7 +57,7 @@ class HostLlm:
         extra = {} if timeout is None else {"timeout": timeout}
         try:
             res = self._llm.complete(messages, temperature=temp,
-                                     model=(model or None), purpose="upfront.review",
+                                     model=(model or None), purpose="strategic-arena.review",
                                      **extra)
         except TypeError:
             # a facade without `purpose` — same trust gate either way
@@ -84,7 +84,7 @@ class HostLlm:
                 except Exception:
                     pass
                 res = self._llm.complete(messages, temperature=temp,
-                                         purpose="upfront.review", **extra)
+                                         purpose="strategic-arena.review", **extra)
                 text = getattr(res, "text", None)
                 if text is None:
                     text = res if isinstance(res, str) else ""

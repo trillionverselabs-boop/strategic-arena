@@ -22,7 +22,7 @@ MAX_BYTES = 2_000_000        # 2MB cap. Was 200KB: a real Next.js post is 1.66MB
                              # never reached the article. Cap the *prose* below, not
                              # the page before we have found it.
 TIMEOUT_S = 20
-_UA = "hermes-upfront/0.2 (+https://github.com/NousResearch/hermes-agent)"
+_UA = "hermes-strategic-arena/0.6 (+https://github.com/NousResearch/hermes-agent)"
 
 # <svg> blocks are geometry, not text: an icon set is thousands of path
 # coordinates that survive tag-stripping as prose-shaped junk.

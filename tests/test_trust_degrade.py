@@ -23,7 +23,7 @@ class TrustGateDenies:
 
         if kw.get("model"):
             raise type("PluginLlmTrustError", (PermissionError,), {})(
-                "Plugin 'upfront' cannot override the model")
+                "Plugin 'strategic-arena' cannot override the model")
         return R()
 
 

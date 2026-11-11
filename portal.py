@@ -20,7 +20,7 @@ from .paths import data_root
 CATALOGUE_URL = "https://inference-api.nousresearch.com/v1/models"
 CACHE_TTL_S = 6 * 3600
 TIMEOUT_S = 20
-_UA = "hermes-upfront/0.2"
+_UA = "hermes-strategic-arena/0.6"
 
 
 def _per_million(value) -> float:

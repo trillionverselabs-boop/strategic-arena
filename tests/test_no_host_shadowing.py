@@ -46,7 +46,10 @@ def test_engine_is_importable_by_spec():
     finally:
         sys.path[:] = before
 
-    assert mod.engine is importlib.import_module("upfront.engine")
+    # The engine must be *this* plugin's module — loaded from the plugin directory,
+    # never a host module that happens to share the name.
+    engine_file = Path(getattr(mod.engine, "__file__", "")).resolve()
+    assert engine_file.parent == PLUGIN_ROOT
 
 
 def test_tools_import_never_lands_inside_the_plugin():

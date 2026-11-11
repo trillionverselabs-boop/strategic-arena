@@ -2,7 +2,7 @@
 
 Hermes gives every plugin a durable, profile-scoped data root
 (`plugins.plugin_storage.plugin_data_dir`) that survives `plugins update` and
-`plugins remove`. Use it. Fall back to $HERMES_HOME/upfront outside Hermes.
+(`plugins remove`). Use it. Fall back to $HERMES_HOME/strategic-arena outside Hermes.
 """
 
 from __future__ import annotations

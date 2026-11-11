@@ -27,3 +27,8 @@ dependencies = []
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+filterwarnings = [
+    # pytest's root collector imports the plugin root as a top-level module; the
+    # __package__ accommodation in __init__.py is deliberate, not a defect.
+    "ignore:__package__ != __spec__.parent:DeprecationWarning",
+]

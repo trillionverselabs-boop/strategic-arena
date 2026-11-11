@@ -1,4 +1,4 @@
-# Upfront — backend namespace /api/plugins/strategic-arena/
+# Strategic Arena — backend namespace /api/plugins/strategic-arena/
 # Mounted by the dashboard plugin loader. Exports a FastAPI APIRouter.
 # Desktop reaches these routes via ctx.rest('/...').
 #
@@ -8,14 +8,23 @@
 #
 # Why: this plugin ships a top-level `tools.py`, and Hermes itself has a
 # top-level `tools` package. With the plugin root on `sys.path`, every
-# `import tools.*` inside the host resolved to `upfront/tools.py` instead —
+# `import tools.*` inside the host resolved to this plugin's `tools.py` instead —
 # `agent/gemini_schema.py` → `tools.schema_sanitizer` then died with
 # "attempted relative import with no known parent package", which surfaced to
 # the user as "Run failed: the model call failed". A plugin may never shadow a
 # host module, so sys.path is left exactly as the host set it.
+#
+# The module name is derived from the install path, never hardcoded. A fixed
+# name is how the pre-rename id (`upfront`) leaked back in: a leftover copy on
+# disk — or a stale `upfront.models` already in `sys.modules` from an earlier
+# load in the same process — answered for the new code, and the user saw
+# "cannot import name 'ArtifactKind' from 'upfront.models'". Nothing here
+# imports or registers that name any more, so no stale copy can be picked up.
 
 from __future__ import annotations
 
+import hashlib
+import importlib
 import importlib.util
 import json
 import re
@@ -27,41 +36,80 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 
 _PLUGIN_ROOT = Path(__file__).resolve().parent.parent
-_PKG = "upfront"
+_PACKAGE_NAME = "_strategic_arena_dashboard_" + hashlib.sha256(
+    str(_PLUGIN_ROOT).encode("utf-8")).hexdigest()[:16]
+_SELF_FILE = Path(__file__).resolve()
+
+
+def _same_package_files(mod) -> bool:
+    """True when *mod* is this plugin's package (not one of its submodules)."""
+    if mod is None:
+        return False
+    paths = getattr(mod, "__path__", None)
+    if paths:
+        try:
+            return any(Path(p).resolve() == _PLUGIN_ROOT for p in paths)
+        except OSError:
+            return False
+    filed = getattr(mod, "__file__", None)
+    if filed:
+        try:
+            return Path(filed).resolve() == _PLUGIN_ROOT / "__init__.py"
+        except OSError:
+            return False
+    return False
 
 
 def _load_package():
-    """Import the plugin package from this directory set without touching sys.path."""
-    existing = sys.modules.get(_PKG)
-    if existing is not None:
-        try:
-            same_dir = Path(getattr(existing, "__file__", "") or "").resolve().parent == _PLUGIN_ROOT
-        except OSError:
-            same_dir = False
-        if same_dir:
-            return existing
+    """Import the plugin package from this directory set without touching sys.path.
+
+    Reuses the agent half when this process already imported it from the same
+    files — the two halves then share one `llm_binding` holder, so the model the
+    agent bound is the model the routes use. Otherwise loads a private copy under
+    a name nothing else can collide with.
+    """
+    for _name, _mod in list(sys.modules.items()):
+        if _name == _PACKAGE_NAME and _same_package_files(_mod):
+            return _mod
+    for _name, _mod in list(sys.modules.items()):
+        if _mod is None or _mod is sys.modules.get(__name__):
+            continue
+        if _same_package_files(_mod):
+            return _mod
     spec = importlib.util.spec_from_file_location(
-        _PKG, _PLUGIN_ROOT / "__init__.py", submodule_search_locations=[str(_PLUGIN_ROOT)]
+        _PACKAGE_NAME, _PLUGIN_ROOT / "__init__.py",
+        submodule_search_locations=[str(_PLUGIN_ROOT)],
     )
     if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load the {_PKG} package from {_PLUGIN_ROOT}")
+        raise ImportError(f"cannot load the plugin package from {_PLUGIN_ROOT}")
     module = importlib.util.module_from_spec(spec)
-    sys.modules[_PKG] = module
+    sys.modules[_PACKAGE_NAME] = module
     try:
         spec.loader.exec_module(module)
     except BaseException:
-        if sys.modules.get(_PKG) is module:
-            sys.modules.pop(_PKG, None)
+        if sys.modules.get(_PACKAGE_NAME) is module:
+            sys.modules.pop(_PACKAGE_NAME, None)
         raise
     return module
 
 
-_load_package()
+_PACKAGE = _load_package()
+_PKG_NAME = _PACKAGE.__name__
 
-from upfront import engine  # noqa: E402
-from upfront import leverage, llm_binding, portal, reporting  # noqa: E402
-from upfront.llm_adapter import LlmAdapter  # noqa: E402
-from upfront.models import Intervention  # noqa: E402
+
+def _sub(name: str):
+    """Import a submodule of the plugin package, whichever name it was loaded under."""
+    return importlib.import_module(f".{name}", _PKG_NAME)
+
+
+engine = _sub("engine")
+leverage = _sub("leverage")
+llm_binding = _sub("llm_binding")
+portal = _sub("portal")
+reporting = _sub("reporting")
+LlmAdapter = _sub("llm_adapter").LlmAdapter
+_models = _sub("models")
+Intervention = _models.Intervention
 
 import os  # noqa: E402
 import time  # noqa: E402
@@ -76,9 +124,7 @@ def _debug(msg: str) -> None:
     bound in *this* process, or whether we fell back to the local provider config.
     """
     try:
-        from upfront import paths
-
-        path = paths.data_root() / "desktop-debug.log"
+        path = _sub("paths").data_root() / "desktop-debug.log"
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("a", encoding="utf-8") as fh:
             fh.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} pid={os.getpid()} {msg}\n")
@@ -89,7 +135,7 @@ def _debug(msg: str) -> None:
 def set_llm(llm) -> None:
     """Bound by the agent plugin's register(ctx) — kept for compatibility.
 
-    The binding itself lives in `upfront.llm_binding` (a process-wide holder)
+    The binding itself lives in `llm_binding` (a process-wide holder)
     because this file is imported standalone from its path, under a different
     module name than the agent half: module globals here are not shared with it.
     """
@@ -113,15 +159,17 @@ def _resolve_llm():
     for _name, _mod in list(sys.modules.items()):
         if _mod is None or _mod is sys.modules.get(__name__):
             continue
-        if _name.endswith("upfront.dashboard.plugin_api"):
+        try:
+            same_file = Path(getattr(_mod, "__file__", "") or "").resolve() == _SELF_FILE
+        except OSError:
+            same_file = False
+        if same_file:
             _bound = getattr(_mod, "_LLM", None)
             if _bound is not None:
                 return _bound, "agent-copy"
 
     try:
-        from upfront.host_llm import build_host_llm
-
-        built = LlmAdapter(build_host_llm(), allow_override=True)
+        built = LlmAdapter(_sub("host_llm").build_host_llm(), allow_override=True)
         _debug("model source=host-facade (agent half not bound in this process)")
         return built, "host-config"
     except Exception as exc:
@@ -194,8 +242,8 @@ async def health():
     try:
         _, source = _resolve_llm()
     except Exception as exc:
-        return {"ok": False, "plugin": "upfront", "llm_ready": False, "detail": str(exc)}
-    return {"ok": True, "plugin": "upfront", "llm_ready": True, "source": source}
+        return {"ok": False, "plugin": "strategic-arena", "llm_ready": False, "detail": str(exc)}
+    return {"ok": True, "plugin": "strategic-arena", "llm_ready": True, "source": source}
 
 
 @router.post("/run")
@@ -303,8 +351,8 @@ async def graph(run_id: str):
     data = reporting.load_run(run_id)
     if data.get("graph"):
         return data["graph"]
-    from upfront.graph import GraphStore
-    from upfront.paths import graph_path
+    GraphStore = _sub("graph").GraphStore
+    graph_path = _sub("paths").graph_path
     return GraphStore(graph_path()).as_payload()
 
 
@@ -400,7 +448,7 @@ async def calibration():
 # ── desktop UI build tracking ─────────────────────────────────────────
 
 _BUILD_RE = re.compile(r"^\s*const\s+BUILD\s*=\s*'([^']*)'", re.M)
-PLUGIN_NAME = "upfront"
+PLUGIN_NAME = "strategic-arena"
 
 
 def _read_build(path: Path) -> str:
@@ -483,7 +531,7 @@ async def model_access():
 
         allowed = _override_allowed()
         plugins_cfg = (load_config_readonly() or {}).get("plugins") or {}
-        entry = ((plugins_cfg.get("entries") or {}).get("upfront") or {})
+        entry = ((plugins_cfg.get("entries") or {}).get("strategic-arena") or {})
         llm_cfg = entry.get("llm") or {}
         raw = llm_cfg.get("allowed_models")
         if isinstance(raw, (list, tuple)):
@@ -552,8 +600,8 @@ async def export(run_id: str, out_dir: str = "decisions"):
 # ── helpers ──────────────────────────────────────────────────────────
 
 def _scenario_from(body: dict):
-    from upfront.models import ArtifactKind, Document, Persona, Scenario
-
+    models = _sub("models")
+    Document, Persona, Scenario = models.Document, models.Persona, models.Scenario
     docs = [Document(**d) for d in body.get("documents", []) if d.get("content")]
     personas = [Persona(**p) for p in body.get("personas", [])]
     interventions = [Intervention(**iv) for iv in body.get("interventions", [])]
@@ -578,21 +626,20 @@ def _scenario_from(body: dict):
 
 def _kind_or_auto(value) -> str:
     try:
-        from upfront.models import ArtifactKind
-    except ImportError as exc:
-        # The one way this import fails is a mismatched pair on disk: a new
-        # plugin_api.py next to an old models.py, which is what a leftover install
-        # of the pre-rename plugin (`upfront`) produces. A raw ImportError in a
-        # 400 tells the user nothing they can act on, so say the fix instead.
+        ArtifactKind = _sub("models").ArtifactKind
+    except Exception as exc:
+        # The one way this import fails is a broken install: the backend file is
+        # not the one beside it on disk. A raw ImportError in a 400 tells the
+        # reader nothing they can act on, so name the fix instead.
         raise HTTPException(
             status_code=500,
             detail=(
-                "This plugin is a mismatched install: the backend expects a newer "
-                "models.py than the one on disk. That happens when an old copy of "
-                "the pre-rename plugin ('upfront') is still installed beside it. "
-                "Fix: `hermes plugins remove upfront` (and delete "
-                "~/.hermes/desktop-plugins/upfront if present), then install or "
-                "update strategic-arena. Underlying error: " + str(exc)))
+                "This Strategic Arena install is broken: its own engine modules "
+                "could not be loaded from the plugin folder. That happens when the "
+                "plugin was only partly updated, or an old copy is still installed "
+                "beside it. Fix: in the app's Plugins tab remove Strategic Arena "
+                "(and any leftover 'upfront' entry), then install it again from a "
+                "single clean copy. Underlying error: " + str(exc)))
     try:
         return ArtifactKind(str(value or "auto")).value
     except ValueError:

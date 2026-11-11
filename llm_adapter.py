@@ -71,7 +71,7 @@ class LlmAdapter:
             input=[{"type": "text", "text": prompt}],
             json_mode=True,
             json_schema=schema,
-            schema_name="upfront_output",
+            schema_name="strategic_arena_output",
         )
         parsed = getattr(result, "parsed", None)
         if isinstance(parsed, dict):
