@@ -23,7 +23,7 @@ Character count: **~275**. If you prefer room to spare, drop the last hashtag.
 
 ## Alternative opening (if you'd rather lead with the category)
 
-> Every AI tool summarises the link.
+> Every AI tool summarizes the link.
 >
 > This one puts the people who will react to it in a room, prices what each of
 > them can stop, and freezes claims you can check later.
@@ -37,7 +37,7 @@ Character count: **~275**. If you prefer room to spare, drop the last hashtag.
 ## Thread version (if you want the hackathon judges to see the depth)
 
 **1/**
-> Every AI tool summarises the link. This one tells you what the room will do
+> Every AI tool summarizes the link. This one tells you what the room will do
 > with it — who can block it, what each concession buys, and what it will cost you
 > before you publish.
 >
@@ -66,10 +66,10 @@ Character count: **~275**. If you prefer room to spare, drop the last hashtag.
 
 ## Discord (Nous Research `#plugins-skills-and-skins`)
 
-> **Strategic Arena** — read the room before you publish.
+> **Strategic Arena** — understand the landscape before you invest.
 >
 > Give it a link (arXiv paper, repo README, launch post, pricing page, press
-> release, internal memo). It builds the room of people and organisations who
+> release, internal memo). It builds the room of people and organizations who
 > will actually react, prices what each one can stop you with, and freezes
 > testable claims with dates so the read can be graded later.
 >

@@ -27,7 +27,8 @@ import re
 
 # ── public text ────────────────────────────────────────────────────────
 def test_the_readme_is_the_product_not_the_old_one():
-    assert README.startswith("# Strategic Arena\n")
+    # the H1 is centered in a <div> now, so it is near the top rather than line 1
+    assert "# Strategic Arena\n" in README[:400]
     assert "Read what it means before it reads you." in README
     for banned in ("rehears", "Upfront Prediction"):
         assert banned.lower() not in README.lower(), banned
@@ -217,3 +218,63 @@ def test_no_third_party_code_is_bundled():
     ui = (ROOT / "desktop" / "plugin.js").read_text()
     specs = set(re.findall(r"from\s+'([^']+)'", ui))
     assert specs <= {"@hermes/plugin-sdk", "react", "react/jsx-runtime"}, specs
+
+
+# ── one voice, one promise, one page ───────────────────────────────────
+NEW_TAGLINE = "Understand the landscape before investing valuable resources"
+
+
+def test_one_tagline_everywhere():
+    """The header, the banner, the README and the manifest say one thing.
+
+    Two taglines means the product cannot repeat itself, and repetition is the
+    only marketing a plugin gets.
+    """
+    banner = (ROOT / "assets" / "banner.html").read_text()
+    ui = (ROOT / "desktop" / "plugin.js").read_text()
+    assert NEW_TAGLINE in README
+    assert NEW_TAGLINE in banner
+    assert NEW_TAGLINE in ui
+    for text, name in ((README, "README"), (banner, "banner"), (ui, "plugin.js"),
+                       (MANIFEST, "plugin.yaml")):
+        assert "the read before you publish" not in text.lower(), name
+
+
+def test_the_readme_is_a_readme_not_a_book():
+    """A reviewer reads the pinned README top to bottom. The old one was 740 lines
+    with four sections saying the same thing; this cap is a ratchet against drift
+    back there, not a line-count contest — the six tables and the worked example
+    are the product page, not padding.
+    """
+    assert len(README.splitlines()) <= 440, len(README.splitlines())
+
+
+def test_the_readme_does_not_describe_the_removed_model_picker():
+    for stale in ("free only", "live catalogue, per-million prices",
+                  "+ New review", "a picked model", "red / amber / green"):
+        assert stale.lower() not in README.lower(), stale
+
+
+def test_no_invented_vocabulary():
+    """The README may only use words the code and the UI actually use.
+
+    A draft that invents "Friction Clock" or "GraphREG" teaches a reviewer a
+    product that does not exist, and the demo will contradict it on camera.
+    """
+    for banned in ("GraphREG", "Friction Clock", "Strategic Vector",
+                   "Friction Stakeholder Graph", "hermes/tems"):
+        assert banned.lower() not in README.lower(), banned
+
+
+def test_house_style_is_american_english():
+    """The judges are US-based, and a document that mixes `colour` with `color`
+    reads as a typo even to people who could not name the rule.
+
+    The product's own output strings are NOT covered here on purpose: `unclear
+    licence` is what the lens prompt prints and what tests/test_lens.py asserts.
+    Fixing spelling there is a behaviour change, not a copy pass.
+    """
+    assert "artifact" in README.lower()
+    for brit in ("artefact", "licence", "colour", "organisation", "behaviour",
+                 "recognise", "summarise", "labelled"):
+        assert brit not in README.lower(), brit

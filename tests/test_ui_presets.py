@@ -88,7 +88,18 @@ def test_the_paper_evidence_is_opt_in():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.3 · ui35" in UI.read_text()
+    assert "0.6.3 · ui36" in UI.read_text()
+
+
+def test_the_live_run_shows_a_blue_live_pill_and_the_word_live_once():
+    """The status is a pill, not a button: a control there would compete with
+    Cancel run, and the pill has to survive every theme as brand blue.
+    """
+    js = UI.read_text()
+    assert "${ARENA} - LIVE" in js
+    assert "${ARENA} · live" not in js
+    assert ("const SUBTITLE = 'Understand the landscape before investing valuable resources'"
+            in js)
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():

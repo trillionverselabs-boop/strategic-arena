@@ -33,7 +33,7 @@ The medium sets the room. A README is judged by maintainers deciding whether to
 merge and security reviewers deciding whether the install is allowed; a tweet is
 judged by the people who quote it. The extractor carries a per-medium lens, so the
 room is staffed by the parties who can actually affect that artifact — that's the
-part a generic "summarise this link" prompt cannot do.
+part a generic "summarize this link" prompt cannot do.
 
 The analytics are arithmetic, not vibes: `leverage.py` computes exact Shapley over
 the run's own friction function (2^n subsets, ~0.5 ms for a 5-party room), so
@@ -88,7 +88,7 @@ the multi-party negotiation benchmark, the virtual-respondent study, and Shapley
 1953.
 
 **MiroFish is AGPL-3.0; this repository contains none of it** — no code, no assets,
-no prompts. That is the only reason an MIT licence is coherent here, so it is stated
+no prompts. That is the only reason an MIT license is coherent here, so it is stated
 in `CREDITS.md` and asserted by a test in both directions (the statement exists, and
 a scan finds no MiroFish import or file).
 

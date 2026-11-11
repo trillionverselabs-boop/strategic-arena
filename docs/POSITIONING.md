@@ -1,6 +1,6 @@
-# Upfront — Positioning
+# Strategic Arena — positioning
 
-**Status:** spec for **0.2.0**. Sections marked _(ships in 6.x)_ describe behaviour that does not exist yet; the README is updated in task 6.9 once the code is real.
+**Status:** design note written during **0.2.0**, kept for the reasoning. The shipped contract is the [README](../README.md), which is what a reviewer reads at the pinned commit; sections here that describe behavior may predate the current UI.
 
 ---
 
@@ -81,9 +81,9 @@ decks lie.
 
 **Rules:**
 - The axis runs **red (left, high) → purple → blue (right, low)**. Order is fixed.
-- Never colour alone: the chip always carries the words ("Purple ocean", "competition: medium") and a `title` explaining the trigger.
-- Purple must remain distinguishable for colour-blind readers; the text label is the guarantee.
-- Node stance colours stay **red / amber / green** (against / undecided / for). Sea state is **red / purple / blue**. Same first and last word, different layer — say "stance" or "sea state" explicitly in every legend.
+- Never color alone: the chip always carries the words ("Purple ocean", "competition: medium") and a `title` explaining the trigger.
+- Purple must remain distinguishable for color-blind readers; the text label is the guarantee.
+- Node stance colors stay **rose / gold / blue** (will block it / undecided / behind it). Sea state is **red / purple / blue**. Same first and last word, different layer — say "stance" or "sea state" explicitly in every legend.
 
 ---
 

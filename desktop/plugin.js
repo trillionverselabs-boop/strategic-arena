@@ -43,9 +43,12 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.3 · ui35'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.3 · ui36'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
+// The line under the wordmark: what the product is *for*, in the fewest words
+// that still say "this costs money you have not spent yet".
+const SUBTITLE = 'Understand the landscape before investing valuable resources'
 // The room has a name, and the name is the vocabulary: a session opens a
 // Strategic Arena, the Arena debates, the Arena closes and writes the call.
 const ARENA = 'Strategic Arena'
@@ -388,9 +391,11 @@ function Mark({ size = 40 }) {
 function Wordmark({ size = 40 }) {
   return jsxs('div', { className: 'flex items-center gap-2.5', children: [
     jsx(Mark, { size }),
-    jsxs('div', { className: 'flex flex-col', children: [
+    jsxs('div', { className: 'flex min-w-0 flex-col', children: [
       jsx('div', { className: 'text-[0.9375rem] font-semibold leading-none tracking-[-0.01em]', children: PRODUCT_NAME }),
-      jsx('div', { className: cn(T.label, 'mt-1 text-(--ui-text-quaternary)'), children: 'the read before you publish' }),
+      // the subtitle is a sentence, not a label: it wraps to two lines in a
+      // 260px sidebar rather than clipping, and min-w-0 is what lets it.
+      jsx('div', { className: cn(T.label, 'mt-1 max-w-[16rem] leading-[1.3] text-(--ui-text-quaternary)'), children: SUBTITLE }),
     ]}),
   ]})
 }
@@ -2557,8 +2562,29 @@ function UpfrontPage({ ctx }) {
     running && !running.cancelled && !running.error && jsxs('div', { className: 'flex flex-col gap-3', children: [
       jsxs('div', { className: 'flex flex-col gap-2.5 rounded-xl border border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) p-4', children: [
         jsxs('div', { className: 'flex flex-wrap items-end justify-between gap-2', children: [
-          jsxs('div', { className: 'flex flex-col gap-0.5', children: [
-            jsx(Label, { children: `${ARENA} · live` }),
+          jsxs('div', { className: 'flex min-w-0 flex-col gap-1', children: [
+            jsxs('div', { className: 'flex items-center gap-2', children: [
+              // A pill, not a button: there is already one control on this card
+              // (Cancel run), and a second blue thing beside it would read as an
+              // action. The dot dims when the room is closing, so the state is
+              // carried by the pill itself.
+              jsx('span', {
+                className: 'inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-[3px] text-[0.5625rem] font-bold uppercase tracking-[0.12em]',
+                style: { backgroundColor: BRAND.blue, color: '#04121f' },
+                children: [
+                  jsx('span', {
+                    className: 'h-1.5 w-1.5 rounded-full',
+                    style: { backgroundColor: '#04121f',
+                      opacity: (running.progress || 0) >= 100 ? 0.35 : 1 },
+                  }),
+                  'live',
+                ],
+              }),
+              // not <Label>: that uppercases, and this line is the name the user
+              // asked to see, exactly as written.
+              jsx('div', { className: 'text-[0.625rem] font-semibold tracking-[0.08em] text-(--ui-text-quaternary)',
+                children: `${ARENA} - LIVE` }),
+            ]}),
             jsx('div', { className: T.h1,
               children: running.progress >= 100
                 ? `Closing the ${ARENA} — writing the call`

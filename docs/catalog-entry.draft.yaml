@@ -13,8 +13,9 @@ title: Strategic Arena
 # One line: this is what the catalogue card shows. The long form lives in the
 # README, which renders on /docs/plugins/strategic-arena at the pinned sha.
 description: >-
-  Give it a link, get the room that reacts: who can block it, what each concession
-  buys, and the claims you can score later. Research papers also get a replication clock.
+  Understand the landscape before you invest: give it a link and get the room that
+  reacts — who can block adoption, what each concession buys, and the claims you can
+  score later. Research papers also get a replication clock.
 maintainer: LeMultiFox
 tier: community
 category: tools

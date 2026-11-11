@@ -125,7 +125,7 @@ one."* → **inject**.
 ## Caption / YouTube description
 
 > Strategic Arena — a Hermes Agent plugin. Give it a link; it puts the people and
-> organisations who will actually react into one room, prices what each of them
+> organizations who will actually react into one room, prices what each of them
 > can stop, and freezes testable claims with dates. Research papers also get a
 > replication clock: what the publication gives away, what it holds back, and how
 > long the lead lasts.
