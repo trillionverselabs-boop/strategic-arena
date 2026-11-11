@@ -1,11 +1,11 @@
 {
-  "title": "Example (fictional): a pasted release announcement, read as an artefact",
+  "title": "Example (fictional): a pasted release announcement, read as an artifact",
   "goal": "open_weight",
   "window": "24h",
   "documents": [
     {
       "type": "decision",
-      "content": "Introducing Fieldnote-9B: a small model post-trained to be conservative about claims. Northwind Research is releasing Fieldnote-9B as open weights on Hugging Face, with the weights, the evaluation suite (412 prompts across five categories) and a sample of 12,000 training pairs published on the same day. On our evaluation, answers containing an unsupported statistic fell from 19% in the base model to 2% in Fieldnote-9B, with no measurable regression on our internal reasoning set. The licence is permissive and redistribution is allowed. The hosted API remains free for 90 days. This text is invented: the company, the model and every figure here exist only to give the engine a realistic artefact to read.",
+      "content": "Introducing Fieldnote-9B: a small model post-trained to be conservative about claims. Northwind Research is releasing Fieldnote-9B as open weights on Hugging Face, with the weights, the evaluation suite (412 prompts across five categories) and a sample of 12,000 training pairs published on the same day. On our evaluation, answers containing an unsupported statistic fell from 19% in the base model to 2% in Fieldnote-9B, with no measurable regression on our internal reasoning set. The licence is permissive and redistribution is allowed. The hosted API remains free for 90 days. This text is invented: the company, the model and every figure here exist only to give the engine a realistic artifact to read.",
       "source": "Example announcement (fictional)"
     }
   ]

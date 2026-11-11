@@ -661,7 +661,7 @@ UI, in the same round:
 - **Both loudest voices**, quoted, live and in the results: loudest against it and
   loudest for it, with the sentence each actually said.
 - **"What ends this objection"**: the blocker's condition verbatim, then *Bring:*
-  — the artefact their own words point at (licence → the signed paper, budget →
+  — the artifact their own words point at (licence → the signed paper, budget →
   a capped number in writing, clause → the drafted term). Explicitly derived, with
   the disclaimer that the run adds no facts.
 - **"What each party is standing on"** — a provenance graph: cited spans on the
@@ -806,7 +806,7 @@ Four fixes from the screenshot review, all verified in the harness:
 **Marketplace copy synced.** `plugin.yaml` had `label: Strategic Arena` but the
 catalog draft still said "Strategic Arena" and described a rehearsal. Title,
 description and tags now match the brand; the manifest description leads with the
-artefact framing. The plugin id, folder, tool prefixes, data dir and repo slug stay
+artifact framing. The plugin id, folder, tool prefixes, data dir and repo slug stay
 `upfront` — renaming those breaks installs, the catalog pin and the desktop folder.
 
 **Verified:** 202 tests green; `node --check` clean; `hermes plugins validate` passes;

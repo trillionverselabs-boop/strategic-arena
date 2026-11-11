@@ -32,7 +32,7 @@ Pinned: `<SHA>` (full 40-char commit — see the entry)
 The medium sets the room. A README is judged by maintainers deciding whether to
 merge and security reviewers deciding whether the install is allowed; a tweet is
 judged by the people who quote it. The extractor carries a per-medium lens, so the
-room is staffed by the parties who can actually affect that artefact — that's the
+room is staffed by the parties who can actually affect that artifact — that's the
 part a generic "summarise this link" prompt cannot do.
 
 The analytics are arithmetic, not vibes: `leverage.py` computes exact Shapley over

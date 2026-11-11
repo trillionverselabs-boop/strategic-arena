@@ -13,7 +13,7 @@ from .models import Document, Persona
 # denied the model override" instead of "the model call failed".
 LAST_ERROR = ""
 
-# What the extraction understood the artefact to *say*, in three plain lines. Same
+# What the extraction understood the artifact to *say*, in three plain lines. Same
 # model call, one more key — the page needs "what does this mean" answered by the
 # reader of the text, not assembled by a template afterwards.
 LAST_READ: dict = {}
@@ -141,7 +141,7 @@ what happens next (max {max_personas}). For each one give:
   party only once; do not repeat a reason in different words.
 - source: which document type and paragraph backs this
 
-Also write the READ: what this artefact actually says, in plain words, using only
+Also write the READ: what this artifact actually says, in plain words, using only
 what is in it.
 - claim: one sentence — the central promise or assertion being made
 - displaces: one sentence — what it replaces, undercuts or competes with (or "" if

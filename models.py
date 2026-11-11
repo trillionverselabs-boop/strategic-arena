@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 # ── input ──────────────────────────────────────────────────────────────
 
-class ArtefactKind(str, Enum):
+class ArtifactKind(str, Enum):
     """What is being read. Reception depends on the medium: a README is judged by
     maintainers and security reviewers, a tweet by the people who quote it."""
     AUTO = "auto"
@@ -109,7 +109,7 @@ class Scenario(BaseModel):
     max_personas: int = Field(default=8, ge=3, le=16)
     temperature: float = Field(default=0.6, ge=0.0, le=1.0)
     # what was handed in — sets the room. AUTO is resolved from the links/text.
-    kind: ArtefactKind = ArtefactKind.AUTO
+    kind: ArtifactKind = ArtifactKind.AUTO
 
     @property
     def rounds(self) -> int:

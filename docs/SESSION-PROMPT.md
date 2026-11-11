@@ -19,7 +19,7 @@ only copy): `/home/lisacore/work/upfront`, HEAD `f0a7af5`.
 
 ## The product
 
-**Strategic Arena** — *the read before you publish.* Feed it an artefact
+**Strategic Arena** — *the read before you publish.* Feed it an artifact
 (or a URL); it simulates stakeholder reactions, maps emerging coalitions, finds your best
 response, and delivers a competitive read — plus verifiable scorecards to track prediction vs.
 reality. **Not a prediction; a scored read of the room.** Local-first: it runs on your own machine.

@@ -48,13 +48,13 @@ satisfied party. Points are heat; the veto column is power. Never conflate them.
 **Result.** The call first — a headline sentence built from the blocker and the
 heat band, then *who can stop it / what they need / your best move* as three
 labelled answers, then **what ends this objection** (their condition verbatim and
-the artefact it points at). Then the room in order, **what each party is standing
+the artifact it points at). Then the room in order, **what each party is standing
 on** (the provenance graph: cited spans → parties), the movement chart, the
 transcript grouped by round, and the scorecard.
 
 ## What the product gives (the output contract)
 
-The input is an **artefact**, not a decision form: a link or the text itself — a repo
+The input is an **artifact**, not a decision form: a link or the text itself — a repo
 README, a launch post, a whitepaper, a case study, a press release, a tweet. The
 output is a **landscape read**, defined once and shown on the first screen:
 

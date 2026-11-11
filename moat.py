@@ -1,6 +1,6 @@
 """Moat decode — a research paper read as a product, not as a citation.
 
-A paper is the one artefact where **the document is the moat giveaway**. Publication
+A paper is the one artifact where **the document is the moat giveaway**. Publication
 converts the technique into a public good, so "how will the market take this?" stops
 being a question about sentiment and becomes a question about two clocks:
 

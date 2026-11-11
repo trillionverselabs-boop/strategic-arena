@@ -14,7 +14,7 @@ from .fetch import fetch_urls
 from .graph import GraphStore
 from .manifest import build_manifest
 from .models import (
-    ArtefactKind,
+    ArtifactKind,
     Document,
     DocumentType,
     Intervention,
@@ -155,7 +155,7 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
     # citation. The decode goes back in as a context document on purpose: every
     # party in this room has read the same public paper, and that is the point.
     moat = None
-    if kind == ArtefactKind.PAPER.value:
+    if kind == ArtifactKind.PAPER.value:
         moat = moat_mod.decode(scenario.documents, llm)
         if not moat.error and moat.product:
             scenario.documents = list(scenario.documents) + [

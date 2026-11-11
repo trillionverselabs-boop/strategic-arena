@@ -1,4 +1,4 @@
-"""The paper lens — one artefact, two questions, and only one of them is optional.
+"""The paper lens — one artifact, two questions, and only one of them is optional.
 
 A research paper is read as a product (moat decode) *and* as a market (the room).
 The decode is not decoration: its facts go back in as a document, because every

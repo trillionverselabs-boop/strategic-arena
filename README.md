@@ -59,7 +59,7 @@ debt).
 
 ### What it is — and what it is not
 
-**What it is:** a reception read for an artefact. You hand it a link or the text;
+**What it is:** a reception read for an artifact. You hand it a link or the text;
 it staffs the room that will answer it, runs the debate, and hands back the
 landscape: what the request means, who is for it and who can stop it, how
 contested the ground already is, and what each concession buys. Then it writes
@@ -71,7 +71,7 @@ does not tell you what *will* happen. It tells you what the room is likely to do
 and who holds power over the outcome — a test before you publish.
 
 ```
-Artefact → the room it lands in → who decides → the field → the price → claims frozen → scored later
+Artifact → the room it lands in → who decides → the field → the price → claims frozen → scored later
 ```
 
 ### The contract — what comes back
@@ -106,7 +106,7 @@ hand in the dialog.
 
 #### A research paper is read twice
 
-A paper is the one artefact where **the document is the moat giveaway**: publishing
+A paper is the one artifact where **the document is the moat giveaway**: publishing
 is the moment a technique becomes copyable. So `kind: paper` answers a different
 question from `whitepaper` (which asks whether the method is defensible), and it
 runs an extra pass before the room is drawn:
@@ -127,9 +127,18 @@ unstated time is **unknown** — never *protected*. The decode goes back into th
 run as a context document, because every party in that room has read the same
 public paper.
 
-The interface says all of this before you run: the form states what the lens
-answers and, in the same panel, what it refuses to (no peer review, no revenue or
-market-share forecast).
+The interface says all of this before you run, in the panel that appears when you
+pick the lens — a side-by-side with the other lenses, because the difference is the
+thing a reader has to be told:
+
+| | the other lenses | a research paper |
+|---|---|---|
+| the question | will this land, and who can stop it | what could be built from this, and how long is it safe |
+| the room | the people who react to what you are about to do | the market that would receive the product — including the authors |
+| you get back | friction, the veto player, what each concession buys | the product and the buyer, gives-away vs holds-back, the replication clock |
+
+Then the refusal, in the same panel: not a peer review, not a forecast, no revenue
+and no market share.
 
 ## At a glance
 
@@ -138,7 +147,7 @@ market-share forecast).
 | **You give it** | a link (repo README · blog post · research paper · whitepaper · case study · press release · tweet) or the text itself |
 | **You get** | what it means · the room · who can stop it · the field · the price per party · frozen claims to score |
 | **Cost** | free models available; a 24h review is ~$0.02 on a cheap paid model, and the price is shown before you run |
-| **Repeatable** | two runs of the same artefact can be compared side by side (`/compare`) |
+| **Repeatable** | two runs of the same artifact can be compared side by side (`/compare`) |
 | **Not** | a prediction, a guarantee, or a game solver |
 
 ### What it is, in one sentence
@@ -326,7 +335,7 @@ Run it once more before you act on it.
 
 If the answer moves with how long you run it, the panel says so and shows the stance drift
 between the shortest and longest run. That is a finding, not a failure — and it is the
-the reason to run the same artefact at two different lengths rather than trusting one report.
+the reason to run the same artifact at two different lengths rather than trusting one report.
 
 **Opt-in deep dive:** `arena_report(run_id, full=true)` (or `GET /report/{id}?full=true`)
 returns the long-form `report_full.md` — same grounded content, expanded with
@@ -638,7 +647,7 @@ strategic-arena/             # the product, and the plugin id (`strategic-arena`
 ├── docs/                    # UI.md, POSITIONING.md, PROGRESS.md, DEMO-SCRIPT.md, catalog draft
 ├── tests/                   # pytest suite — fake-LLM end-to-end, ~3 s
 └── src modules:
-    ingestion.py   artefact → personas (+ the lens: repo/post/paper/whitepaper/…)
+    ingestion.py   artifact → personas (+ the lens: repo/post/paper/whitepaper/…)
     moat.py        a paper → product, what it gives away, replication clock
     agents.py      memory stream, retrieval, reflection, one turn
     simulation.py  the round loop

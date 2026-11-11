@@ -23,7 +23,7 @@ def test_form_says_what_a_run_costs():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.2 · ui24" in UI.read_text()
+    assert "0.6.2 · ui25" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -105,14 +105,14 @@ def test_the_word_rehearsal_is_gone():
 def test_the_home_screen_says_what_you_get():
     js = UI.read_text()
     assert 'Read what it means before it reads you.' in js
-    # the output contract: an artefact goes in, a landscape read comes out
+    # the output contract: an artifact goes in, a landscape read comes out
     for tile in ("What it means", "The room", "Who decides", "The field",
                  "The price", "The record"):
         assert tile in js, tile
     assert "a repo README, a blog link, a launch post, a whitepaper, a case study" in js
 
 
-def test_the_input_is_an_artefact_not_a_decision_form():
+def test_the_input_is_an_artifact_not_a_decision_form():
     """The product reads what you are about to publish, not a plan you filed."""
     js = UI.read_text()
     assert "Add what you want evaluated" in js

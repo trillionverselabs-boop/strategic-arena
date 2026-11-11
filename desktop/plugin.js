@@ -41,7 +41,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.2 · ui24'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.2 · ui25'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -663,36 +663,48 @@ function MovementChart({ snapshots, height = 190 }) {
 
 
 // ── the paper lens, explained where it is chosen ───────────────────────
-// A research paper is the one artefact read twice: as a product (what could be
+// A research paper is the one artifact read twice: as a product (what could be
 // built, and how long the advantage survives being published) and as a market
 // (who would fight it). That is unusual enough that it has to be said on the
 // form. Someone who expected a peer review would otherwise read the answer as a
 // bug, and someone who expected a forecast would read it as a failure.
-const PAPER_IS = 'You give it a research paper. It answers the two questions a paper never '
-  + 'answers itself: what product could be built from this, and who would fight it once it '
-  + 'shipped. Then it puts a number on how long you have.'
-const PAPER_IS_NOT = 'Not a peer review, and not a verdict on the research. It does not predict '
-  + 'revenue, price or market share. What it reads is what the paper GIVES AWAY — because '
-  + 'publishing is the moment a technique becomes copyable.'
-const PAPER_GIVES = [
-  ['the product', 'what a team could build and sell, and the buyer who actually signs'],
-  ['the clock', 'how many months a funded competitor needs to rebuild it from the text'],
-  ['the room', "the incumbent, the fast follower, the buyer, the channel — and the authors' "
-    + 'own lab, which is usually the first competitor and the one people leave out'],
+// Every other lens answers one question: will this land, who reacts, who can stop it,
+// what each concession buys. A paper gets a different question with a different
+// answer — not whether it lands, but whether it is worth building at all, and for
+// how long. That is a different outcome, and the form says so next to the chooser.
+const PAPER_DIFF = [
+  ['the question',
+   'will this land, and who can stop it',
+   'what could be built from this, and how long is it safe'],
+  ['the room',
+   'the people who react to what you are about to do',
+   "the market that would receive the product — including the authors, who are usually the first competitor"],
+  ['you get back',
+   'friction, the veto player, what each concession buys',
+   'the product and the buyer, what it gives away vs holds back, and the replication clock'],
 ]
+const PAPER_IS_NOT = 'Not a peer review, and not a forecast: no revenue, no market share. It reads '
+  + 'what the paper GIVES AWAY, because publishing is the moment a technique becomes copyable.'
 
 function PaperLensNote() {
   return jsxs(Card, { tone: C.hold, children: [
     jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
-      jsx('div', { className: T.h2, children: 'Reading a paper as a product' }),
-      jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'two questions, one run' }),
+      jsx('div', { className: T.h2, children: 'Why a paper is a different question' }),
+      jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'same engine, different answer' }),
     ]}),
-    jsx('div', { className: `${T.body} text-(--ui-text-secondary)`, children: PAPER_IS }),
-    jsx('div', { className: 'grid gap-2 sm:grid-cols-3', children: PAPER_GIVES.map(([k, v]) =>
-      jsxs('div', { className: 'flex flex-col gap-0.5', children: [
+    jsx('div', { className: `${T.body} text-(--ui-text-secondary)`,
+      children: 'The other lenses tell you what happens when you do something. This one tells you '
+        + 'what the paper itself is worth building into — before you build it.' }),
+    jsxs('div', { className: 'grid grid-cols-[minmax(0,5.5rem)_minmax(0,1fr)_minmax(0,1fr)] gap-x-2 gap-y-1.5', children: [
+      jsx('div', {}),
+      jsx('div', { className: `${T.micro} ${NUM} text-(--ui-text-quaternary)`, children: 'THE OTHER LENSES' }),
+      jsx('div', { className: `${T.micro} ${NUM} text-(--ui-text-secondary)`, children: 'A RESEARCH PAPER' }),
+      ...PAPER_DIFF.map(([k, other, paper]) => [
         jsx('div', { className: `${T.label} text-(--ui-text-quaternary)`, children: k }),
-        jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: v }),
-      ]}) ) }),
+        jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: other }),
+        jsx('div', { className: `${T.small} text-(--ui-text-secondary)`, children: paper }),
+      ]).flat(),
+    ]}),
     jsx('div', { className: `${T.small} border-t border-(--ui-stroke-tertiary) pt-1.5 text-(--ui-text-quaternary)`,
       children: PAPER_IS_NOT }),
   ]})
@@ -1466,10 +1478,10 @@ function Scorecard({ result, claimHits, setClaimHits, onVerify, record, due }) {
 
 // ── the verdict ───────────────────────────────────────────────────────
 
-// "Go talk to Legal" is not an instruction. Their condition names the artefact
+// "Go talk to Legal" is not an instruction. Their condition names the artifact
 // that ends the objection; this maps the words they used onto what to carry into
 // the room. Derived, never invented — the condition itself is shown verbatim.
-function unblockArtefact(condition) {
+function unblockArtifact(condition) {
   const t = String(condition || '').toLowerCase()
   if (!t) return ''
   if (/licen[cs]e|licen[cs]ing|\bip\b|compliance|regulat|gdpr|data protection/.test(t))
@@ -1565,7 +1577,7 @@ function VerdictPanel({ result }) {
           jsx('div', { className: `${T.small} text-(--ui-text-secondary)`, children: condition }),
           jsxs('div', { className: `${T.small}`, children: [
             jsx('span', { className: 'font-semibold', children: 'Bring: ' }),
-            jsx('span', { className: 'text-(--ui-text-secondary)', children: unblockArtefact(condition) }),
+            jsx('span', { className: 'text-(--ui-text-secondary)', children: unblockArtifact(condition) }),
           ]}),
           move ? jsxs('div', { className: `${T.micro} text-(--ui-text-tertiary)`, children: [
             jsx('span', { className: 'font-semibold', children: 'Then: ' }), move,
@@ -2039,7 +2051,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
               value: urls, onChange: e => setUrls(e.target.value),
             }),
           }),
-            jsx(Field, {
+          jsx(Field, {
             label: 'What are you adding?',
             hint: kind === 'auto'
               ? 'Read off the link. A repo link brings maintainers and security reviewers; a post brings the people who quote it.'
@@ -2466,7 +2478,8 @@ function UpfrontPage({ ctx }) {
     result && !demo && jsxs('div', { className: 'flex flex-col gap-3', children: [
       jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
         jsxs('div', { className: 'flex flex-col', children: [
-          jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'review' }),
+          jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`,
+            children: result.kind === 'paper' ? 'paper read' : 'review' }),
           jsx('div', { className: T.h1, children: result.title || 'This review' }),
         ]}),
         jsxs('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: [

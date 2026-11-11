@@ -55,7 +55,7 @@ content; `plugin.yaml` does **not** need a new capability (skills are a normal s
 
 ## R3 — Decision record export (the retention hook)
 
-**Why:** a technical user keeps artefacts next to the code. If the review becomes a file in the repo, it
+**Why:** a technical user keeps artifacts next to the code. If the review becomes a file in the repo, it
 gets read again, linked in PRs, and compared against reality by the people who ship.
 
 **What:** `reporting.export_decision(run_id, out_dir="decisions")` writes `decisions/<slug>.md`:

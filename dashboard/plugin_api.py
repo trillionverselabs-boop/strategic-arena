@@ -552,7 +552,7 @@ async def export(run_id: str, out_dir: str = "decisions"):
 # ── helpers ──────────────────────────────────────────────────────────
 
 def _scenario_from(body: dict):
-    from upfront.models import ArtefactKind, Document, Persona, Scenario
+    from upfront.models import ArtifactKind, Document, Persona, Scenario
 
     docs = [Document(**d) for d in body.get("documents", []) if d.get("content")]
     personas = [Persona(**p) for p in body.get("personas", [])]
@@ -577,10 +577,10 @@ def _scenario_from(body: dict):
 
 
 def _kind_or_auto(value) -> str:
-    from upfront.models import ArtefactKind
+    from upfront.models import ArtifactKind
     try:
-        return ArtefactKind(str(value or "auto")).value
+        return ArtifactKind(str(value or "auto")).value
     except ValueError:
         raise HTTPException(status_code=400,
                             detail=f"unknown kind {value!r}; expected one of "
-                                   + ", ".join(k.value for k in ArtefactKind))
+                                   + ", ".join(k.value for k in ArtifactKind))
