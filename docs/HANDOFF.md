@@ -1,4 +1,13 @@
-# Handoff — Upfront (state as of 2026-11-10, HEAD `263cd8f`)
+# Handoff — Strategic Arena
+
+> **Read `docs/DESKTOP-UPDATES.md` first** for how a change reaches the window —
+> including the backend half, which needs a gateway restart and is the part that
+> makes a fixed error text survive an update. Everything below is history.
+>
+> Current: build `0.6.2 · ui28`, catalogue pin `2082f15`, 274 tests green,
+> `hermes plugins validate --install-deps` passes. The plugin id is
+> `strategic-arena` and the shipped code must never reference the pre-rename id
+> `upfront` (`tests/test_no_stale_id.py`).
 
 Read this first in a new session. It is the shortest path from zero to productive.
 
@@ -7,7 +16,9 @@ Read this first in a new session. It is the shortest path from zero to productiv
 | | |
 |---|---|
 | Repo (private) | `https://github.com/trillionverselabs-boop/strategic-arena` |
-| Local clone — **the only copy** | `/home/lisacore/work/upfront` (dir renamed so the package imports as `upfront`) |
+| Local clone — **the only copy** | `/home/lisacore/work/strategic-arena` |
+| Installed plugin | `~/.hermes/profiles/charlene/plugins/strategic-arena` |
+| Desktop UI the window loads | `~/.hermes/desktop-plugins/strategic-arena/plugin.js` **on the machine the window runs on** |
 | Frozen backup | `https://github.com/trillionverselabs-boop/Upfront-Plugin-Original` (remote `original`) |
 | Plan (versioned) | `docs/plans/2026-11-09_upfront-gap-repair.md` |
 | Positioning | `docs/POSITIONING.md` |
