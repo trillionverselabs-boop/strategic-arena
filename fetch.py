@@ -41,6 +41,23 @@ PROSE_MIN = 150
 
 _GITHUB_REPO = re.compile(r"^https?://github\.com/([^/\s]+)/([^/\s?#]+)/?$")
 
+# arXiv serves the same paper three ways, and only two of them are text. /pdf/
+# returns raw PDF bytes; decoding those as UTF-8 yields a page of compressed
+# stream noise that is *full of word-shaped tokens*, so it sails past the prose
+# gate and the model gets binary as its "paper". That is worse than failing.
+# Rewrite to the HTML full text, then the abstract page.
+_ARXIV_RE = re.compile(r"^https?://(?:www\.|export\.)?arxiv\.org/(?:abs|pdf|html)/([^?#\s]+?)(?:\.pdf)?/?$")
+
+# What any other PDF looks like from the outside. We cannot read a generic PDF
+# without a dependency, and this plugin declares none — so say so, rather than
+# feed the model bytes and call it a document.
+_BINARY_MAGIC = (b"%PDF", b"PK\x03\x04", b"\x89PNG", b"GIF8", b"\xff\xd8")
+
+
+# Links that were dropped, with the reason. The run reports them instead of
+# quietly reviewing a smaller pile of documents than the user handed in.
+LAST_SKIPPED: List[tuple] = []
+
 # Navigation / boilerplate lines that carry no content but pollute extraction.
 _CHROME_PREFIXES = (
     "Skip to content", "You signed in", "You signed out", "Sign in", "Sign up",
@@ -68,6 +85,12 @@ def _get_text(url: str) -> str | None:
     return _extract_text(raw, ctype)
 
 
+def _is_binary(raw: bytes, ctype: str) -> bool:
+    if any(t in ctype for t in ("pdf", "octet-stream", "zip", "image/", "msword")):
+        return True
+    return any(raw.startswith(m) for m in _BINARY_MAGIC)
+
+
 def _extract_text(raw: bytes, ctype: str = "") -> str | None:
     """bytes -> text a model can read, or None when the page yields no prose.
 
@@ -75,6 +98,8 @@ def _extract_text(raw: bytes, ctype: str = "") -> str | None:
     is PROSE_MIN below, so a page whose body sits behind 1.5MB of inline SVG is
     still read in full instead of being graded off its <head>.
     """
+    if _is_binary(raw, ctype):
+        return None
     text = raw.decode("utf-8", errors="ignore")
     if "html" in ctype or text.lstrip().startswith("<"):
         text = _html_to_text(text)
@@ -112,6 +137,19 @@ def fetch_url(url: str, doc_type: DocumentType = DocumentType.CONTEXT) -> Docume
     if not url.lower().startswith(("http://", "https://")):
         return None
 
+    arxiv = _ARXIV_RE.match(url)
+    if arxiv:
+        # full text first (arxiv's HTML rendering), then the abstract page. Both
+        # are real text; the /pdf/ link the user pasted is not.
+        ident = arxiv.group(1)
+        for candidate in (f"https://arxiv.org/html/{ident}",
+                          f"https://arxiv.org/abs/{ident}"):
+            text = _get_text(candidate)
+            if text:
+                return Document(type=doc_type, content=text, source=url)
+        LAST_SKIPPED.append((url, "arXiv did not serve a readable version of this paper"))
+        return None
+
     m = _GITHUB_REPO.match(url)
     if m:
         owner, repo = m.group(1), m.group(2)
@@ -124,11 +162,19 @@ def fetch_url(url: str, doc_type: DocumentType = DocumentType.CONTEXT) -> Docume
 
     text = _get_text(url)
     if not text:
+        LAST_SKIPPED.append((url, "no readable text at that link "
+                                  "(a PDF or a page that hides its body behind a script)"))
         return None
     return Document(type=doc_type, content=text, source=url)
 
 
 def fetch_urls(urls: List[str]) -> List[Document]:
+    """Fetch every URL that can be read. `LAST_SKIPPED` explains the rest.
+
+    Silently dropping a link is how a user ends up reading a confident review of
+    two documents when they handed in three, so every skip is recorded.
+    """
+    LAST_SKIPPED.clear()
     out: List[Document] = []
     for u in urls or []:
         d = fetch_url(u)

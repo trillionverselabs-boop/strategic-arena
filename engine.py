@@ -9,6 +9,7 @@ from typing import Callable, Dict, List
 
 from . import ingestion, moat as moat_mod, reporting, scoring, simulation
 from .claims import build_claims, extract_claims
+from . import fetch
 from .fetch import fetch_urls
 from .graph import GraphStore
 from .manifest import build_manifest
@@ -135,8 +136,10 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
     _emit(key, "running", 0, scenario.rounds)
 
     # 0. URLs -> documents (so a user can drop a repo/post URL instead of pasting)
+    skipped: List[tuple] = []
     if scenario.urls:
         scenario.documents = list(scenario.documents) + fetch_urls(scenario.urls)
+        skipped = list(fetch.LAST_SKIPPED)
 
     if not scenario.documents:
         raise SimulationError("Provide at least one document or URL.")
@@ -290,6 +293,11 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
 
     # 8. provenance for the report
     prov = []
+    # A link that could not be read is a fact about the run, not a detail to
+    # swallow: reviewing two documents when three were handed in is a silent
+    # downgrade, and the reader is the last person who can be told.
+    for url, why in skipped:
+        prov.append(f"SKIPPED {url} — {why}")
     for p in result.personas:
         if p.reasons and p.reasons[0]:
             prov.append(f"{p.name} stance {p.stance:+.2f} — {p.reasons[0]}")
