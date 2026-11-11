@@ -4,7 +4,7 @@ import pytest
 
 from upfront import engine
 from upfront.models import Scenario
-from tests.fakes import FakeLLM
+from fakes import FakeLLM
 
 
 def _scenario():

@@ -6,7 +6,7 @@ compared against reality by the people who ship.
 
 from upfront import engine, reporting
 from upfront.models import Document, DocumentType, Scenario
-from tests.fakes import FakeLLM
+from fakes import FakeLLM
 
 
 def _run(title="Ship the open-weight release"):

@@ -1,6 +1,6 @@
 from upfront import engine, reporting
 from upfront.models import Document, DocumentType, Scenario
-from tests.fakes import HalfDead
+from fakes import HalfDead
 
 
 def test_degraded_run_is_flagged():

@@ -3,7 +3,7 @@ import pytest
 
 from upfront import engine, reporting
 from upfront.models import Document, DocumentType, Scenario
-from tests.fakes import FakeLLM
+from fakes import FakeLLM
 
 
 def _run():

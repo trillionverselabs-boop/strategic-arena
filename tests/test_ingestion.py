@@ -1,6 +1,6 @@
 from upfront import ingestion
 from upfront.models import Document, DocumentType
-from tests.fakes import Boom, EmptyExtraction
+from fakes import Boom, EmptyExtraction
 
 
 def _docs():

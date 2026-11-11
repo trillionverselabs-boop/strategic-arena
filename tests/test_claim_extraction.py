@@ -2,7 +2,7 @@ import json
 
 from upfront.claims import extract_claims
 from upfront.models import Document, DocumentType, SimulationResult
-from tests.fakes import Boom
+from fakes import Boom
 
 
 def _res():

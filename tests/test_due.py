@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 from upfront import engine, reporting
 from upfront.models import Document, DocumentType, Scenario
 from upfront.tools import register_tools
-from tests.fakes import FakeLLM
+from fakes import FakeLLM
 
 
 def _run(window="30m"):

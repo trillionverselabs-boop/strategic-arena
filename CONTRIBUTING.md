@@ -28,7 +28,7 @@ and needs an issue first.
 
 1. Fork and clone the repo.
 2. Install dev deps: `pip install -e ".[test]"`.
-3. Run tests: `python -m pytest tests/ -q`.
+3. Run tests: `./scripts/test.sh`.
 4. Validate the plugin: `hermes plugins validate .`.
 5. Open a PR with a clear description of the change and why.
 

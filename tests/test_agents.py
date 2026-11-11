@@ -1,6 +1,6 @@
 from upfront.agents import StakeholderAgent
 from upfront.models import Persona
-from tests.fakes import Boom
+from fakes import Boom
 
 
 def test_dead_model_holds_stance_and_counts():

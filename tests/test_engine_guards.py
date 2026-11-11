@@ -2,7 +2,7 @@ import pytest
 
 from upfront import engine
 from upfront.models import Document, DocumentType, Scenario
-from tests.fakes import Boom, EmptyExtraction
+from fakes import Boom, EmptyExtraction
 
 
 def _scenario():

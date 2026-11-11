@@ -1,24 +1,24 @@
-import importlib.util
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
 
 REPO = Path(__file__).resolve().parent.parent
 
-# Import the plugin package *by path*, under a fixed module name, so the suite passes
-# whatever the checkout directory is called. A clone arrives as `strategic-arena`, and
-# `import strategic_arena` would need the folder to be spelled that way; a plain
-# `sys.path` insert only works when the folder happens to be named `upfront`.
-if "upfront" not in sys.modules:
-    spec = importlib.util.spec_from_file_location(
-        "upfront", REPO / "__init__.py", submodule_search_locations=[str(REPO)]
-    )
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["upfront"] = module
-    spec.loader.exec_module(module)  # noqa: S301 — our own file
-sys.path.insert(0, str(REPO))
+# The Python package is `upfront` — a hyphen cannot be a package name — while the
+# repository is `strategic-arena`, so a contributor's checkout arrives under a name the
+# interpreter cannot import. Give sys.path a directory that contains the package under
+# its real name: `import upfront` then works as a normal package import, including the
+# relative imports inside `__init__.py` (a path-loaded module breaks on those).
+if REPO.name == "upfront":
+    sys.path.insert(0, str(REPO.parent))
+else:
+    _shim = Path(tempfile.mkdtemp(prefix="sa-import-"))
+    _link = _shim / "upfront"
+    if not _link.exists():
+        _link.symlink_to(REPO, target_is_directory=True)
+    sys.path.insert(0, str(_shim))
 
 
 @pytest.fixture(autouse=True)

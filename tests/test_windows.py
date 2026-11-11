@@ -1,6 +1,6 @@
 from upfront import engine, reporting
 from upfront.models import Document, DocumentType, Scenario, Window
-from tests.fakes import FakeLLM
+from fakes import FakeLLM
 
 ORDER = ["30m", "1h", "4h", "6h", "12h", "24h", "48h"]
 

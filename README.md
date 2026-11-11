@@ -198,15 +198,21 @@ flowchart LR
   I --> D
 ```
 
-Under the hood it is a small, clean-room implementation of five research ideas:
+Under the hood it is a clean-room implementation of eleven research ideas. Each is
+named, with an identifier and its licence status, in [CREDITS.md](CREDITS.md):
 
 | Research | What it powers here |
 |---|---|
-| **GraphRAG** (Edge et al.) | Document → stakeholder/relationship extraction; stakeholder camp clusters |
-| **Generative Agents** (Park et al.) | Each stakeholder has a memory stream, retrieval, and periodic reflection |
-| **OASIS** | The round-based simulation loop and social action types |
-| **MASS** (Qian et al.) | Replication manifest, scheduling discipline, and the 8 known failure modes, reported per run |
-| **CAMEL** | Role-play framing + inception-style prompt templates |
+| **GraphRAG** (Edge et al.) | document → stakeholder/relationship extraction; camp clusters |
+| **Generative Agents** (Park et al.) | per-party memory stream, retrieval, periodic reflection |
+| **OASIS** | the round-based simulation loop and social action types |
+| **MASS** (Qian et al.) | replication manifest, scheduling discipline, failure-mode audit per run |
+| **CAMEL** | role-play framing + inception-style prompt templates |
+| **Shapley counterfactual credits** (2106.00285) and **Shapley 1953** | the ledger: each party neutralised in turn, exact over every coalition |
+| **Forecasting calibration** (2507.04562, 2402.18563) | Brier scoring of the frozen claims — a skill score, not a hit rate |
+| **Virtual respondents** (2509.06337) | how a persona's stance is elicited from a document rather than invented |
+| **Negotiation benchmarking** (2603.14066) | how a condition is read as a concession with a cost |
+| **Market regime council** (2605.24490) | when two parties behave as one blocking unit |
 
 Everything is local-first: the graph and every past run are stored in `<hermes home>/plugin-data/strategic-arena/`
 on your machine. No cloud graph service, no Zep, no Docker. Runs on **your active Hermes
@@ -217,8 +223,9 @@ model** via `ctx.llm` — the plugin never sees or stores a credential.
 - **Friction score** (0–100, ± uncertainty) — how hard this will land. The uncertainty comes
   from *input quality*, not from claiming predictive accuracy. This is a structured
   hypothesis grounded in your document, **not a calibrated probability of real-world outcome.**
-- **A living stakeholder graph** — nodes colored by stance (red = against, green = for), edges
-  for oppose/support. Pure React SVG, no library.
+- **A living stakeholder graph** — nodes coloured by stance (**rose** = will block it,
+  **gold** = undecided, **blue** = behind it), edges for oppose/support. Pure React SVG,
+  no chart library, and the words carry the meaning — colour never does it alone.
 - **The blocker + counter-moves** — the single most dangerous stakeholder, why (traced to a
   sentence in your doc), and the move that flips them.
 - **Provenance** — every stance cites the input text it came from ("grounded"), clearly
@@ -233,23 +240,24 @@ model** via `ctx.llm` — the plugin never sees or stores a credential.
 
 ### Desktop experience (left sidebar → Strategic Arena)
 
-The page opens on a header with a single green **`+ New review`** pill. Everything else is
-history: past runs, their competition read, and the comparison across timelines.
+The page opens on a header with a single **`New arena session`** button (brand blue) and
+one line under the headline saying what you get back. Everything below it is history: past
+runs, one line each with a small room sparkline, the verdict band, the blocker and the heat.
 
 **The form is a modal** (the layout of a task-creation dialog):
 
 | Field | What it wants | Help text on screen |
 |---|---|---|
-| **Title** (required) | a short, specific name — `Open-weight Arete-27B` | "Add a title for your test — short and specific, the way you would say it out loud." |
-| **Decision document** — **or** URLs | the plan being reacted to | "Paste the plan, launch note or proposal. Be concrete about what changes and for whom." A **Use a sample** button fills a realistic, good-result example. |
+| **Title** (required) | a short, specific name — `Open-weighting our model` | "Add a title for your test — short and specific, the way you would say it out loud." |
+| **What are you adding?** | a link, or the text itself — a repo README, a post, a whitepaper, a case study, a release, a tweet | the lens is detected from the link and can be overridden; a fictional sample fills the field if you want to see the shape first |
 | **Evidence** (optional) | numbers, quotes, survey results | "The biggest driver of quality — anything factual a stakeholder would react to." |
 | **URLs** (optional, one per line) | fetched as real documents, URL kept as provenance | lists what works: repo README · blog post · news article · product/landing page · pricing page · forum or Reddit thread · whitepaper/PDF · public internal memo |
-| **Timeline** | `30m` → `48h` | states what each buys you (below) |
+| **Window** | `3` rounds → `20` | 24 hours / 16 rounds is the default and is right for most moves |
 | **Model** | live catalogue, per-million prices, "free only" filter | "Leave on active model to use whatever Hermes already runs." |
 
-**Decision document OR a URL — one is required.** The footer says so in words, and the
-green **Run review** button stays disabled until one of them is present. Both is fine; a
-URL alone is enough (a repo URL ingests its README).
+**A link or the text — one is required.** The footer says so in words and the primary
+button stays disabled until one of them is present. Both is fine; a repo URL alone is
+enough (a repo link ingests its README).
 
 **What you get** is spelled out inside the form, before you spend anything: a structured
 review of the response to your move — who can veto it, which coalitions form, the best
@@ -275,9 +283,9 @@ price` (or `FREE`).
 **In progress:** progress bar + `Round N of M`, a live graph that updates every round, and
 an **Inject ⚡** field — type a counter-move and it lands at the next round, mid-run.
 
-**Finished:** competition axis (red → purple → blue, with the trigger in words), friction
-bar, veto player, the graph, the report rendered as markdown, and the **claims with ✓/✗
-scoring** plus an overall `right / partial / wrong` verdict.
+**Finished:** what it means, the call, what is already on your side, the heat ledger
+(waterfall + per-party points), the room, the provenance graph, and the **frozen claims**
+with ✓/✗ scoring plus an overall `right / partial / wrong` verdict.
 
 **Comparison across timelines** — the feature that makes repetition evidence. Every run of
 the same title is grouped: a table of *timeline · friction · competition · veto player ·
@@ -290,7 +298,7 @@ Run it once more before you act on it.
 
 If the answer moves with how long you run it, the panel says so and shows the stance drift
 between the shortest and longest run. That is a finding, not a failure — and it is the
-reason to run 30m, 4h and 24h on the same decision rather than trusting one report.
+the reason to run the same artefact at two different lengths rather than trusting one report.
 
 **Opt-in deep dive:** `arena_report(run_id, full=true)` (or `GET /report/{id}?full=true`)
 returns the long-form `report_full.md` — same grounded content, expanded with
@@ -536,14 +544,21 @@ which survives plugin updates and removal and follows the active profile.
 
 ## Develop / run as a test
 
+Tests run through `scripts/test.sh`, not bare `pytest`: the repository root is the
+Python package `upfront`, and pytest walks parent directories that contain
+`__init__.py`. From a checkout named `strategic-arena` it tries to import the root as
+a module and fails on its relative imports, so the script runs the suite from a
+copy whose package segment is a valid identifier (`upfront`). It costs a hard-linked
+copy and works for any checkout folder name.
+
 From a fresh clone of this repo (Python ≥3.11):
 
 ```bash
 # 1. install dev + runtime deps
 pip install -e ".[test]"   # or add the dependencies from pyproject.toml to your env
 
-# 2. run the test suite
-python -m pytest tests/ -q
+# 2. run the test suite (from any checkout folder name)
+./scripts/test.sh
 ```
 
 Test files:
@@ -593,7 +608,7 @@ strategic-arena/             # the product, and the plugin id (`strategic-arena`
 ├── data/presets/*.json      # demo presets
 ├── assets/                  # logo, banner, how-it-works (drawn here, MIT)
 ├── docs/                    # UI.md, POSITIONING.md, PROGRESS.md, DEMO-SCRIPT.md, catalog draft
-├── tests/                   # pytest suite — 217 tests, fake-LLM end-to-end
+├── tests/                   # pytest suite — fake-LLM end-to-end, ~3 s
 └── src modules:
     ingestion.py   artefact → personas (+ the lens: repo/post/whitepaper/…)
     agents.py      memory stream, retrieval, reflection, one turn

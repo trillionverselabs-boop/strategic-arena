@@ -2,7 +2,7 @@ import json
 
 from upfront import engine, reporting
 from upfront.models import Document, DocumentType, Scenario
-from tests.fakes import FakeLLM
+from fakes import FakeLLM
 
 
 def test_manifest_is_first_line_of_log():

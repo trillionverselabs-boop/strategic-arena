@@ -1,6 +1,6 @@
 from upfront import engine, reporting
 from upfront.models import Document, DocumentType, Intervention, Scenario
-from tests.fakes import InterventionAware
+from fakes import InterventionAware
 
 
 def test_pair_reports_a_delta():

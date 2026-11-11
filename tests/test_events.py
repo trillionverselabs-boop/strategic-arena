@@ -9,7 +9,7 @@ from pathlib import Path
 
 from upfront import agents, engine, reporting
 from upfront.models import Document, DocumentType, Scenario
-from tests.fakes import FakeLLM
+from fakes import FakeLLM
 
 
 def _run(window="30m"):

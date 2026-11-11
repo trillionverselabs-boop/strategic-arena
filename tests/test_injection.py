@@ -3,7 +3,7 @@ import time
 
 from upfront import engine
 from upfront.models import Document, DocumentType, Intervention, Scenario
-from tests.fakes import SlowLLM
+from fakes import SlowLLM
 
 
 def test_injection_lands_mid_run():
