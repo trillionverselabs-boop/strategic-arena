@@ -23,6 +23,8 @@ CATALOG = (ROOT / "docs" / "catalog-entry.draft.yaml").read_text()
 LICENSE = (ROOT / "LICENSE").read_text()
 
 
+import re
+
 # ── public text ────────────────────────────────────────────────────────
 def test_the_readme_is_the_product_not_the_old_one():
     assert README.startswith("# Strategic Arena\n")
@@ -152,6 +154,23 @@ def test_the_old_framing_is_gone_from_the_public_text():
 
 def test_the_readme_points_at_the_credits():
     assert "CREDITS.md" in README
+
+
+def test_the_banner_shows_the_same_contract_the_ui_shows():
+    """The banner is the first thing a reviewer sees; the UI is what they install.
+    If the six output tiles drift, the promise and the product disagree — so the
+    guard compares the banner's titles against the UI's own tile list."""
+    ui = (ROOT / "desktop" / "plugin.js").read_text()
+    titles = re.findall(r"jsx\(GetTile, \{ title: '([^']+)'", ui)
+    assert len(titles) >= 6, titles
+    banner = (ROOT / "assets" / "banner.html").read_text()
+    for t in titles:
+        assert f"<b>{t}</b>" in banner, f"banner is missing the UI tile: {t}"
+    # the hero carries the plain-language outcome, not the maths
+    assert "exact Shapley" not in banner
+    assert "shapley" not in banner.lower()
+    # the UI's own line about what it is not, is in the README
+    assert "not a prediction" in README.lower() or "Not a prediction" in README
 
 
 def test_no_public_document_links_to_a_file_that_is_not_there():

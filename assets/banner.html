@@ -12,56 +12,58 @@
     background-size: 100% 100%, 44px 44px, 44px 44px;
     color: #e8ecf2;
     font-family: -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
-    padding: 44px 64px 34px;
+    padding: 34px 56px 24px;
     display: flex; flex-direction: column; justify-content: space-between;
   }
-  .eyebrow { font-size: 14px; letter-spacing: .32em; text-transform: uppercase; color: #7d8798; margin-bottom: 16px; }
+  .eyebrow { font-size: 13px; letter-spacing: .30em; text-transform: uppercase; color: #7d8798; }
   .eyebrow b { color: #4c9bf0; font-weight: 700; }
-  h1 { font-size: 60px; line-height: 1.02; letter-spacing: -.025em; font-weight: 700; }
+  h1 { font-size: 49px; line-height: 1.03; letter-spacing: -.025em; font-weight: 700; margin-top: 11px; }
   h1 span { color: #4c9bf0; }
-  .tag { font-size: 25px; line-height: 1.3; color: #c3ccd9; margin-top: 18px; max-width: 830px; font-weight: 500; }
+  .tag { font-size: 20px; line-height: 1.3; color: #c3ccd9; margin-top: 10px; max-width: 940px; font-weight: 500; }
   .tag b { color: #e8ecf2; font-weight: 650; }
-  .sub { font-size: 16px; color: #8b93a1; margin-top: 12px; max-width: 900px; line-height: 1.45; }
-  .axiswrap { margin-top: 24px; width: 700px; }
-  .axis { position: relative; height: 5px; border-radius: 3px;
+  .axiswrap { margin-top: 14px; width: 660px; }
+  .axis { position: relative; height: 4px; border-radius: 3px;
     background: linear-gradient(90deg,#d9538f 0%,#d9538f 26%,#e5b54a 50%,#e5b54a 62%,#4c9bf0 88%,#4c9bf0 100%);
     opacity: .85; }
   .dot { position: absolute; top: 50%; transform: translate(-50%,-50%); border-radius: 50%;
     border: 3px solid #0b0d10; }
-  .axislabel { display: flex; justify-content: space-between; font-size: 13px; color: #7d8798; margin-top: 10px; letter-spacing: .08em; text-transform: uppercase; }
-  .chips { display: flex; gap: 12px; margin-top: 22px; }
-  .chip { flex: 1; border: 1px solid rgba(255,255,255,.13); border-radius: 12px; padding: 10px 15px;
-    font-size: 14px; color: #a7b1c0; background: rgba(255,255,255,.028); line-height: 1.35; }
-  .chip b { color: #e8ecf2; display: block; font-size: 15px; margin-bottom: 3px; font-weight: 650; }
+  .axislabel { display: flex; justify-content: space-between; font-size: 11px; color: #7d8798; margin-top: 7px; letter-spacing: .09em; text-transform: uppercase; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 16px; }
+  .tile { border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 8px 11px 9px;
+    background: rgba(255,255,255,.028); }
+  .tile .n { font-size: 9.5px; color: #4c9bf0; letter-spacing: .15em; font-weight: 700; }
+  .tile b { display: block; font-size: 13.5px; color: #e8ecf2; margin: 1px 0 2px; font-weight: 650; letter-spacing: -.01em; }
+  .tile p { font-size: 11px; line-height: 1.32; color: #a7b1c0; }
   .foot { display: flex; justify-content: space-between; align-items: flex-end;
-    border-top: 1px solid rgba(255,255,255,.09); padding-top: 14px; margin-top: 20px; }
-  .foot .l { font-size: 14px; color: #7d8798; letter-spacing: .03em; }
-  .foot .r { font-size: 13px; color: #4c9bf0; letter-spacing: .14em; text-transform: uppercase; }
+    border-top: 1px solid rgba(255,255,255,.09); padding-top: 11px; margin-top: 13px; }
+  .foot .l { font-size: 12.5px; color: #7d8798; }
+  .foot .r { font-size: 11.5px; color: #4c9bf0; letter-spacing: .14em; text-transform: uppercase; }
 </style></head>
 <body>
   <div>
     <div class="eyebrow"><b>Strategic Arena</b> &nbsp;·&nbsp; the read before you publish</div>
     <h1>Read what it means<br><span>before it reads you.</span></h1>
     <div class="tag">A room of the people your artefact will actually meet — with <b>a price on every objection</b>.</div>
-    <div class="sub">Give it a link. It staffs the room, runs the debate, and hands back who holds power over the outcome, what each concession buys, and a claim it will be graded on.</div>
 
     <div class="axiswrap">
       <div class="axis">
-        <div class="dot" style="left:14%; width:22px;height:22px; background:#d9538f"></div>
-        <div class="dot" style="left:40%; width:30px;height:30px; background:#d9538f"></div>
-        <div class="dot" style="left:58%; width:18px;height:18px; background:#e5b54a"></div>
-        <div class="dot" style="left:84%; width:26px;height:26px; background:#4c9bf0"></div>
+        <div class="dot" style="left:14%; width:18px;height:18px; background:#d9538f"></div>
+        <div class="dot" style="left:40%; width:24px;height:24px; background:#d9538f"></div>
+        <div class="dot" style="left:58%; width:15px;height:15px; background:#e5b54a"></div>
+        <div class="dot" style="left:84%; width:21px;height:21px; background:#4c9bf0"></div>
       </div>
       <div class="axislabel"><span>will block it</span><span>undecided</span><span>behind it</span></div>
     </div>
   </div>
 
   <div>
-    <div class="chips">
-      <div class="chip"><b>What it means</b>the claim, what it displaces, the opening</div>
-      <div class="chip"><b>Who decides</b>can veto · can amplify · can only complain</div>
-      <div class="chip"><b>The price</b>exact Shapley, per party</div>
-      <div class="chip"><b>The record</b>claims frozen with dates, then scored</div>
+    <div class="grid">
+      <div class="tile"><span class="n">01</span><b>What it means</b><p>the claim, what it displaces, the opening</p></div>
+      <div class="tile"><span class="n">02</span><b>The room</b><p>who actually reacts — named from your text</p></div>
+      <div class="tile"><span class="n">03</span><b>Who decides</b><p>can veto · can amplify · can only complain</p></div>
+      <div class="tile"><span class="n">04</span><b>The field</b><p>a new category, another entrant, or noise</p></div>
+      <div class="tile"><span class="n">05</span><b>The price</b><p>what each concession buys, per party</p></div>
+      <div class="tile"><span class="n">06</span><b>The record</b><p>claims frozen at run time, scored later</p></div>
     </div>
     <div class="foot">
       <div class="l">local-first · runs on your own machine · no cloud account</div>

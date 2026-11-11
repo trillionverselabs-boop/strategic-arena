@@ -4,9 +4,9 @@
 [Contributing](CONTRIBUTING.md) · [Design notes](docs/UI.md) — local-first, no
 account, no telemetry.
 
-<img src="assets/logo.svg?v=2026-11-11" alt="Strategic Arena logo" width="72" height="72" align="left" hspace="0" vspace="0"/>
+<img src="assets/logo.svg?v=2026-11-12" alt="Strategic Arena logo" width="72" height="72" align="left" hspace="0" vspace="0"/>
 
-![Strategic Arena — the read before you publish](assets/banner.png?v=2026-11-11)
+![Strategic Arena — the read before you publish](assets/banner.png?v=2026-11-12)
 
 > **Read what it means before it reads you.**
 >
@@ -21,14 +21,14 @@ account, no telemetry.
 
 ### See it
 
-![How a session runs — one link in, the room it lands in, the price of every objection](assets/how-it-works.png?v=2026-11-11)
+![How a session runs — one link in, the room it lands in, the price of every objection](assets/how-it-works.png?v=2026-11-12)
 
 Two minutes, one link, no account. The demo path is the point: **open the plugin,
 land on a finished, scored session in one click** — what it meant, the call, what
 each party was worth, and the claim that got graded.
 
 <!-- DEMO VIDEO — drop the file here and uncomment. Record with docs/DEMO-SCRIPT.md.
-<video src="assets/demo.mp4" poster="assets/how-it-works.png?v=2026-11-11" controls muted
+<video src="assets/demo.mp4" poster="assets/how-it-works.png?v=2026-11-12" controls muted
        width="100%" aria-label="Strategic Arena — 60 second demo"></video>
 -->
 
