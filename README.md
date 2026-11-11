@@ -94,20 +94,48 @@ Reception depends on what you handed in, so the extraction question changes with
 | a **repo / README** | maintainers, security and supply-chain reviewers, downstream developers, the project it displaces, the registry that lists it |
 | a **blog post** | the reader who quotes it back, the competitor it attacks, the parties it cites, the curator who decides if it travels |
 | a **whitepaper** | the reviewer who checks the method, procurement, the peer it extends or contradicts, the implementer |
+| a **research paper** (arXiv, DOI) | the **market**: the incumbent it attacks, the fast follower who can ship it, the buyer with the budget, the integrator whose switching cost is the moat, the channel, and the authors' own lab — plus a **moat decode** and a replication clock (below) |
 | a **case study** | the named customer (whose approval is itself a gate), the buyer who needs a comparable, procurement, the competitor in the same evaluation |
 | a **press release** | the journalist, the incumbent, the regulator, existing customers |
 | a **tweet** | the reply-guy finding the weakest clause, the quote-tweeter reframing it, the silent majority, the account it names |
 | an **internal decision** | approvers with a veto, the teams whose work changes, customers, the market it enters |
 
 The lens is detected from the link (`github.com` → repo, `x.com` → tweet,
-`arxiv`/`.pdf` → whitepaper, `/blog/` → post) and can be set by hand in the
-dialog.
+`arxiv`/`doi.org` → paper, `.pdf` → whitepaper, `/blog/` → post) and can be set by
+hand in the dialog.
+
+#### A research paper is read twice
+
+A paper is the one artefact where **the document is the moat giveaway**: publishing
+is the moment a technique becomes copyable. So `kind: paper` answers a different
+question from `whitepaper` (which asks whether the method is defensible), and it
+runs an extra pass before the room is drawn:
+
+| decoded from the text | why it changes the answer |
+|---|---|
+| **product** + **buyer** | a paper contains no product; this is the conversion step |
+| **disclosed** vs **tacit** | what a stranger can rebuild from the PDF, and what they must still guess |
+| **replication_months** | how long a funded competitor needs — the clock, and the answer to "how would the market take it" |
+| **scale_dependence** | does the result hold at a fraction of the compute, or only at three labs' worth |
+| **nearest prior art** + **authors' position** | who is one paper away — usually the authors themselves |
+
+The clock is **computed in code from those facts, never asked of the model**
+(`moat.clock_for`), so the same paper cannot land in two bands. `<= 3 months` is
+*commodity* (a feature, not a company), `<= 9` is *contested*, longer is
+*protected* only when something the paper withholds explains the gap, and an
+unstated time is **unknown** — never *protected*. The decode goes back into the
+run as a context document, because every party in that room has read the same
+public paper.
+
+The interface says all of this before you run: the form states what the lens
+answers and, in the same panel, what it refuses to (no peer review, no revenue or
+market-share forecast).
 
 ## At a glance
 
 | | |
 |---|---|
-| **You give it** | a link (repo README · blog post · whitepaper · case study · press release · tweet) or the text itself |
+| **You give it** | a link (repo README · blog post · research paper · whitepaper · case study · press release · tweet) or the text itself |
 | **You get** | what it means · the room · who can stop it · the field · the price per party · frozen claims to score |
 | **Cost** | free models available; a 24h review is ~$0.02 on a cheap paid model, and the price is shown before you run |
 | **Repeatable** | two runs of the same artefact can be compared side by side (`/compare`) |
@@ -610,7 +638,8 @@ strategic-arena/             # the product, and the plugin id (`strategic-arena`
 ├── docs/                    # UI.md, POSITIONING.md, PROGRESS.md, DEMO-SCRIPT.md, catalog draft
 ├── tests/                   # pytest suite — fake-LLM end-to-end, ~3 s
 └── src modules:
-    ingestion.py   artefact → personas (+ the lens: repo/post/whitepaper/…)
+    ingestion.py   artefact → personas (+ the lens: repo/post/paper/whitepaper/…)
+    moat.py        a paper → product, what it gives away, replication clock
     agents.py      memory stream, retrieval, reflection, one turn
     simulation.py  the round loop
     camps.py       coalition detection

@@ -19,7 +19,12 @@ class ArtefactKind(str, Enum):
     AUTO = "auto"
     REPO = "repo"              # a repository / README
     POST = "post"              # a blog post, essay, newsletter
-    WHITEPAPER = "whitepaper"  # a paper, technical report, spec
+    WHITEPAPER = "whitepaper"  # a vendor whitepaper, technical report, spec
+    # A research paper is read for a different question than a whitepaper. A
+    # whitepaper is judged by whether the method is defensible; a paper is judged
+    # by what product it makes possible and how long the advantage survives being
+    # published. Two rooms, two lenses — see ingestion.KIND_BLOCKS.
+    PAPER = "paper"            # a research paper (arXiv, DOI, journal / conference)
     CASE_STUDY = "case_study"  # a customer story / proof point
     PRESS = "press"            # a press release / announcement
     TWEET = "tweet"            # a single post on a social platform
@@ -143,6 +148,10 @@ class SimulationResult(BaseModel):
     snapshots: List[Snapshot] = Field(default_factory=list)
     kind: str = ""             # the lens this room was read under (repo/post/...)
     read: dict = Field(default_factory=dict)  # {claim, displaces, opening}
+    # paper only: what the publication gives away, and the clock that follows.
+    # Empty on every other lens — the page hides the card rather than printing a
+    # skeleton. See moat.py for why the band is computed and not asked.
+    moat: dict = Field(default_factory=dict)
     friction: float = 0.0      # 0..100
     uncertainty: float = 0.0   # ± on friction, from input quality
     confidence: str = "low"    # low / medium / high

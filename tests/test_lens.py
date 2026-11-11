@@ -37,7 +37,10 @@ class Recorder:
     ("https://github.com/owner/repo", "repo"),
     ("https://gitlab.com/owner/repo/-/blob/main/README.md", "repo"),
     ("https://x.com/nousresearch/status/1", "tweet"),
-    ("https://arxiv.org/abs/2402.16130", "whitepaper"),
+    # a research paper is read for a market question, so it gets the market room;
+    # a bare PDF could be a vendor whitepaper and keeps the reviewer room
+    ("https://arxiv.org/abs/2402.16130", "paper"),
+    ("https://doi.org/10.1000/xyz123", "paper"),
     ("https://example.com/whitepaper.pdf", "whitepaper"),
     ("https://www.prnewswire.com/news/x", "press"),
     ("https://example.com/blog/why-we-built-this", "post"),
@@ -62,6 +65,7 @@ def test_a_readme_in_the_text_is_recognised_without_a_link():
     ("repo", "the maintainers who decide whether this merges"),
     ("tweet", "the reply-guy who will find the weakest clause"),
     ("whitepaper", "the technical reviewer who will check the method"),
+    ("paper", "the fast follower: a well-resourced competitor who has read the same paper"),
     ("case_study", "the customer named in it"),
     ("press", "the journalist deciding whether it is a story"),
     ("post", "the reader who will quote one line back"),

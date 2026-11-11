@@ -15,7 +15,8 @@ REPO = Path(__file__).resolve().parent.parent
 # Plugin runtime + packaged surfaces. Tests and docs are excluded: they are not
 # shipped, and docs must be able to describe the rule.
 SCAN_DIRS = ["dashboard", "tools"]
-SCAN_FILES = ["__init__.py", "host_llm.py", "llm_adapter.py", "portal.py", "engine.py"]
+SCAN_FILES = ["__init__.py", "host_llm.py", "llm_adapter.py", "portal.py", "engine.py",
+              "moat.py", "reporting.py"]
 
 
 def _sources():

@@ -41,7 +41,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.1 · ui23'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.2 · ui24'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -136,7 +136,8 @@ const KINDS = [
   { v: 'auto', label: 'Auto-detect from the link' },
   { v: 'repo', label: 'Repo / README' },
   { v: 'post', label: 'Blog post / essay' },
-  { v: 'whitepaper', label: 'Whitepaper / paper / spec' },
+  { v: 'whitepaper', label: 'Whitepaper / spec (defensibility review)' },
+  { v: 'paper', label: 'Research paper — what product, who fights it' },
   { v: 'case_study', label: 'Case study' },
   { v: 'press', label: 'Press release / announcement' },
   { v: 'tweet', label: 'Social post' },
@@ -146,6 +147,7 @@ const KIND_ROOM = {
   repo: 'maintainers, security reviewers, downstream developers, the project it displaces, the registry that lists it',
   post: 'the reader who quotes it, the competitor it attacks, the parties it cites, the curator who decides if it travels',
   whitepaper: 'the reviewer who checks the method, procurement, the peer it extends or contradicts, the implementer',
+  paper: "the incumbent it attacks, the fast follower who can ship it, the buyer with the budget, the integrator whose switching cost is the moat, the channel, and the authors' own lab",
   case_study: 'the customer named, the buyer who needs a comparable, procurement, the competitor in the same evaluation',
   press: 'the journalist, the incumbent, the regulator, the existing customers',
   tweet: 'the reply-guy, the quote-tweeter, the silent majority, the account it names',
@@ -660,12 +662,121 @@ function MovementChart({ snapshots, height = 190 }) {
 
 
 
+// ── the paper lens, explained where it is chosen ───────────────────────
+// A research paper is the one artefact read twice: as a product (what could be
+// built, and how long the advantage survives being published) and as a market
+// (who would fight it). That is unusual enough that it has to be said on the
+// form. Someone who expected a peer review would otherwise read the answer as a
+// bug, and someone who expected a forecast would read it as a failure.
+const PAPER_IS = 'You give it a research paper. It answers the two questions a paper never '
+  + 'answers itself: what product could be built from this, and who would fight it once it '
+  + 'shipped. Then it puts a number on how long you have.'
+const PAPER_IS_NOT = 'Not a peer review, and not a verdict on the research. It does not predict '
+  + 'revenue, price or market share. What it reads is what the paper GIVES AWAY — because '
+  + 'publishing is the moment a technique becomes copyable.'
+const PAPER_GIVES = [
+  ['the product', 'what a team could build and sell, and the buyer who actually signs'],
+  ['the clock', 'how many months a funded competitor needs to rebuild it from the text'],
+  ['the room', "the incumbent, the fast follower, the buyer, the channel — and the authors' "
+    + 'own lab, which is usually the first competitor and the one people leave out'],
+]
+
+function PaperLensNote() {
+  return jsxs(Card, { tone: C.hold, children: [
+    jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
+      jsx('div', { className: T.h2, children: 'Reading a paper as a product' }),
+      jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'two questions, one run' }),
+    ]}),
+    jsx('div', { className: `${T.body} text-(--ui-text-secondary)`, children: PAPER_IS }),
+    jsx('div', { className: 'grid gap-2 sm:grid-cols-3', children: PAPER_GIVES.map(([k, v]) =>
+      jsxs('div', { className: 'flex flex-col gap-0.5', children: [
+        jsx('div', { className: `${T.label} text-(--ui-text-quaternary)`, children: k }),
+        jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: v }),
+      ]}) ) }),
+    jsx('div', { className: `${T.small} border-t border-(--ui-stroke-tertiary) pt-1.5 text-(--ui-text-quaternary)`,
+      children: PAPER_IS_NOT }),
+  ]})
+}
+
+// ── what the paper gives away, on the result page ──────────────────────
+// The clock is the answer, so it leads. Gives-away / holds-back sit side by side
+// because the whole judgement is the difference between them: everything in the
+// left column can be rebuilt by anyone who reads the same PDF.
+const CLOCK_TONE = { commodity: C.against, contested: C.hold, protected: C.for, unknown: C.grey }
+const CLOCK_WORD = {
+  commodity: 'a feature, not a company',
+  contested: 'a head start — if you spend it',
+  protected: 'something the paper withholds',
+  unknown: 'no basis for a number',
+}
+
+function PaperRead({ moat }) {
+  if (!moat || (!moat.product && !moat.error)) return null
+  if (moat.error && !moat.product) {
+    return jsx(Callout, { icon: 'warning', tone: C.hold, title: 'The paper decode did not complete',
+      children: jsx('div', { className: `${T.small} text-(--ui-text-secondary)`, children:
+        `${moat.error}. The market read below is still valid — it just has no replication clock, `
+        + 'so treat the timing as unknown rather than safe. Re-run to decode it.' }) })
+  }
+  const tone = CLOCK_TONE[moat.clock] || C.grey
+  const months = typeof moat.replication_months === 'number' ? moat.replication_months : null
+  const clockBig = months == null ? 'unknown' : `~${Math.round(months)} ${Math.round(months) === 1 ? 'month' : 'months'}`
+  return jsxs(Card, { tone, children: [
+    jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2', children: [
+      jsx('div', { className: T.h2, children: 'The paper, read as a product' }),
+      jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'decoded from the text — not a forecast' }),
+    ]}),
+
+    moat.product ? jsx('div', { className: `${T.body}`, children: moat.product }) : null,
+    jsxs('div', { className: 'grid gap-1 sm:grid-cols-2', children: [
+      moat.buyer ? jsxs('div', { className: 'flex flex-col gap-0.5', children: [
+        jsx('div', { className: `${T.label} text-(--ui-text-quaternary)`, children: 'who pays' }),
+        jsx('div', { className: `${T.small} text-(--ui-text-secondary)`, children: moat.buyer }),
+      ]}) : null,
+      moat.replaces ? jsxs('div', { className: 'flex flex-col gap-0.5', children: [
+        jsx('div', { className: `${T.label} text-(--ui-text-quaternary)`, children: 'replaces' }),
+        jsx('div', { className: `${T.small} text-(--ui-text-secondary)`, children: moat.replaces }),
+      ]}) : null,
+    ]}),
+
+    jsxs('div', { className: 'flex flex-wrap items-baseline gap-x-2 border-t border-(--ui-stroke-tertiary) pt-2', children: [
+      jsx('span', { className: T.label + ' text-(--ui-text-quaternary)', children: 'replication clock' }),
+      jsx('span', { className: `${NUM} text-[1.25rem] font-semibold leading-none`, style: { color: textTone(tone) }, children: clockBig }),
+      jsx('span', { className: `${T.small}`, style: { color: textTone(tone) }, children: CLOCK_WORD[moat.clock] || '' }),
+    ]}),
+    jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: moat.clock_why || '' }),
+    moat.replication_basis ? jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: `basis: ${moat.replication_basis}` }) : null,
+
+    ((moat.disclosed || []).length || (moat.tacit || []).length) ? jsx('div', { className: 'grid gap-3 border-t border-(--ui-stroke-tertiary) pt-2 sm:grid-cols-2', children: [
+      jsxs('div', { className: 'flex flex-col gap-1', children: [
+        jsx('div', { className: `${T.label}`, style: { color: textTone(C.against) }, children: 'gives away' }),
+        jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'anyone with the PDF can rebuild this' }),
+        ...(moat.disclosed || []).map(d => jsxs('div', { className: `${T.small} text-(--ui-text-secondary)`, children: ['· ', d] })),
+      ]}),
+      jsxs('div', { className: 'flex flex-col gap-1', children: [
+        jsx('div', { className: `${T.label}`, style: { color: textTone(C.for) }, children: 'holds back' }),
+        jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'the only thing a rebuilder has to guess' }),
+        (moat.tacit || []).length
+          ? jsx('div', { children: (moat.tacit || []).map(d => jsxs('div', { className: `${T.small} text-(--ui-text-secondary)`, children: ['· ', d] })) })
+          : jsx('div', { className: `${T.small} text-(--ui-text-quaternary)`, children: 'nothing — the paper is complete, so nothing here slows a copy' }),
+      ]}),
+    ]}) : null,
+
+    (moat.nearest_prior_art || moat.authors_position || moat.scale_dependence) ? jsxs('div', { className: 'flex flex-col gap-1 border-t border-(--ui-stroke-tertiary) pt-2', children: [
+      moat.scale_dependence ? jsxs('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: ['Scale dependence: ', jsx('span', { className: 'text-(--ui-text-secondary)', children: moat.scale_dependence })] }) : null,
+      moat.nearest_prior_art ? jsxs('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: ['Nearest prior art: ', jsx('span', { className: 'text-(--ui-text-secondary)', children: moat.nearest_prior_art })] }) : null,
+      moat.authors_position ? jsxs('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: ['The authors: ', jsx('span', { className: 'text-(--ui-text-secondary)', children: moat.authors_position })] }) : null,
+    ]}) : null,
+  ]})
+}
+
 // ── what it means ──────────────────────────────────────────────────────
 // The first thing a reader wants is not "who objects" — it is "what does this
 // actually say, and what does that open for me". Three lines, written by the
 // reader of the text during extraction, quoted rather than templated here.
 const KIND_LABEL = {
-  repo: 'a repository README', post: 'a blog post', whitepaper: 'a paper or spec',
+  repo: 'a repository README', post: 'a blog post', whitepaper: 'a whitepaper or spec',
+  paper: 'a research paper',
   case_study: 'a case study', press: 'a press release', tweet: 'a social post',
   decision: 'an internal decision',
 }
@@ -1932,7 +2043,9 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
             label: 'What are you adding?',
             hint: kind === 'auto'
               ? 'Read off the link. A repo link brings maintainers and security reviewers; a post brings the people who quote it.'
-              : `The room: ${KIND_ROOM[kind] || KIND_ROOM.decision}.`,
+              : kind === 'paper'
+                ? 'Not the peer-review room: the market room. What this lens answers, and what it refuses to, is spelled out below.'
+                : `The room: ${KIND_ROOM[kind] || KIND_ROOM.decision}.`,
             children: jsxs(Select, { value: kind, onValueChange: setKind, children: [
               jsx(SelectTrigger, { children: jsx(SelectValue, { placeholder: 'Auto-detect from the link' }) }),
               jsx(SelectContent, { children: KINDS.map(k => jsx(SelectItem, {
@@ -1940,6 +2053,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
                 })) }),
             ]}),
           }),
+          kind === 'paper' ? jsx(PaperLensNote, {}) : null,
           jsxs('div', { className: 'grid grid-cols-2 gap-3', children: [
             jsx(Field, {
               label: 'Timeline',
@@ -2105,7 +2219,7 @@ function UpfrontPage({ ctx }) {
     ])
     setResult({
       runId, report: rep.report, graph: g, claims: cl.claims || [], leverage: lev,
-      read: rep.read || {}, kind: rep.kind || '', 
+      read: rep.read || {}, kind: rep.kind || '', moat: rep.moat || {},
       events: ev.events || [], snapshots: ev.snapshots || [],
       sea: meta.sea_state ? { state: meta.sea_state, label: meta.sea_label, color: meta.sea_color,
                              why: meta.sea_why, meaning: SEA[meta.sea_state] ? SEA[meta.sea_state].meaning : '' } : null,
@@ -2362,6 +2476,8 @@ function UpfrontPage({ ctx }) {
           result.claims?.length ? ` · ${result.claims.length} claims frozen` : '',
         ]}),
       ]}),
+
+      jsx(PaperRead, { moat: result.moat }),
 
       jsx(WhatItMeans, { read: result.read, kind: result.kind }),
 

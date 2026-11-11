@@ -33,6 +33,7 @@ def write_report(result: SimulationResult) -> str:
         lines.append(f"**{result.sea.get('label', '')}** (competition: {result.sea.get('level', '')}) — "
                      f"{result.sea.get('why', '')}")
         lines.append("")
+    lines.extend(_moat_block(result))
     if bl:
         lines.append(f"## Veto player: {bl.name} (stance {bl.stance:+.2f})")
         if bl.reasons:
@@ -96,6 +97,61 @@ def write_report(result: SimulationResult) -> str:
     lines.append("> This is a structured review of the response to your move, grounded in "
                  "your input — not a forecast. Score the claims above when the window closes.")
     return "\n".join(lines)
+
+
+CLOCK_LABEL = {
+    "commodity": "commodity — inside a release cycle",
+    "contested": "contested — a real head start, if you spend it",
+    "protected": "protected — something the paper withholds",
+    "unknown": "unknown — the paper gives no basis for a number",
+}
+
+
+def _moat_block(result: SimulationResult) -> List[str]:
+    """The paper read as a product. Empty for every other lens.
+
+    A silent absence would be read as "no moat", so a failed decode says so in one
+    line instead of vanishing: the difference between "we could not read this" and
+    "there is nothing here" is the difference between a re-run and a decision.
+    """
+    m = getattr(result, "moat", None) or {}
+    if not m:
+        return []
+    if m.get("error") and not m.get("product"):
+        return ["## Paper decode: not available",
+                f"- {m['error']}",
+                "- The market read below stands on the paper as given, without a "
+                "replication clock. Re-run to decode it.", ""]
+    out = ["## The paper, read as a product"]
+    if m.get("product"):
+        out.append(f"**Product:** {m['product']}")
+    if m.get("buyer"):
+        out.append(f"**Who pays:** {m['buyer']}")
+    if m.get("replaces"):
+        out.append(f"**Replaces:** {m['replaces']}")
+    out.append("")
+    if m.get("replication_months") is not None:
+        out.append(f"**Replication clock: ~{m['replication_months']:.0f} months** "
+                   f"({CLOCK_LABEL.get(m.get('clock', 'unknown'), m.get('clock', ''))})")
+    else:
+        out.append(f"**Replication clock: unknown** "
+                   f"({CLOCK_LABEL['unknown']})")
+    if m.get("clock_why"):
+        out.append(f"- {m['clock_why']}")
+    if m.get("replication_basis"):
+        out.append(f"- Basis: {m['replication_basis']}")
+    if m.get("disclosed"):
+        out.append("- Gives away: " + "; ".join(m["disclosed"]))
+    if m.get("tacit"):
+        out.append("- Holds back: " + "; ".join(m["tacit"]))
+    if m.get("scale_dependence"):
+        out.append(f"- Scale dependence: {m['scale_dependence']}")
+    if m.get("nearest_prior_art"):
+        out.append(f"- Nearest prior art: {m['nearest_prior_art']}")
+    if m.get("authors_position"):
+        out.append(f"- The authors: {m['authors_position']}")
+    out.append("")
+    return out
 
 
 def write_full_report(result: SimulationResult) -> str:
@@ -260,6 +316,7 @@ def save_run(result: SimulationResult, report_md: str, frozen_jsonl: str,
         "summary": result.summary,
         "kind": getattr(result, "kind", ""),
         "read": getattr(result, "read", {}) or {},
+        "moat": getattr(result, "moat", {}) or {},
         "sea_state": result.sea.get("state", ""),
         "sea_label": result.sea.get("label", ""),
         "sea_color": result.sea.get("color", ""),

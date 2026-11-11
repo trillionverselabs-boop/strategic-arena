@@ -41,6 +41,8 @@ def _scenario_from(params: dict) -> Scenario:
         interventions=interventions,
         max_personas=params.get("max_personas", 8),
         temperature=params.get("temperature", 0.6),
+        # auto when unset, so the lens is never guessed into a corner
+        kind=str(params.get("kind") or "auto"),
     )
 
 
@@ -55,13 +57,30 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
             "(adoption/open_weight/deprecation/campaign), a window (6h/12h/24h/48h), and "
             "mid-run interventions. Returns a run with friction, the veto player, coalitions, "
             "best responses, the red/purple/blue competition read, and frozen claims you can "
-            "score later. Use arena_calibration for the track record."
+            "score later. Use arena_calibration for the track record. "
+            "Set kind='paper' for a research paper (arXiv/DOI): it draws the MARKET room "
+            "(incumbent, fast follower, buyer, integrator, channel, the authors' lab) and "
+            "additionally decodes what the publication gives away — what is reproducible from "
+            "the text, what it withholds, how long a funded competitor needs to rebuild it "
+            "(the replication clock), and whether the authors are the first competitor. "
+            "kind='whitepaper' is the different, peer-review room."
         ),
         "parameters": {
             "type": "object",
             "properties": {
                 "title": {"type": "string", "description": "Short title for the decision."},
                 "goal": {"type": "string", "enum": ["adoption", "open_weight", "deprecation", "campaign"]},
+                "kind": {
+                    "type": "string",
+                    "enum": ["auto", "repo", "post", "paper", "whitepaper", "case_study",
+                             "press", "tweet", "decision"],
+                    "description": (
+                        "What is being read, which sets the room. 'paper' = a research paper read "
+                        "for the product it implies and the market that would receive it (adds the "
+                        "moat decode + replication clock). 'whitepaper' = defensibility review. "
+                        "Omit / 'auto' reads it off the link."
+                    ),
+                },
                 "window": {"type": "string", "enum": ["30m", "1h", "4h", "6h", "12h", "24h", "48h"]},
                 "model": {
                     "type": "string",

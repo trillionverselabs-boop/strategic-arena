@@ -47,6 +47,28 @@ Judge each on the claims the post makes and the evidence it puts behind them."""
 - the implementer who has to build from it
 Judge each on rigour: baselines, evaluation, reproducibility, and what is asserted
 without evidence.""",
+    "paper": """This is a RESEARCH PAPER (arXiv, DOI, journal, conference). The question is
+NOT "is the method defensible" — that is the whitepaper lens. The question is: what
+product does this make possible, and how will the market and the competitors take it?
+
+The room is the market, not the reviewers:
+- the incumbent whose revenue or roadmap the resulting product attacks
+- the fast follower: a well-resourced competitor who has read the same paper and can
+  ship it, and who already has distribution you do not
+- the buyer who controls the budget for the resulting product — the person who signs,
+  not the person who evaluates
+- the integrator or platform owner, whose switching cost and compatibility rules are
+  usually the real moat in this market
+- the channel or marketplace that decides whether the product is even visible
+- the authors, their lab, or their funder — for a published result these are the most
+  likely first competitor, and they are usually omitted by mistake
+- a regulator or standards body, only when the paper's claims create a compliance
+  obligation for a buyer
+
+Judge each party on the paper's actual content: what it discloses, what it withholds,
+the magnitude of the claimed gain, what it is measured against, and whether the result
+depends on resources only a few organisations have. ``capacity`` here means the ability
+to REBUILD OR SHIP the product this paper implies — not to review it.""",
     "case_study": """This is a CASE STUDY. The room is:
 - the customer named in it, whose approval to publish is itself a gate
 - the buyer persona who will not believe it without a comparable
@@ -80,7 +102,15 @@ def detect_kind(urls: List[str] | None, text: str = "") -> str:
         return "repo"
     if any(h in blob for h in ("x.com/", "twitter.com/", "bsky.app", "threads.net")):
         return "tweet"
-    if any(h in blob for h in ("arxiv.org", "doi.org", "ssrn.com")) or blob.endswith(".pdf"):
+    # A research paper is read for a market question, a vendor whitepaper for a
+    # defensibility question — so the hosts that only ever serve research papers
+    # resolve to the paper lens. A bare .pdf stays whitepaper: it could be either,
+    # and guessing "paper" would silently swap the room.
+    if any(h in blob for h in ("arxiv.org", "doi.org", "ssrn.com", "biorxiv.org",
+                               "medrxiv.org", "openreview.net", "aclanthology.org",
+                               "proceedings.mlr.press", "openaccess.thecvf.com")):
+        return "paper"
+    if blob.endswith(".pdf"):
         return "whitepaper"
     if any(h in blob for h in ("prnewswire", "businesswire", "globenewswire")) or "press release" in body[:600]:
         return "press"
@@ -137,7 +167,8 @@ DOCUMENTS:
 WHAT = {
     "repo": "a repository README",
     "post": "a blog post",
-    "whitepaper": "a technical paper or spec",
+    "whitepaper": "a technical whitepaper or spec",
+    "paper": "a research paper, read for the product it implies",
     "case_study": "a case study",
     "press": "a press release",
     "tweet": "a social post",

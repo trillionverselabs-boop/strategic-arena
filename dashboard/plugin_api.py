@@ -336,6 +336,7 @@ async def report(run_id: str, full: bool = False):
         "summary": meta.get("summary") or "",
         "kind": meta.get("kind") or "",
         "read": meta.get("read") or {},
+        "moat": meta.get("moat") or {},
         "blocker": meta.get("blocker"),
         "blocker_stance": meta.get("blocker_stance"),
         "blocker_capacity": meta.get("blocker_capacity"),
@@ -551,7 +552,7 @@ async def export(run_id: str, out_dir: str = "decisions"):
 # ── helpers ──────────────────────────────────────────────────────────
 
 def _scenario_from(body: dict):
-    from upfront.models import Document, Persona, Scenario
+    from upfront.models import ArtefactKind, Document, Persona, Scenario
 
     docs = [Document(**d) for d in body.get("documents", []) if d.get("content")]
     personas = [Persona(**p) for p in body.get("personas", [])]
@@ -567,4 +568,19 @@ def _scenario_from(body: dict):
         interventions=interventions,
         max_personas=body.get("max_personas", 8),
         temperature=body.get("temperature", 0.6),
+        # The lens. This was dropped on the floor: the chooser sent `kind`, the
+        # route never read it, so every run silently fell back to auto-detect and
+        # an explicitly chosen room could never be honoured. Validated here so an
+        # unknown value is a 400 and not a quiet change of room.
+        kind=_kind_or_auto(body.get("kind")),
     )
+
+
+def _kind_or_auto(value) -> str:
+    from upfront.models import ArtefactKind
+    try:
+        return ArtefactKind(str(value or "auto")).value
+    except ValueError:
+        raise HTTPException(status_code=400,
+                            detail=f"unknown kind {value!r}; expected one of "
+                                   + ", ".join(k.value for k in ArtefactKind))

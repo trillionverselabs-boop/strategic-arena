@@ -7,12 +7,20 @@ import json
 import threading
 from typing import Callable, Dict, List
 
-from . import ingestion, reporting, scoring, simulation
+from . import ingestion, moat as moat_mod, reporting, scoring, simulation
 from .claims import build_claims, extract_claims
 from .fetch import fetch_urls
 from .graph import GraphStore
 from .manifest import build_manifest
-from .models import Intervention, Persona, Scenario, SimulationResult
+from .models import (
+    ArtefactKind,
+    Document,
+    DocumentType,
+    Intervention,
+    Persona,
+    Scenario,
+    SimulationResult,
+)
 from .paths import graph_path
 
 
@@ -139,6 +147,18 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
     # the lens: what was handed in decides who could possibly react
     kind = scenario.kind.value if scenario.kind.value != "auto" else ingestion.detect_kind(
         scenario.urls, scenario.documents[0].content if scenario.documents else "")
+    # 1a. A research paper gets its moat decoded BEFORE the room is drawn, so the
+    # stakeholders argue about a product with a clock on it rather than about a
+    # citation. The decode goes back in as a context document on purpose: every
+    # party in this room has read the same public paper, and that is the point.
+    moat = None
+    if kind == ArtefactKind.PAPER.value:
+        moat = moat_mod.decode(scenario.documents, llm)
+        if not moat.error and moat.product:
+            scenario.documents = list(scenario.documents) + [
+                Document(type=DocumentType.CONTEXT, content=moat.brief(),
+                         source="moat decode")]
+
     if not personas:
         extracted = ingestion.extract_personas(
             scenario.documents, llm, scenario.max_personas, kind=kind
@@ -211,6 +231,10 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
         result.run_id = run_id
     result.window = scenario.window.value
     result.kind = result.kind or kind
+    if moat is not None and (moat.error or moat.product):
+        # recorded even when it FAILED: an absent card must not read as "no moat",
+        # so a failed decode says so in one line instead of vanishing
+        result.moat = moat.model_dump()
     if not result.read:
         result.read = dict(ingestion.LAST_READ)
 

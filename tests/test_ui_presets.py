@@ -23,7 +23,7 @@ def test_form_says_what_a_run_costs():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.1 · ui23" in UI.read_text()
+    assert "0.6.2 · ui24" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
