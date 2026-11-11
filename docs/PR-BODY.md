@@ -25,7 +25,7 @@ Labs is the studio name the work is made under. The copyright is mine personally
 README says which is which rather than making a reviewer work it out.
 
 Repo: https://github.com/trillionverselabs-boop/strategic-arena
-Pinned: `71f20b410724c72b1fa5e6ac1066be4d871c4289` (full 40-char commit — see the entry)
+Pinned: `3f44ca1c28c5b851070083659e0427bdf4c041be` (full 40-char commit — see the entry)
 
 ## Why it is a plugin and not a prompt
 
