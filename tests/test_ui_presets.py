@@ -43,6 +43,24 @@ def test_the_run_says_what_it_actually_cost():
     assert "spent" in js
 
 
+def test_the_evidence_is_three_tabs_not_three_screens():
+    """Stacked, the ledger, the movement chart and the transcript were most of the
+    page's scroll. They answer different questions at different moments, so they
+    are tabs — and each tab carries its size, so the reader knows what is in it
+    without opening it."""
+    js = UI.read_text()
+    assert "TabsList" in js and "TabsTrigger" in js
+    for tab in ("over time", "the ledger", "what they said"):
+        assert tab in js, tab
+    assert "evidenceTab === 'moves'" in js
+    assert "evidenceTab === 'ledger'" in js
+    assert "evidenceTab === 'words'" in js
+    # each of the three renders exactly once now — no duplicate stacked copies
+    assert js.count("jsx(Transcript, {") == 1
+    assert js.count("jsx(MovementChartCard, {") == 1
+    assert js.count("jsx(HeatLedger, { lev:") == 1
+
+
 def test_the_answer_comes_before_the_evidence():
     """The reader's complaint was ordering: six sections of evidence before the
     answer. Five lines at the top, two lines each, then the proof."""
@@ -70,7 +88,7 @@ def test_the_paper_evidence_is_opt_in():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.3 · ui33" in UI.read_text()
+    assert "0.6.3 · ui34" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():

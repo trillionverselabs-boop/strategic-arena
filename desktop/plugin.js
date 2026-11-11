@@ -30,6 +30,9 @@ import {
   Input,
   Select,
   SelectContent,
+  Tabs,
+  TabsList,
+  TabsTrigger,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -40,7 +43,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.3 · ui33'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.3 · ui34'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -2326,6 +2329,9 @@ function UpfrontPage({ ctx }) {
   const [claimHits, setClaimHits] = React.useState({})
   const [injectText, setInjectText] = React.useState('')
   const [showAudit, setShowAudit] = React.useState(false)
+  // three views of the same evidence: what moved, what each party is worth, what
+  // was actually said. Stacked they were most of the page; as tabs, one screen.
+  const [evidenceTab, setEvidenceTab] = React.useState('moves')
   const [showAllPast, setShowAllPast] = React.useState(false)
   const [injectHint, setInjectHint] = React.useState('')
   const [injectImpact, setInjectImpact] = React.useState('')
@@ -2660,8 +2666,6 @@ function UpfrontPage({ ctx }) {
 
       jsx(OnYourSide, { personas: result.personas, lev: result.leverage }),
 
-      jsx(HeatLedger, { lev: result.leverage }),
-
       result.modelFallback && jsx(Callout, { icon: 'warning', tone: C.hold,
         title: 'The model you picked was not used', children: result.modelFallback }),
 
@@ -2697,9 +2701,23 @@ function UpfrontPage({ ctx }) {
         ]}),
       ]}),
       (result.personas || []).length > 0 && jsx(Card, { children: jsx(EvidenceGraph, { personas: result.personas }) }),
-      jsx(MovementChartCard, { snapshots: result.snapshots }),
 
-      jsx(Transcript, { events: result.events, rounds: result.rounds }),
+      // ── the evidence, one screen at a time ───────────────────────────
+      jsxs('div', { className: 'flex flex-col gap-2', children: [
+        jsx(Tabs, { value: evidenceTab, onValueChange: setEvidenceTab, children: [
+          jsx(TabsList, { className: 'self-start', children: [
+            jsx(TabsTrigger, { value: 'moves',
+              children: `over time${result.rounds ? ` · ${result.rounds} rounds` : ''}` }),
+            jsx(TabsTrigger, { value: 'ledger',
+              children: `the ledger${(result.personas || []).length ? ` · ${result.personas.length} parties` : ''}` }),
+            jsx(TabsTrigger, { value: 'words',
+              children: `what they said${(result.events || []).length ? ` · ${result.events.length}` : ''}` }),
+          ]}),
+        ]}),
+        evidenceTab === 'moves' && jsx(MovementChartCard, { snapshots: result.snapshots }),
+        evidenceTab === 'ledger' && jsx(HeatLedger, { lev: result.leverage }),
+        evidenceTab === 'words' && jsx(Transcript, { events: result.events, rounds: result.rounds }),
+      ]}),
 
       jsx(Scorecard, { result, claimHits, setClaimHits, onVerify: verify, record, due }),
 
