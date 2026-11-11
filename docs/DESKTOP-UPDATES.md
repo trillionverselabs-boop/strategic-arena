@@ -52,6 +52,14 @@ Pin only at submission time, and only to the commit whose tree a reviewer will r
 | **App → Plugins → Update** | the app re-clones the pinned commit | **Yes** |
 | **Save the new `plugin.js` over the copy** | replaces one file | **Yes** — the app watches that file and hot-reloads it in place |
 
+> **Never hand-create `desktop-plugins/strategic-arena/` while a Git install exists.**
+> A bare folder with a `plugin.js` and no package marker is discovered by the app as a
+> **separate "Disk" plugin**, so the Plugins tab lists *two* copies of Strategic Arena —
+> one `Git · v0.6.3` and one plain `Disk`. Two copies is the exact condition that made
+> every field failure so hard to diagnose. Use the app's **Install from Git** (with the
+> Desktop target) or **Update**; if you must drop a file by hand, write it into the copy
+> the app already tracks rather than creating a new folder.
+
 ## The two fixes that work — neither needs a restart
 
 **1. Update in the app** (preferred; the app does the copying)
