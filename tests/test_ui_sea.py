@@ -19,6 +19,9 @@ def test_the_reason_is_shown_not_just_the_colour():
 
 
 def test_the_named_sea_still_carries_its_meaning():
+    """The bands are named, and the name has to be readable by a person who has
+    never heard "blue ocean" — the reader asked what it meant, twice."""
     assert "Red ocean" in JS
     assert "Purple ocean" in JS
-    assert "Blue ocean" in JS
+    assert "Nobody is fighting this yet" in JS
+    assert "the risk here is indifference, not opposition" in JS

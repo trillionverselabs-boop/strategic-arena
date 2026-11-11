@@ -40,7 +40,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.3 · ui30'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.3 · ui31'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -118,7 +118,7 @@ const C = {
 const SEA = {
   red: { label: 'Red ocean', color: '#d9538f', meaning: 'everyone is fighting for the same fish — you will be read as another entrant' },
   purple: { label: 'Purple ocean', color: '#9b7be0', meaning: 'contested middle — winnable ground, but not free' },
-  blue: { label: 'Blue ocean', color: '#4c9bf0', meaning: 'open water — nobody is contesting this yet' },
+  blue: { label: 'Nobody is fighting this yet', color: '#4c9bf0', meaning: 'no competitor, regulator or incumbent has engaged — which is good news and a warning: the risk here is indifference, not opposition' },
 }
 const SEA_ORDER = ['red', 'purple', 'blue']
 
@@ -457,8 +457,8 @@ function powerWord(cap) {
 
 function frictionBand(f) {
   const n = Number(f) || 0
-  if (n < 20) return { name: 'A quiet room', color: C.grey,
-    why: 'Most of the people who matter are behind this — or nobody with power has engaged. That is good, and it is also why the frozen claims matter more than the score: quiet rooms can hide indifference.' }
+  if (n < 20) return { name: 'Nobody is in your way', color: C.grey,
+    why: 'Either most of the people who matter are behind it, or nobody with power has bothered to engage. Those look the same on a score and are very different in reality, so read the claims below more carefully than the number: a quiet room can hide indifference.' }
   if (n < 45) return { name: 'Winnable ground', color: C.for,
     why: 'Somebody objects, but nobody is dug in. This is the band where a single good counter-move changes the outcome.' }
   if (n < 65) return { name: 'A fight', color: C.hold,
@@ -584,55 +584,71 @@ function ZoneStrip({ list }) {
 
 function RoomBoard({ nodes, previous, ownSide, blocker, deltas }) {
   const list = (nodes || []).slice().sort((a, b) => (Number(a.stance) || 0) - (Number(b.stance) || 0))
+  // One line per party, grouped by what it means. The old version gave every
+  // party a paragraph, three lines and a meter — seven parties filled a screen
+  // and a half, and the reader scrolled past the answer to find the room. The
+  // reason is still here: on the row's title, and behind one toggle that opens
+  // all of them for anyone who wants the argument.
+  const [showWhy, setShowWhy] = React.useState(false)
   if (!list.length) {
     return jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`, children: 'No parties yet.' })
   }
   const own = new Set(ownSide || [])
+  const zones = [
+    { key: 'against', label: 'will block it', tone: C.against, rows: list.filter(n => (Number(n.stance) || 0) <= -0.3) },
+    { key: 'undecided', label: 'undecided', tone: C.hold, rows: list.filter(n => (Number(n.stance) || 0) > -0.3 && (Number(n.stance) || 0) < 0.3) },
+    { key: 'for', label: 'behind it', tone: C.for, rows: list.filter(n => (Number(n.stance) || 0) >= 0.3) },
+  ]
   return jsxs('div', { className: 'flex flex-col', children: [
     // three named groups, counted — the scale answers "what does this mean"
     jsx(ZoneStrip, { list }),
-    ...list.map((n, i) => {
-      const tone = stanceTone(n.stance)
-      const isBlocker = blocker && (n.name === blocker)
-      const d = deltas && deltas[n.name] != null ? Number(deltas[n.name]) : null
-      return jsxs('div', {
-        key: n.id || n.name || `r${i}`,
-        className: 'flex items-start gap-3 border-t border-(--ui-stroke-tertiary) py-3 first:border-t-0',
-        children: [
-          jsxs('div', { className: 'flex w-[10rem] shrink-0 flex-col gap-1', children: [
-            jsxs('div', { className: 'flex items-center gap-1.5', children: [
-              jsx('span', {
-                className: 'inline-block size-1.5 shrink-0 rounded-full',
-                style: { backgroundColor: tone.color },
-              }),
-              jsx('span', { className: `truncate ${T.small} font-medium`, title: n.name, children: n.name }),
-            ]}),
-            jsxs('div', { className: `flex items-center gap-1 ${T.micro}`, children: [
-              jsx('span', { style: { color: tone.color }, children: tone.word }),
-              isBlocker ? jsx('span', { className: 'font-semibold', style: { color: C.against }, children: '· can stop it' }) : null,
-              own.has(n.name) ? jsx('span', { style: { color: C.for }, children: '· your side' }) : null,
-            ]}),
-          ]}),
-          jsxs('div', { className: 'flex flex-1 flex-col gap-1.5 pt-1.5', children: [
-            jsx(StanceMeter, { value: n.stance }),
-            n.reasons && n.reasons[0]
-              ? jsx('div', { className: `${T.small} leading-snug text-(--ui-text-secondary)`, children: n.reasons[0] })
+    ...zones.filter(z => z.rows.length).map(z => jsxs('div', { className: 'flex flex-col', children: [
+      jsx('div', { className: `flex items-baseline gap-2 pt-2 pb-1 ${T.label} uppercase tracking-[0.1em]`,
+        style: { color: z.tone }, children: z.label }),
+      ...z.rows.map((n, i) => {
+        const tone = stanceTone(n.stance)
+        const isBlocker = blocker && (n.name === blocker)
+        const d = deltas && deltas[n.name] != null ? Number(deltas[n.name]) : null
+        const why = (n.reasons && n.reasons[0]) || ''
+        return jsxs('div', {
+          key: n.id || n.name || `r${i}`,
+          className: 'flex flex-col border-t border-(--ui-stroke-tertiary)',
+          children: [
+            jsxs('div', {
+              className: 'flex items-center gap-2 py-1',
+              title: why ? `${n.name} — ${why}` : n.name,
+              children: [
+                jsx('span', { className: 'inline-block size-1.5 shrink-0 rounded-full',
+                  style: { backgroundColor: tone.color } }),
+                jsx('span', { className: `min-w-0 flex-1 truncate text-[0.75rem] font-medium`,
+                  children: n.name }),
+                isBlocker ? jsx('span', { className: `${T.micro} shrink-0 font-semibold`,
+                  style: { color: C.against }, children: 'can stop it' })
+                  : own.has(n.name) ? jsx('span', { className: `${T.micro} shrink-0`,
+                    style: { color: C.for }, children: 'your side' })
+                  : jsx('span', { className: `${T.micro} shrink-0`, style: { color: tone.color },
+                    children: tone.word }),
+                jsx('div', { className: 'w-[6rem] shrink-0', children: jsx(StanceMeter, { value: n.stance }) }),
+                jsx('span', { className: `w-[5.5rem] shrink-0 text-right ${T.micro} text-(--ui-text-quaternary)`,
+                  children: jsx(PowerWord, { cap: n.capacity }) }),
+                jsx('span', { className: `w-[3.6rem] shrink-0 text-right ${T.micro} ${NUM}`,
+                  style: { color: d != null && Math.abs(d) >= 0.05 ? (d > 0 ? C.for : C.against) : undefined },
+                  children: d != null && Math.abs(d) >= 0.05
+                    ? `${d > 0 ? '▲' : '▼'} ${Math.abs(d).toFixed(1)}` : '' }),
+              ],
+            }),
+            showWhy && why
+              ? jsx('div', { className: `pb-1 pl-3 ${T.micro} leading-snug text-(--ui-text-tertiary)`,
+                  children: why })
               : null,
-          ]}),
-          jsxs('div', { className: 'flex w-[6.5rem] shrink-0 flex-col items-end gap-1 pt-1', children: [
-            jsx(PowerPips, { cap: n.capacity, color: tone.color }),
-            jsx(PowerWord, { cap: n.capacity }),
-            d != null && Math.abs(d) >= 0.05
-              ? jsx('span', { className: `${T.micro} ${NUM} font-medium`,
-                  style: { color: d > 0 ? C.for : C.against },
-                  children: `${d > 0 ? '▲' : '▼'} ${Math.abs(d).toFixed(1)}` })
-              : jsx('span', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'steady' }),
-          ]}),
-        ],
-      })
-    }),
-    jsxs('div', { className: `pt-2 ${T.micro} text-(--ui-text-quaternary)`, children: [
-      'Bar length = how strongly they back or oppose it, from the centre. Power = how much they can stop you outright.',
+          ],
+        })
+      }),
+    ]})),
+    jsxs('div', { className: `flex flex-wrap items-center gap-x-2 gap-y-1 pt-2 ${T.micro} text-(--ui-text-quaternary)`, children: [
+      jsx('span', { children: 'Bar length = how strongly they back or oppose it, from the centre. Power = how much they can stop you outright.' }),
+      jsx(Button, { size: 'xs', variant: 'ghost', onClick: () => setShowWhy(v => !v),
+        children: showWhy ? 'hide the reasons' : 'why each one is here' }),
     ]}),
   ]})
 }
@@ -880,7 +896,7 @@ function OnYourSide({ personas, lev }) {
       jsx('div', { className: T.h2, children: "What's already on your side" }),
       cooling < 0
         ? jsx('span', { className: `${T.small} ${NUM}`, style: { color: textTone(C.for) },
-            children: `${Math.abs(cooling).toFixed(1)} points of cooling` })
+            children: `takes ${Math.abs(cooling).toFixed(1)} points of heat out of the room` })
         : null,
     ]}),
     jsx('div', { className: `${T.small} text-(--ui-text-tertiary)`,
@@ -1029,7 +1045,7 @@ function HeatWaterfall({ lev }) {
   const W = 980
   const rowH = 30
   const top = 10
-  const labelW = 250
+  const labelW = 320          // party names are long; 250 cut them mid-word
   const valueW = 64
   const plotW = W - labelW - valueW - 10
   const max = Math.max(...rows.map(r => Math.max(r.from, r.to))) * 1.02 || 1
@@ -1058,7 +1074,7 @@ function HeatWaterfall({ lev }) {
           jsx('text', { x: labelW - 12, y: cy + 4, textAnchor: 'end', fontSize: '11.5',
             style: { fill: isTotal ? 'var(--ui-text-primary)' : 'var(--ui-text-secondary)',
                      fontFamily: 'inherit', fontWeight: isTotal ? 650 : 400 },
-            children: r.label.length > 24 ? r.label.slice(0, 23) + '…' : r.label }),
+            children: r.label.length > 40 ? r.label.slice(0, 39) + '…' : r.label }),
           jsx('rect', { x: x0, y: cy - 8, width: Math.max(2, x1 - x0), height: 16, rx: 3,
             style: { fill: isTotal ? 'none' : tone,
                      fillOpacity: r.kind === 'down' ? 0.62 : isBase ? 0.55 : 0.92,
@@ -1097,7 +1113,7 @@ function HeatLedger({ lev }) {
 
     // the ledger proper
     jsxs('div', { className: 'mt-2 flex flex-col', children: [
-      jsxs('div', { className: `grid grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_54px_74px] gap-2 border-b border-(--ui-stroke-tertiary) pb-1 ${T.label} text-(--ui-text-quaternary)`, children: [
+      jsxs('div', { className: `grid grid-cols-[minmax(9.5rem,1.5fr)_minmax(0,1fr)_54px_74px] gap-2 border-b border-(--ui-stroke-tertiary) pb-1 ${T.label} text-(--ui-text-quaternary)`, children: [
         jsx('span', { children: 'party' }),
         jsx('span', { children: 'share of the heat' }),
         jsx('span', { className: 'text-right', children: 'points' }),
@@ -1106,10 +1122,10 @@ function HeatLedger({ lev }) {
       ...lev.parties.map(pp => {
         const tone = pp.cools ? C.for : stanceTone(pp.stance).color
         const pct = Math.max(0, pp.value) / largest * 100
-        return jsxs('div', { className: 'grid grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_54px_74px] items-center gap-2 border-b border-(--ui-stroke-tertiary) py-1', children: [
+        return jsxs('div', { className: 'grid grid-cols-[minmax(9.5rem,1.5fr)_minmax(0,1fr)_54px_74px] items-center gap-2 border-b border-(--ui-stroke-tertiary) py-1', children: [
           jsxs('div', { className: 'flex min-w-0 items-center gap-1.5', children: [
             jsx('span', { className: 'inline-block size-1.5 shrink-0 rounded-full', style: { backgroundColor: tone } }),
-            jsx('span', { className: `truncate ${T.small}`, children: pp.name }),
+            jsx('span', { className: `${T.small} leading-tight`, title: pp.name, children: pp.name }),
           ]}),
           jsx('div', { className: 'h-1.5 overflow-hidden rounded-full bg-(--ui-bg-quaternary)', children:
             jsx('div', { className: 'h-full rounded-full', style: {

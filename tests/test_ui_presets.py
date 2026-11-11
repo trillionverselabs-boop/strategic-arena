@@ -44,7 +44,7 @@ def test_the_run_says_what_it_actually_cost():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.3 · ui30" in UI.read_text()
+    assert "0.6.3 · ui31" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -152,7 +152,7 @@ def test_the_result_leads_with_meaning_and_the_agreement_case():
     assert "function OnYourSide(" in js
     assert "'What it means'" in js
     assert "What's already on your side" in js
-    assert "points of cooling" in js
+    assert "points of heat out of the room" in js    # no jargon: heat, not "cooling"
     # meaning first, then the call, then the good news, then the friction math:
     # a reader needs their baseline support before the arithmetic of what it costs
     assert js.index("jsx(WhatItMeans") < js.index("jsx(VerdictPanel")
