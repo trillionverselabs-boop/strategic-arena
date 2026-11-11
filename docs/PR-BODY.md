@@ -8,7 +8,7 @@ contributor — the first line is what makes that legible.
 
 ## What this is
 
-**Strategic Arena** (`strategic-arena`) — read what it means before it reads you.
+**Strategic Arena** (`strategic-arena`) — understand the landscape before investing valuable resources.
 
 Give it a link — a repo README, a blog post, a whitepaper, a case study, a press
 release, a tweet — and it opens a room of the people who will actually react. It
@@ -25,7 +25,7 @@ Labs is the studio name the work is made under. The copyright is mine personally
 README says which is which rather than making a reviewer work it out.
 
 Repo: https://github.com/trillionverselabs-boop/strategic-arena
-Pinned: `<SHA>` (full 40-char commit — see the entry)
+Pinned: `8d878c7223a857c2231e9b557eedf59be34d55c1` (full 40-char commit — see the entry)
 
 ## Why it is a plugin and not a prompt
 
@@ -99,7 +99,7 @@ $ hermes plugins validate . --install-deps
 Validation passed.        # desktop surface ✓ · no core override ✓ · security scan clean
 
 $ python -m pytest -q
-291 passed
+301 passed
 ```
 
 Runs entirely on the user's machine. No account, no cloud service, no telemetry.
