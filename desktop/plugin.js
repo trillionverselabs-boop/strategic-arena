@@ -40,7 +40,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.3 · ui32'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.3 · ui33'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -897,8 +897,11 @@ function AnswerCard({ result }) {
   const clock = m.clock && m.clock !== 'unknown'
     ? `${m.clock}${m.replication_months != null ? ` · ~${Math.round(m.replication_months)} months to rebuild` : ''}`
     : 'unknown — the paper states no basis for a number'
+  // One idea per row: the prior art, on its own. Who the authors are is the
+  // evidence for the clock, and it stays in the expander — a card that tries to
+  // say both at once gets clipped at two lines and says neither.
   const competitors = isPaper
-    ? `${m.nearest_prior_art || 'no prior art named'}${m.authors_position ? ' · ' + m.authors_position : ''}`
+    ? firstSentence(m.nearest_prior_art || 'no prior art named', 160)
     : (result.blocker ? `${result.blocker} can stop it outright` : 'nobody with power has engaged')
   return jsxs(Card, { children: [
     jsxs('div', { className: 'flex flex-wrap items-baseline justify-between gap-2 pb-2', children: [

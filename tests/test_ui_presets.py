@@ -70,7 +70,7 @@ def test_the_paper_evidence_is_opt_in():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.3 · ui32" in UI.read_text()
+    assert "0.6.3 · ui33" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
