@@ -36,10 +36,12 @@ ground already is. That is a decision you can defend, for about two cents on a c
 
 ![How a session runs — one link in, the room it lands in, the price of every objection](assets/how-it-works.png?v=2026-11-11b)
 
-<!-- DEMO VIDEO — drop the file here and uncomment. Record with docs/DEMO-SCRIPT.md.
-<video src="assets/demo.mp4" poster="assets/how-it-works.png?v=2026-11-11b" controls muted
-       width="100%" aria-label="Strategic Arena — 90 second demo"></video>
--->
+**Watch it — 88 seconds, one link in:**
+[youtu.be/qrlA_0MJgB4](https://youtu.be/qrlA_0MJgB4)
+
+The recording is scripted beat by beat in [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md), and
+the full production record — script, timing, method, re-render steps — is in
+[docs/DEMO-VIDEO.md](docs/DEMO-VIDEO.md).
 
 Two minutes, one link, no account. The demo path is the point: **open the plugin, land on a
 finished, scored session in one click** — what it meant, the call, what each party was worth, and
