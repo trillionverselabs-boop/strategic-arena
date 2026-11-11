@@ -46,6 +46,21 @@ trust model. An earlier build of this page offered a "download the UI file"
 button. It was manual and it only copied a local file, but it is the shape the
 rule names, so it was removed — `tests/test_no_self_update.py` keeps it gone.
 
+## The backend half has the same problem, and it is the one that bites
+
+The backend (`dashboard/plugin_api.py`) is imported **once**, when the gateway
+process starts, and cached in `sys.modules`. Editing the plugin on disk does not
+change the code a running process serves. So after a backend fix:
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| the UI is new but the error text is old | the running gateway still has the previous `plugin_api.py` cached | restart the gateway (or reconnect the desktop, which spawns a fresh remote backend) |
+| `/api/plugins/<id>/...` returns a 404 | the plugin wasn't enabled/mounted at that process's startup | enable it, then restart |
+
+The desktop's own plugin REST goes to the gateway the window is connected to —
+a remote `hermes serve` on the Hermes machine, spawned when the window connects.
+Restart the **backend**, not the app, and the window reconnects to a fresh one.
+
 ## Why ⌘K alone felt like it did nothing
 
 `Reload desktop plugins` re-reads the files it already knows about — it fetches

@@ -1,6 +1,6 @@
 name: strategic-arena
 repo: https://github.com/trillionverselabs-boop/strategic-arena   # must stay PUBLIC
-sha: 4abd95897746b06f496538b1d828ff15bfe08fb7
+sha: 2082f15c08e682501e0bca88b3b542e8607e6e09
 title: Strategic Arena
 # One line: this is what the catalogue card shows. The long form lives in the
 # README, which renders on /docs/plugins/strategic-arena at the pinned sha.
@@ -12,9 +12,9 @@ tier: community
 category: tools
 version: "0.6.2"
 requires_hermes: ">=0.23.0"
-image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/4abd95897746b06f496538b1d828ff15bfe08fb7/assets/banner.png
+image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/2082f15c08e682501e0bca88b3b542e8607e6e09/assets/banner.png
 screenshots:
-  - https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/4abd95897746b06f496538b1d828ff15bfe08fb7/assets/how-it-works.png
+  - https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/2082f15c08e682501e0bca88b3b542e8607e6e09/assets/how-it-works.png
 platforms: []
 capabilities:
   provides_tools:
@@ -34,7 +34,7 @@ readme: true
 # Informational, never blocks. It was a folded string here, which the schema
 # does not allow.
 known_issues:
-  - "Choosing a model for a run needs the llm.model_override consent; without it the run uses your active model."
+  - "Choosing a model for a run needs the host permission plugins.entries.strategic-arena.llm.allow_model_override; without it the run says so and uses your active model."
   - "Free models are rate-limited — a 24h review can take 15–30 minutes."
   - "The desktop UI loads from the machine running the app, so a UI change needs Install from Git with the Desktop target on that machine."
   - "Generic PDFs outside arXiv cannot be read without a text-layer dependency. A link that cannot be read is reported as SKIPPED in the run's provenance, never silently dropped."
