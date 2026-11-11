@@ -1,6 +1,6 @@
 name: strategic-arena
 repo: https://github.com/trillionverselabs-boop/strategic-arena   # must stay PUBLIC
-sha: d2b4a6423628ad6fe5a27900e976daee8cbbfc72
+sha: e27bf0999fa4912c76707a8a0a7dbe04b8454a52
 title: Strategic Arena
 description: >-
   Read what it means before it reads you. Give it a link — a repo README, a blog
@@ -17,9 +17,9 @@ tier: community
 category: tools
 version: "0.6.2"
 requires_hermes: ">=0.23.0"
-image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/d2b4a6423628ad6fe5a27900e976daee8cbbfc72/assets/banner.png
+image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/e27bf0999fa4912c76707a8a0a7dbe04b8454a52/assets/banner.png
 screenshots:
-  - https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/d2b4a6423628ad6fe5a27900e976daee8cbbfc72/assets/how-it-works.png
+  - https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/e27bf0999fa4912c76707a8a0a7dbe04b8454a52/assets/how-it-works.png
 platforms: []
 capabilities:
   provides_tools:
