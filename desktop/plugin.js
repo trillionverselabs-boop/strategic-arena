@@ -41,7 +41,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.2 · ui26'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.2 · ui27'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -1984,7 +1984,10 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
       // max-h-[72vh] on the inner div left header+footer outside the budget, so
       // on a short window the form ran off the bottom and the footer sat half
       // off-screen with nothing to scroll it back into view.
-      className: 'flex max-h-[92vh] w-[min(42rem,94vw)] max-w-none flex-col overflow-hidden',
+      // No overflow-hidden: the Select popovers are portalled out of this box, but a
+      // future inline popover would be clipped by it. max-h + the inner scroll
+      // container already keep the content inside the shell.
+      className: 'flex max-h-[92vh] w-[min(42rem,94vw)] max-w-none flex-col',
       children: [
         jsxs(DialogHeader, { children: [
           jsx(DialogTitle, { children: `New ${ARENA} session` }),

@@ -577,7 +577,22 @@ def _scenario_from(body: dict):
 
 
 def _kind_or_auto(value) -> str:
-    from upfront.models import ArtifactKind
+    try:
+        from upfront.models import ArtifactKind
+    except ImportError as exc:
+        # The one way this import fails is a mismatched pair on disk: a new
+        # plugin_api.py next to an old models.py, which is what a leftover install
+        # of the pre-rename plugin (`upfront`) produces. A raw ImportError in a
+        # 400 tells the user nothing they can act on, so say the fix instead.
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "This plugin is a mismatched install: the backend expects a newer "
+                "models.py than the one on disk. That happens when an old copy of "
+                "the pre-rename plugin ('upfront') is still installed beside it. "
+                "Fix: `hermes plugins remove upfront` (and delete "
+                "~/.hermes/desktop-plugins/upfront if present), then install or "
+                "update strategic-arena. Underlying error: " + str(exc)))
     try:
         return ArtifactKind(str(value or "auto")).value
     except ValueError:

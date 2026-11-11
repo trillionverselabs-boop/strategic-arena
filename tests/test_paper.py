@@ -162,6 +162,15 @@ def test_an_unknown_lens_is_a_400_not_a_quiet_room_swap():
     assert "paper" in err.value.detail
 
 
+def test_a_mismatched_install_tells_the_user_what_to_do():
+    """The one way this import fails in the field is a new plugin_api.py beside an
+    old models.py — a leftover pre-rename install. A raw ImportError in a 400 is a
+    dead end for the reader, so the route has to name the fix."""
+    src = (Path(__file__).resolve().parent.parent / "dashboard" / "plugin_api.py").read_text()
+    assert "hermes plugins remove upfront" in src
+    assert "mismatched install" in src
+
+
 def test_the_report_shows_the_clock_for_a_paper():
     from upfront import reporting
 
