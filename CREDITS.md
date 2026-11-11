@@ -1,4 +1,4 @@
-# Credits, sources and licences
+# Credits, sources and licenses
 
 Strategic Arena (repository id `upfront`) is **MIT-licensed** and is a
 **clean-room implementation**: no source code, data file or asset from any project
@@ -6,7 +6,7 @@ listed below is vendored in this repository. What we take from each is the *idea
 and ideas are cited here rather than copied into the tree.
 
 If you believe something here is used without credit, open an issue. The fix is a
-citation — and if code is ever involved, a licence change, not an excuse.
+citation — and if code is ever involved, a license change, not an excuse.
 
 ---
 
@@ -62,10 +62,10 @@ host environment. The desktop half imports only `@hermes/plugin-sdk`, `react` an
 - No third-party icon set, font file or bitmap is bundled. Icons come from the
   app's own `Codicon` component; typography is the app's own font stack.
 
-## Licence
+## License
 
 MIT. Copyright (c) 2026 **Lisa Martin (LeMultiFox)**, who holds the copyright and
-grants the licence. TrillionVerse Labs is the studio name this work is made under.
+grants the license. TrillionVerse Labs is the studio name this work is made under.
 **LDMA Partners** is the entity that receives prize payouts and commercial payments
 where applicable — it is not the copyright holder, and nothing here assigns the
 work to it. A question about the code goes to LeMultiFox.

@@ -26,11 +26,11 @@
 > **Not a prediction. Not a guarantee. A scored read of the room.**
 
 **In plain English.** You are about to spend real money or engineering time on something — or
-someone else just did, and you need to read it before you respond. Paste the link. In about twenty
-minutes you get the landscape it lands in: the parties who decide what happens next, the ones who
-can stop it, the ones who will amplify it, the ones who can only complain, what each of them
-actually wants, and how contested the ground already is. That is a decision you can defend, for
-about two cents on a cheap model.
+someone else just did, and you need to read it before you respond. Paste the link. Two to five
+minutes for a three-round read, under half an hour for a full cycle, and you get the landscape it
+lands in: the parties who decide what happens next, the ones who can stop it, the ones who will
+amplify it, the ones who can only complain, what each of them actually wants, and how contested the
+ground already is. That is a decision you can defend, for about two cents on a cheap model.
 
 ### See it — one link in. The room it lands in, and the price of every objection.
 
@@ -231,8 +231,7 @@ Best results come from documents that **contain a real disagreement**:
   reports low friction.
 
 Two sources that disagree beat five that agree. A decision plus one piece of real evidence is the best
-cheap run, and the plugin says "add an evidence document for grounded stances" when a run comes back
-thin — the tool teaches you what to feed it.
+cheap run — and the plugin says so out loud when a run comes back thin.
 
 ## Which model, and what a run costs
 
@@ -252,15 +251,27 @@ What the form does show is the run's arithmetic, before you commit:
 ≈80k tokens in / ≈7k tokens out, at about 6 parties
 ```
 
+| Timeline | Rounds | What the form says it takes |
+|---|---|---|
+| 30 minutes | 3 | 2–5 min |
+| 1 hour | 5 | 4–8 min |
+| 4 hours | 8 | 6–12 min |
+| 6 hours | 10 | 8–15 min |
+| 12 hours | 12 | 10–20 min |
+| 24 hours | 16 | 15–30 min — the default |
+| 48 hours | 20 | 25–45 min |
+
+Those are the app's own estimates, shown before the run. A large paper adds ingest and decode time, a
+rate-limited free model can roughly double the band, and a bigger room means more calls per round.
+
 - **Tokens always; money only when it is published.** Money appears when the public Nous catalog
   publishes a price for *that exact model* (`≈$0.016 at the published price`), and when it does not the
   form says nothing about money rather than multiplying by an invented number. A model the catalog
   does not carry is a real case, and "price unknown" is the honest answer there.
 - **After the run, the real number.** The host reports actual usage and its own cost estimate per
   call; the run prints `38 calls, 41k tokens · $0.021 spent`. That is the number to trust.
-- **The window is bounded**, so the estimate does not drift with the length of the document: a
-  document is windowed to a fixed prompt budget, head and tail, omitted middle marked
-  (`ingestion.excerpt`).
+- **The window is bounded**, so the estimate does not drift with the document's length: it is windowed
+  to a fixed prompt budget, head and tail, omitted middle marked (`ingestion.excerpt`).
 - **The timeline is suggested, not defaulted** — seven options with no recommendation is a coin flip,
   so the form reads the input and marks one *suggested*, with the reason in one sentence.
 - **The long end is honest.** Positions stop moving after about 8–10 rounds; past that the extra rounds

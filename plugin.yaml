@@ -8,13 +8,12 @@ license: MIT
 homepage: https://github.com/trillionverselabs-boop/strategic-arena
 tags: [strategy, stakeholders, artifact-review, reception, decision-review, local-first, research]
 description: >-
-  Understand the landscape before investing valuable resources. Strategic Arena is a
-  multi-agent simulation plugin for Hermes: give it a link — a repo README, an arXiv
-  paper, a blog post, a case study, an announcement, a tweet — and it puts the parties
-  who will actually react into one room. It names who can stop it, what each concession
-  buys, and how contested the ground already is; then it freezes testable claims with
-  dates and scores them, so the record gets sharper every run. Runs on your own machine;
-  no cloud account.
+  Strategic Arena is a multi-agent simulation plugin for Hermes that ingests GitHub
+  repos, arXiv research papers, tech blogs, and announcements to model real-world
+  ecosystem friction. It maps out who will block adoption, simulates competitor
+  reactions, and stress-tests your strategy before you commit engineering time or
+  capital. Point it at a repo, a paper, a blog post, a case study or an announcement —
+  yours or someone else's. Runs on your own machine; no cloud account.
 provides_tools:
   - arena_run
   - arena_status
