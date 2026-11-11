@@ -1,8 +1,9 @@
 # Models — what this plugin assumes, and what it does not
 
-Strategic Arena **ships no model** and **names no model**. A review runs on whatever model
-Hermes is already using, or on the one the user picks from the host's live catalogue. That is a
-deliberate boundary, and the only model statement a community plugin is in a position to make.
+Strategic Arena **ships no model**, **names no model**, and **asks you to choose no model**. A
+review runs on whatever model the Hermes session is already using — the one answering you in the
+app. That is a deliberate boundary: a plugin is in no position to have an opinion about which
+model is best, and the app has already made that decision.
 
 ## How a model is reached
 
@@ -10,10 +11,14 @@ deliberate boundary, and the only model statement a community plugin is in a pos
   credentials, the per-plugin trust gate and usage accounting. The plugin never holds a token.
 - **The desktop backend routes** use the same facade (`agent.plugin_llm.PluginLlm`), because the
   routes can be served by a process that never ran `register(ctx)`.
-- **The picker** reads the catalogue live from the provider's own endpoint on every open and shows
-  the price that endpoint reports. Nothing is hardcoded, nothing is cached as a recommendation.
-- **Choosing a model is a host permission** (`plugins.entries.<id>.llm.allow_model_override`). If it
-  is not granted, the run uses the active model and the form says so before you start.
+- **The form shows the session's model, read-only**, from the app's own state
+  (`host.state.model`). It never sets it. A picker here would need a live catalogue fetched
+  from whichever machine the window runs on *and* the host permission
+  `plugins.entries.<id>.llm.allow_model_override`, which the desktop app does not grant — so it
+  could only ever disagree with the run. The honest fix was to stop offering the choice.
+- **The cost estimate is tokens, not money**, because tokens are arithmetic we can defend
+  (rounds x parties x the bounded prompt window) and a price is not. `free` is printed only when
+  the model's own slug says `:free`; every finished run records the model that actually served it.
 
 ## What the plugin does not assume about a model
 
@@ -35,13 +40,14 @@ so a span that is not in the document is dropped and listed, never kept.
 Free models are a moving target by nature — rate-limited, sometimes slow, occasionally withdrawn.
 The plugin treats that as an operational fact rather than a recommendation:
 
-- the picker flags zero-priced models and can filter to them;
-- the form prints a realistic wall-clock estimate for the chosen timeline and warns that free models
-  are rate-limited;
+- the form reads `:free` from the session's model slug and says, before you start, that the wait is
+  real;
+- the form prints a realistic wall-clock estimate for the chosen timeline, and the timeline itself
+  is suggested from the input rather than defaulted;
 - a refused or unavailable model produces a message naming the cause, not a generic failure.
 
-If a model stops working, nothing here needs changing: pick another from the live catalogue, or
-leave it on the active model.
+If a model stops working, nothing here needs changing: switch the model in the app. The plugin
+follows the session.
 
 ## Why this file has no model table
 

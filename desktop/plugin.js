@@ -33,7 +33,6 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Switch,
   Textarea,
   ROUTES_AREA,
   SIDEBAR_NAV_AREA,
@@ -41,7 +40,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.2 · ui28'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.3 · ui29'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -164,6 +163,54 @@ const TIMELINES = [
   { v: '48h', label: '48 hours', rounds: 20, note: 'Deepest read — hard to move a veto player. ~2x cost.', eta: '25–45 min' },
 ]
 const WINDOW_HOURS = { '30m': 0.5, '1h': 1, '4h': 4, '6h': 6, '12h': 12, '24h': 24, '48h': 48 }
+
+// ── what a run will cost, before it runs ──────────────────────────────
+// Two honest numbers and one honest refusal. Tokens are arithmetic: rounds x
+// parties, plus the setup calls, times the size of the prompt the engine will
+// actually send — and that prompt is bounded (ingestion.PROMPT_BUDGET), so the
+// estimate cannot drift with the length of the paper you paste.
+//
+// Money is NOT arithmetic. A price needs the live catalogue and the provider's
+// own rate; a number we invented would look like data, which is the one thing
+// this product refuses to print. So it says "free" only when the model's own
+// slug says free, and otherwise says nothing: every finished run records the
+// model that actually served it.
+const PARTIES_GUESS = 6          // the room is drawn after the read; 5-7 is typical
+const INSTRUCTION_TOKENS = 2200  // lens + room instructions + output schema, per call
+const DOC_TOKEN_CAP = 3000       // the excerpt window (~12k chars) is ~3k tokens
+const OUT_TOKENS = 140           // one party's move per round is short JSON
+
+function tokensOfInput(shape) {
+  const chars = (shape.decision || '').length + (shape.evidence || '').length
+    + (shape.urls || []).length * 12000     // each link is fetched, then windowed
+  return Math.min(DOC_TOKEN_CAP, Math.round(chars / 4))
+}
+
+function runEstimate(tl, shape) {
+  // a paper pays one extra call: the moat decode, before the room is drawn
+  const setup = shape.kind === 'paper' ? 3 : 2
+  const calls = tl.rounds * PARTIES_GUESS + setup
+  const perCallIn = INSTRUCTION_TOKENS + tokensOfInput(shape)
+  return { calls, parties: PARTIES_GUESS, tin: calls * perCallIn, tout: calls * OUT_TOKENS }
+}
+
+function kTokens(n) {
+  return n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : `${n}`
+}
+
+// The recommendation is about the INPUT, not about a default. One internal memo
+// and a public launch do not want the same room-length, and the engine's own
+// evidence is that positions stop moving after 8-10 rounds — past that you pay
+// again for the same answer.
+function suggestWindow(shape) {
+  const external = ['press', 'tweet', 'repo', 'paper'].includes(shape.kind)
+    || (shape.urls || []).length > 0
+  const grounded = (shape.evidence || '').trim().length > 0
+  if (external && grounded) return { v: '12h', why: 'the parties are external, and you gave them evidence to argue with' }
+  if (external) return { v: '6h', why: 'the parties are external, but nothing here grounds their reaction — expect the read to stay broad' }
+  if (grounded) return { v: '4h', why: 'an internal decision with evidence behind it' }
+  return { v: '1h', why: 'one internal document — this answers "does anyone care?"' }
+}
 
 const URL_TYPES = [
   'repo README', 'blog post', 'news article', 'product / landing page',
@@ -922,21 +969,32 @@ const TIMELINE_GUIDE = {
   '48h':  { kind: 'long',  best: 'a dug-in veto player you need to watch for movement.' },
 }
 
-function TimelineHint({ window }) {
+function TimelineHint({ window, est, suggested }) {
   const g = TIMELINE_GUIDE[window] || TIMELINE_GUIDE['24h']
   const tl = TIMELINES.find(t => t.v === window) || TIMELINES[5]
-  const tag = g.kind === 'standard' ? 'standard — the default, covers most decisions'
-    : g.kind === 'long' ? 'longer than most need'
-    : 'shorter than most need'
-  return jsxs('div', { className: 'flex flex-col gap-0.5 rounded-md border border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-2.5 py-2', children: [
+  const s = TIMELINES.find(t => t.v === (suggested && suggested.v)) || null
+  const isSuggested = s && s.v === tl.v
+  return jsxs('div', { className: 'flex flex-col gap-1 rounded-md border border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-2.5 py-2', children: [
     jsxs('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: [
-      `${tl.label} · ${tl.rounds} rounds · ${tl.eta} on a free model — `,
-      jsx('span', { className: 'font-semibold text-(--ui-text-tertiary)', children: tag }),
+      `${tl.label} · ${tl.rounds} rounds · ${tl.eta} · ≈${est.calls} calls`,
     ]}),
+    jsxs('div', { className: `${T.micro} ${NUM} text-(--ui-text-tertiary)`, children: [
+      `≈${kTokens(est.tin)} tokens in / ≈${kTokens(est.tout)} tokens out, at about ${est.parties} parties`,
+    ]}),
+    isSuggested
+      ? jsxs('div', { className: `${T.micro} leading-relaxed`, style: { color: BRAND.blue }, children: [
+          'Suggested for this input — ', suggested.why, '.',
+        ]})
+      : jsxs('div', { className: `${T.micro} leading-relaxed text-(--ui-text-quaternary)`, children: [
+          'Suggested for this input: ', s ? s.label : '6 hours', ' — ',
+          (suggested && suggested.why) || '', '.',
+        ]}),
     jsx('div', { className: `${T.micro} leading-relaxed text-(--ui-text-tertiary)`,
       children: `Best for ${g.best}.` }),
     jsx('div', { className: `${T.micro} leading-relaxed text-(--ui-text-quaternary)`,
-      children: 'Go longer only when the parties are external (regulators, partners, press, competitors), the move is public, or a veto player is dug in — longer buys movement, not more objections. Most rooms stop moving after 8–10 rounds, and the last 4 hours cost double.' }),
+      children: 'Go longer only when the parties are external (regulators, partners, press, competitors), the move is public, or a veto player is dug in — longer buys movement, not more objections. The room stops moving after 8–10 rounds, so past that the extra rounds mostly repeat positions.' }),
+    tl.v === '48h' && jsx('div', { className: `${T.micro} leading-relaxed text-(--ui-text-quaternary)`,
+      children: 'Rarely needed: 20 rounds is twice the useful depth, so the last ten rounds re-argue settled ground at double the cost.' }),
   ]})
 }
 
@@ -1912,33 +1970,23 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
   const [kind, setKind] = React.useState('auto')
   const [goal, setGoal] = React.useState('adoption')
   const [showGuide, setShowGuide] = React.useState(false)
-  const [models, setModels] = React.useState([])
-  const [modelId, setModelId] = React.useState('')
-  const [freeOnly, setFreeOnly] = React.useState(false)
-  const [modelAccess, setModelAccess] = React.useState(null)
-  const [note, setNote] = React.useState('')
   const [busy, setBusy] = React.useState(false)
   const [error, setError] = React.useState('')
 
-  React.useEffect(() => {
-    ctx.rest('/model-access').then(setModelAccess).catch(() => setModelAccess(null))
-  }, [])
-
-  React.useEffect(() => {
-    ctx.rest('/models').then(r => {
-      setModels(r.models || [])
-      setNote(r.error ? r.error : r.count ? `${r.count} models · ${r.free_count} free · fetched ${r.fetched_at}` : '')
-    }).catch(() => setNote('model catalogue unavailable'))
-  }, [])
+  // The model is the session's, read from the app's own state. Not a copy, not a
+  // catalogue we fetch over the network, not a host permission we ask for — a
+  // picker here could only ever be wrong about a decision Hermes already made.
+  const sessionModel = useValue(host.state.model) || ''
+  const modelLabel = sessionModel || 'this session\u2019s model'
+  const modelIsFree = /:free$/i.test(sessionModel)
 
   const tl = TIMELINES.find(t => t.v === window) || TIMELINES[5]
-  const calls = tl.rounds * 8 + 16
-  const visibleModels = freeOnly ? models.filter(m => m.free) : models
-  const chosen = models.find(m => m.id === modelId)
-  const perCall = chosen ? (700 / 1e6) * chosen.prompt_per_m + (120 / 1e6) * chosen.completion_per_m : 0
-  const cost = !chosen ? 'your active model'
-    : modelAccess && !modelAccess.allowed ? 'FREE (active model — choice not granted)'
-    : chosen.free ? 'FREE' : `~$${(calls * perCall).toFixed(3)} at list price`
+  const shape = {
+    decision, evidence, kind,
+    urls: urls.split('\n').map(u => u.trim()).filter(Boolean),
+  }
+  const est = runEstimate(tl, shape)
+  const suggested = suggestWindow(shape)
   const hasInput = decision.trim().length > 0 || urls.trim().length > 0
 
   function applyRecipe(r) {
@@ -1966,8 +2014,10 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
       const urlList = urls.split('\n').map(u => u.trim()).filter(Boolean)
       const res = await ctx.rest('/run', {
         method: 'POST',
-        body: { title, goal, documents: docs, urls: urlList, window,
-                kind, model: modelId || undefined },
+        // no `model`: the backend runs on the host's active model. Sending one
+        // would be a request the host is entitled to refuse, which is how a run
+        // ends up on a model nobody chose.
+        body: { title, goal, documents: docs, urls: urlList, window, kind },
       })
       onStarted(res.run_id, title)
     } catch (e) {
@@ -2077,55 +2127,41 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
           jsxs('div', { className: 'grid grid-cols-2 gap-3', children: [
             jsx(Field, {
               label: 'Timeline',
-              hint: `${tl.note} About ${tl.eta} on a free model.`,
+              hint: `${tl.note} The suggestion below is read off what you have added.`,
               children: jsxs('div', { className: 'flex flex-col gap-1.5', children: [
                 jsxs(Select, { value: window, onValueChange: setWindow, children: [
                   jsx(SelectTrigger, { children: jsx(SelectValue, {}) }),
                   jsx(SelectContent, { children: TIMELINES.map(t => jsx(SelectItem, {
                     key: t.v, value: t.v,
-                    children: `${t.label} — ${t.rounds} rounds${t.v === '24h' ? ' · recommended' : ''}`,
+                    children: `${t.label} — ${t.rounds} rounds${t.v === suggested.v ? ' · suggested' : ''}`,
                   })) }),
                 ]}),
-                jsx(TimelineHint, { window }),
+                jsx(TimelineHint, { window, est, suggested }),
               ]}),
             }),
             jsx(Field, {
               label: 'Model',
-              hint: 'Leave on active model to use whatever Hermes already runs. Choosing a specific model is a host permission — without it the run uses your active model.',
-              children: jsxs('div', { className: 'flex flex-col gap-1', children: [
-                jsxs(Select, { value: modelId || 'active', onValueChange: v => setModelId(v === 'active' ? '' : v), children: [
-                  jsx(SelectTrigger, { children: jsx(SelectValue, {}) }),
-                  jsx(SelectContent, { children: [
-                    jsx(SelectItem, { value: 'active', children: 'active model (default)' }),
-                    ...visibleModels.map(m => jsx(SelectItem, {
-                      key: m.id, value: m.id,
-                      children: `${m.free ? 'FREE · ' : ''}${m.name} — $${m.prompt_per_m}/M in`,
-                    })),
-                  ]}),
+              hint: 'A run uses the model this session is already on — change it in the app, not here.',
+              children: jsxs('div', { className: 'flex flex-col gap-1 rounded-md border border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-2.5 py-2', children: [
+                jsx('div', { className: `truncate text-[0.75rem] font-medium text-(--ui-text-secondary)`, children: modelLabel }),
+                jsxs('div', { className: `${T.micro} ${NUM} text-(--ui-text-tertiary)`, children: [
+                  `${est.calls} calls · ≈${kTokens(est.tin)} tokens in / ≈${kTokens(est.tout)} tokens out`,
+                  modelIsFree ? ' · free' : '',
                 ]}),
-                jsxs('label', { className: 'flex cursor-pointer items-center gap-2 text-[0.75rem] text-(--ui-text-secondary)', children: [
-                  jsx(Switch, { 'aria-label': 'free models only', checked: freeOnly, onCheckedChange: setFreeOnly, size: 'xs' }),
-                  'free models only',
-                ]}),
+                jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'Tokens are the run\u2019s own arithmetic — rounds × parties × the prompt window. Money is not shown because a price needs the live catalogue; the finished run records the model that actually served it.' }),
               ]}),
             }),
           ]}),
 
-          // the host gates model choice — warn BEFORE the run, not after it fails
-          chosen && modelAccess && !modelAccess.allowed && jsx(Callout, { icon: 'info',
-            tone: 'var(--ui-accent)',
-            title: 'The host has not granted model choice',
-            children: `This run will use your active model instead of ${chosen.name}. To let the picker choose, add "${modelAccess.config_key}: true" to config.yaml (a host permission, not a plugin setting).` }),
+          // free models are rate-limited and slow — say so before the user
+          // commits half an hour to a review with no explanation
+          modelIsFree && jsx(Callout, { icon: 'info', tone: 'var(--ui-accent)',
+            title: 'This session is on a free model: rate-limited and slow',
+            children: `Expect roughly ${tl.eta} for this timeline, sometimes more. A short window is a fast sanity check; the longer ones are where positions actually move.` }),
 
-          // free models are the default here and they are SLOW — say so before
-          // the user commits 30 minutes to a 24h review with no explanation
-          chosen?.free && jsx(Callout, { icon: 'info', tone: 'var(--ui-accent)',
-            title: 'Free models are rate-limited and slow',
-            children: `Expect roughly ${tl.eta} for this timeline, sometimes more. A 30-minute run is a fast sanity check; 24 hours is the full reaction cycle.` }),
-
-          jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: `${calls} model calls · ${cost}${note ? ' · ' + note : ''}` }),
-          jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: 'For a first pass: a flash-class model at 24h.' }),
-          jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: 'Spend on 48h and a bigger model only when the decision is expensive.' }),
+          jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: `${est.calls} model calls · ≈${kTokens(est.tin)} tokens in / ≈${kTokens(est.tout)} tokens out · ${modelLabel}` }),
+          jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: 'For a first pass: whatever model the session is on, at 4–6 hours.' }),
+          jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: 'Go to 24h only when the parties are external and the decision is expensive.' }),
 
           error && jsx('span', { className: 'text-[0.75rem] text-destructive', children: error }),
         ]}),

@@ -105,7 +105,6 @@ def _sub(name: str):
 engine = _sub("engine")
 leverage = _sub("leverage")
 llm_binding = _sub("llm_binding")
-portal = _sub("portal")
 reporting = _sub("reporting")
 LlmAdapter = _sub("llm_adapter").LlmAdapter
 _models = _sub("models")
@@ -169,7 +168,8 @@ def _resolve_llm():
                 return _bound, "agent-copy"
 
     try:
-        built = LlmAdapter(_sub("host_llm").build_host_llm(), allow_override=True)
+        # the host facade has no picked model to honour any more
+        built = LlmAdapter(_sub("host_llm").build_host_llm())
         _debug("model source=host-facade (agent half not bound in this process)")
         return built, "host-config"
     except Exception as exc:
@@ -178,39 +178,6 @@ def _resolve_llm():
             "No model available. The agent plugin half is not loaded in this process "
             f"and the local provider credentials could not be used: {exc}"
         )
-
-
-def _override_allowed() -> bool:
-    """Whether the host will honour a picked model — resolved PER CALL.
-
-    Capturing this at registration was the bug behind "I switched model and it
-    still didn't take": the adapter is built once, at session start, so a
-    permission granted later never reached a run. Read the same key the
-    enforcer reads, every time, and the picker and the run cannot disagree.
-    """
-    try:
-        from hermes_cli.config import load_config_readonly
-
-        cfg = (load_config_readonly() or {}).get("plugins") or {}
-        entry = ((cfg.get("entries") or {}).get("strategic-arena") or {})
-        return bool((entry.get("llm") or {}).get("allow_model_override"))
-    except Exception:
-        return False
-
-
-def _run_llm(base, scenario):
-    """The adapter a run uses: the picked model only when the host honours it.
-
-    One place, so "the picker says allowed" and "the run actually asks for that
-    model" cannot drift apart.
-    """
-    chosen = (scenario.model or "").strip()
-    if not chosen or chosen == "default":
-        return base
-    return LlmAdapter(
-        base._llm, temperature=scenario.temperature, model=chosen,
-        allow_override=_override_allowed() or getattr(base, "allow_override", False),
-    )
 
 
 def _llm():
@@ -262,17 +229,15 @@ async def run(body: dict):
             def _on_round(snap):
                 engine._emit(run_id, "running", snap.round, scenario.rounds,
                              {k: round(v, 3) for k, v in (snap.stances or {}).items()})
-            base = _llm()
-            llm = _run_llm(base, scenario)
+            # one adapter, the one this process bound: the session's model. No
+            # per-run override is built here, because there is no picker to honour.
+            llm = _llm()
             result = engine.run_scenario_progress(
                 scenario, llm, on_round=_on_round, run_id=run_id
             )
-            # if the host refused the chosen model, say so once, next to the run
-            note = getattr(getattr(base, "_llm", None), "override_denied_note", "") or ""
-            # ...and if the adapter fell back to the active model, say that too
-            fb = getattr(llm, "fallback_note", "") or ""
-            if fb and fb not in note:
-                note = (note + " " + fb).strip()
+            # the host can still substitute a model on its own; when it does, say
+            # so next to the run instead of letting the report imply otherwise
+            note = getattr(llm, "fallback_note", "") or ""
             if note:
                 try:
                     (reporting.runs_dir() / run_id / "model-note.txt").write_text(note)
@@ -514,49 +479,6 @@ async def ui_status(build: str = ""):
     route instead of making the user guess.
     """
     return _ui_status(build)
-
-
-@router.get("/model-access")
-async def model_access():
-    """Whether the host will honour a model chosen in the picker.
-
-    Reads exactly what the enforcer reads (`PluginLlm` → `plugins.entries.<id>.llm`),
-    so the form can warn before a run instead of the user discovering it after.
-    Never returns credentials — this is a boolean about a permission.
-    """
-    allowed = False
-    allowed_models: list[str] = []
-    try:
-        from hermes_cli.config import load_config_readonly
-
-        allowed = _override_allowed()
-        plugins_cfg = (load_config_readonly() or {}).get("plugins") or {}
-        entry = ((plugins_cfg.get("entries") or {}).get("strategic-arena") or {})
-        llm_cfg = entry.get("llm") or {}
-        raw = llm_cfg.get("allowed_models")
-        if isinstance(raw, (list, tuple)):
-            allowed_models = [str(x) for x in raw]
-    except Exception:
-        pass
-    return {"allowed": allowed, "allowed_models": allowed_models,
-            "config_key": "plugins.entries.strategic-arena.llm.allow_model_override"}
-
-
-@router.get("/models")
-async def models(free: bool = False):
-    """Live Nous model catalogue with per-million-token prices (public, no creds)."""
-    cat = portal.catalogue()
-    items = cat.get("models", [])
-    if free:
-        items = [m for m in items if m.get("free")]
-    return {
-        "models": items,
-        "count": len(items),
-        "free_count": cat.get("free_count", 0),
-        "fetched_at": cat.get("fetched_at", ""),
-        "source": cat.get("source", ""),
-        "error": cat.get("error", ""),
-    }
 
 
 @router.get("/compare")

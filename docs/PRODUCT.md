@@ -95,7 +95,7 @@ Read against the three published guides. These are the rules that bite, not the 
 | Rule | Constraint on us |
 |---|---|
 | 03 — no self-updating code | Ship **no** updater in the catalog build. Updates only via SHA-bump PR + `hermes plugins update`. Nothing in `desktop/plugin.js` may fetch its own code. |
-| 06 — declared capabilities must match | `capabilities: [llm.model_override]` is currently accurate. Adding URL fetching keeps it accurate (no capability to declare), but **any new privileged surface must be declared in the same commit**. |
+| 06 — declared capabilities must match | The manifest declares **no** capabilities, which is accurate: the model picker (and with it `llm.model_override`) was removed, and URL fetching needs no capability. **Any new privileged surface must be declared in the same commit.** |
 | 10 — dependency policy | `plugin.yaml` declares **no** `python_dependencies` while the code imports `pydantic`. A reviewer will ask for a floor **and an upper bound** (`pydantic>=2,<3`). Fix before the PR. |
 | 11 — credentials through Hermes | Already correct: `ctx.llm` with host-owned credentials. Never read a key from a file. Extraction must go through the same `ctx.llm`. |
 | 08 — desktop stays inside the SDK | `desktop/plugin.js` imports only `@hermes/plugin-sdk`, `react`, `react/jsx-runtime`. Keep it that way; no `eval`, no DOM patching of app markup. |

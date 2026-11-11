@@ -53,13 +53,7 @@ def _register_skills(ctx) -> None:
 
 
 def register(ctx) -> None:
-    allow_override = False
-    try:
-        allow_override = bool(ctx.has_capability("llm.model_override"))
-    except Exception:
-        allow_override = False
-
-    register_tools(ctx, allow_model_override=allow_override)
+    register_tools(ctx)
     _register_skills(ctx)
 
     # Bind the model where the dashboard routes can see it. The routes are a
@@ -69,7 +63,7 @@ def register(ctx) -> None:
     try:
         from .llm_binding import set_llm
 
-        set_llm(LlmAdapter(ctx.llm, allow_override=allow_override))
+        set_llm(LlmAdapter(ctx.llm))
     except Exception as exc:
         try:
             ctx.log(f"strategic-arena: could not bind the model for the dashboard: {exc}")

@@ -453,41 +453,47 @@ It does not need a frontier model — the work is many small structured judgment
   seconds per call; across 50–200 calls that adds up. Use it when you want the richest
   per-actor reasoning and don't mind the wait.
 
-### Live model catalogue with real prices
+### Which model, and what a run costs
 
-The form's **Model** picker is populated from the public Nous inference catalogue
-(`https://inference-api.nousresearch.com/v1/models` — no credentials required, 357 usable
-chat models at the time of writing) and shows, for every model, the **published price per
-million tokens** in and out. The run line under it does the arithmetic before you commit:
+**A run uses the model the session is already on.** The form reads it from the app's own state
+and shows it, read-only. There is no picker, and that is a design decision rather than a gap:
+
+- a picker needs a live catalogue fetched over the network from whichever machine the window runs
+  on, and it needs the host permission `plugins.entries.<id>.llm.allow_model_override`, which the
+  desktop app does not grant. Two independent ways to be wrong about a question Hermes has already
+  answered;
+- and when either of those failed, the form said one thing while the run did another. The honest
+  fix was to stop asking.
+
+What the form does show is **the run's arithmetic**, before you commit to it:
 
 ```
-176 calls · ~$0.02 at list price        (a paid flash-class model)
-176 calls · FREE                        (whichever zero-priced models the catalogue has today)
+4 hours — 8 rounds · ≈10–12 min · ≈50 calls
+≈80k tokens in / ≈7k tokens out, at about 6 parties
 ```
 
-- **Free models are flagged and filterable** ("free only"). The free tier rotates — models
-  appear, get rate-limited and disappear — so the picker reads the catalogue live and no model
-  id is hardcoded anywhere in the plugin.
-- **Cheap ≠ frontier.** For a review the work is many small structured judgments, so a
-  flash-class model is usually the right buy; a frontier model costs ~$5 for the same
-  176 calls and makes the run *slower*, not smarter.
-- **Nothing is hardcoded.** Prices come from the same live endpoint the Portal uses, are
-  cached for 6 hours, and carry their fetch time in the UI. No invented price list.
-- **Choosing a specific model needs consent.** Hermes gates host-owned model selection
-  behind the `llm.model_override` capability; the plugin declares it and probes it. If the
-  user declines, the run still works — on the active model — and the UI says so.
-
-The catalogue is fetched anonymously, so it never touches a credential (see rule 11 below).
+- **Tokens, not money.** Rounds × parties × the prompt window is arithmetic we can stand behind.
+  A price is not: it needs the live catalogue and the provider's own rate, and a number we
+  invented would look like data. So the form never prints a price. It says **free** only when the
+  model's own slug says `:free`, and every finished run records the model that actually served it.
+- **The window is bounded**, so the estimate does not drift with the length of the document or
+  paper you paste: a document is windowed to a fixed prompt budget, head and tail, with the
+  omitted middle marked. See `ingestion.excerpt`.
+- **The timeline is suggested, not defaulted.** Seven options with no recommendation is a coin
+  flip, so the form reads the input (internal or external parties, whether evidence was supplied)
+  and marks one option *suggested*, with the reason in one sentence.
+- **The long end is honest.** Positions stop moving after about 8–10 rounds; past that the extra
+  rounds re-argue settled ground. The form says so next to the 48-hour option instead of selling
+  it as "deepest". 
 
 ## Catalog disclosure (admission rule 13)
 
 What a user would want to know before installing, stated plainly:
 
 - **Network calls:** to the inference endpoint serving your active Hermes model
-  (via `ctx.llm`); to the public Nous model catalogue
-  (`inference-api.nousresearch.com/v1/models`, anonymous, cached 6h) to populate the
-  model picker and its prices; and — only when you provide URLs — to fetch those URLs as
-  text. Fetched URLs are capped (http/https only, size and length limited, hard timeout).
+  (via `ctx.llm`) — nothing else, except when you provide URLs, which are fetched as text.
+  The plugin makes **no** catalogue, pricing or telemetry call. Fetched URLs are capped
+  (http/https only, size and length limited, hard timeout).
 - **Background processes:** a simulation runs in a background thread while it streams
   progress to the desktop UI. No long-running daemon, no auto-update, no telemetry.
 - **Data:** reads and writes live only under `<hermes home>/plugin-data/strategic-arena/` (graph + run history)
@@ -639,7 +645,7 @@ strategic-arena/             # the product, and the plugin id (`strategic-arena`
 │   ├── manifest.json        # {"name": "strategic-arena", "api": "plugin_api.py"}
 │   └── plugin_api.py        # FastAPI backend at /api/plugins/strategic-arena/
 │       routes: /run /status /report /graph /claims /events /leverage /history
-│               /calibration /due /verify /compare /presets /models /model-access
+│               /calibration /due /verify /compare /ui /health
 ├── desktop/plugin.js        # the whole desktop UI — uncompiled ESM, no JSX, no build
 ├── skills/                  # bundled preset packs + the review loop
 ├── data/presets/*.json      # demo presets

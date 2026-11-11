@@ -1,5 +1,5 @@
 name: strategic-arena
-version: "0.6.2"
+version: "0.6.3"
 manifest_version: 1
 kind: standalone
 requires_hermes: ">=0.23.0"
@@ -23,8 +23,11 @@ provides_tools:
   - arena_calibration
   - arena_due
   - arena_export
-capabilities:
-  - llm.model_override
+# No `capabilities:` block: the plugin asks the host for nothing special any
+# more. The model picker needed `llm.model_override`, and the picker is gone —
+# a run uses the session's model. Declaring a capability we no longer use would
+# fail catalog rule 06 (declared capabilities must match reality), and asking
+# for one we do not need is a consent screen for nothing.
 # No Python dependencies are declared, on purpose: pydantic and fastapi are
 # Hermes core requirements, and a non-empty dependency list makes a
 # non-interactive install (the desktop Install from Git / reinstall dialog)

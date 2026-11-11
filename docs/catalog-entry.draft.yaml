@@ -34,7 +34,7 @@ readme: true
 # Informational, never blocks. It was a folded string here, which the schema
 # does not allow.
 known_issues:
-  - "Choosing a model for a run needs the host permission plugins.entries.strategic-arena.llm.allow_model_override; without it the run says so and uses your active model."
+  - "A run uses the model the Hermes session is already on. There is no model picker by design."
   - "Free models are rate-limited — a 24h review can take 15–30 minutes."
   - "The desktop UI loads from the machine running the app, so a UI change needs Install from Git with the Desktop target on that machine."
   - "Generic PDFs outside arXiv cannot be read without a text-layer dependency. A link that cannot be read is reported as SKIPPED in the run's provenance, never silently dropped."

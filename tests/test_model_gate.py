@@ -1,18 +1,17 @@
-"""I switched model and it still didn't take.
+"""The model is the session's, and nothing else.
 
-The permission was read once, when the plugin registered, and baked into the
-adapter. Granting it afterwards changed `/model-access` but not the run — the
-worst kind of bug, because the UI said "allowed" while every call quietly used
-the active model.
+The picker offered a choice that needed a live catalogue fetched over the network
+*and* a host permission (`plugins.entries.<id>.llm.allow_model_override`) the app
+does not grant — so a run could be started on a model the host then refused, and
+the form could only ever be wrong about something Hermes had already decided.
 
-The fix is one rule: resolve the permission per call, in one place, so the
-picker and the run cannot disagree.
+The picker is gone. A run uses the adapter this process already bound. This file
+used to test the gate's per-call resolution; it now pins the gate's absence, so
+the picker cannot come back in through the side door.
 """
 
 import importlib.util
 from pathlib import Path
-
-import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 API = ROOT / "dashboard" / "plugin_api.py"
@@ -25,62 +24,22 @@ def _api():
     return mod
 
 
-class RecordingLlm:
-    """Host facade stand-in: records the model kwarg it was asked for."""
-
-    def __init__(self):
-        self.calls = []
-
-    def complete(self, messages, **kwargs):
-        self.calls.append(kwargs)
-        return type("R", (), {"text": "ok", "provider": "p", "model": kwargs.get("model", "active")})()
-
-
-class Base:
-    """What `_llm()` returns: an adapter around the host facade."""
-
-    def __init__(self, allow_override=False):
-        self._llm = RecordingLlm()
-        self.allow_override = allow_override
-
-
-def _scenario(model):
-    from upfront.models import Document, DocumentType, Scenario
-
-    return Scenario(title="t", model=model,
-                    documents=[Document(type=DocumentType.DECISION, content="Ship it")])
-
-
-def test_the_permission_is_read_per_call_not_per_session(monkeypatch):
-    api = _api()
-    monkeypatch.setattr(api, "_override_allowed", lambda: True)
-    base = Base(allow_override=False)          # registered when it was denied
-    llm = api._run_llm(base, _scenario("nous/free-model"))
-    assert llm.allow_override is True
-    llm.complete("hi")
-    assert base._llm.calls[-1]["model"] == "nous/free-model"
-
-
-def test_a_denied_permission_never_asks_for_the_model(monkeypatch):
-    api = _api()
-    monkeypatch.setattr(api, "_override_allowed", lambda: False)
-    base = Base(allow_override=False)
-    llm = api._run_llm(base, _scenario("nous/free-model"))
-    assert llm.allow_override is False
-    llm.complete("hi")
-    assert "model" not in base._llm.calls[-1]
-
-
-def test_the_active_model_is_used_without_a_pick():
-    api = _api()
-    base = Base(allow_override=True)
-    assert api._run_llm(base, _scenario("default")) is base
-
-
-def test_both_readers_use_the_same_helper():
-    """`/model-access` and the run must not answer from different sources."""
+def test_no_model_picker_routes():
     src = API.read_text()
-    assert src.count("_override_allowed()") >= 2
-    assert "_override_allowed() or getattr(base" in src
-    # the old per-session read must not come back
-    assert 'allow_override=getattr(base, "allow_override", False),\n' not in src
+    assert "/models" not in src
+    assert "/model-access" not in src
+
+
+def test_no_override_plumbing_survives():
+    src = API.read_text()
+    assert "_run_llm" not in src
+    assert "_override_allowed" not in src
+    assert "allow_override=True" not in src
+
+
+def test_a_run_uses_the_adapter_the_process_already_bound(monkeypatch):
+    """The route must not build a second adapter around a model it picked."""
+    api = _api()
+    sentinel = object()
+    monkeypatch.setattr(api, "_llm", lambda: sentinel)
+    assert api._llm() is sentinel

@@ -68,5 +68,9 @@ def test_all_packs_register_under_the_plugin_namespace():
 
 
 def test_skills_add_no_capability():
+    """Registering skills is a normal surface, so it must not require a
+    capability. The manifest now declares none at all (the model picker, and with
+    it `llm.model_override`, is gone), and an empty list is the strongest form of
+    this assertion."""
     manifest = yaml.safe_load((REPO / "plugin.yaml").read_text())
-    assert manifest["capabilities"] == ["llm.model_override"]
+    assert manifest.get("capabilities") in (None, [])

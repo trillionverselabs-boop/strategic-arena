@@ -11,19 +11,30 @@ from pathlib import Path
 UI = Path(__file__).resolve().parent.parent / "desktop" / "plugin.js"
 
 
-def test_form_recommends_a_first_pass():
+def test_the_form_shows_the_session_model_and_what_a_run_will_cost():
+    """A picker needed a live catalogue and a host permission the app never
+    grants. A readout needs neither: the model comes from the app's own state and
+    the numbers are arithmetic over rounds and prompt size."""
     js = UI.read_text()
-    assert "For a first pass: a flash-class model at 24h." in js
-    assert "Spend on 48h and a bigger model only when the decision is expensive." in js
+    assert "host.state.model" in js            # the real model, not a copy of it
+    assert "tokens in" in js and "tokens out" in js
+    assert "modelId" not in js
+    assert "/models" not in js
 
 
-def test_form_says_what_a_run_costs():
+def test_the_timeline_suggests_a_length_and_says_why():
+    """Seven options with no recommendation is a coin flip. The suggestion is
+    about the input, and the long end is honest about what it buys."""
     js = UI.read_text()
-    assert "model calls ·" in js
+    assert "function suggestWindow(" in js
+    low = js.lower()
+    assert "suggested for this input" in low
+    assert "stops moving after 8" in js
+    assert "rarely needed" in low
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.2 · ui28" in UI.read_text()
+    assert "0.6.3 · ui29" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -200,8 +211,10 @@ def test_injection_has_a_visible_impact():
 
 
 def test_free_model_slowness_is_said_out_loud():
+    """The session's own model slug says whether it is free; if it is, the form
+    rehearses nothing but does say the wait is real."""
     js = UI.read_text()
-    assert "Free models are rate-limited and slow" in js
+    assert "This session is on a free model: rate-limited and slow" in js
     assert "eta:" in js
 
 
@@ -221,12 +234,13 @@ def test_text_survives_over_a_busy_background():
     assert "rgba(6,8,12,.86)" in js
 
 
-def test_the_form_warns_before_a_run_that_model_choice_is_gated():
+def test_the_model_choice_cannot_be_gated_because_it_is_not_offered():
+    """The old form warned that a choice would be refused. The honest fix was to
+    stop offering the choice, so neither the warning nor its route survives."""
     js = UI.read_text()
-    assert "The host has not granted model choice" in js
-    assert "/model-access" in js
-    assert "config_key" in js
-    assert "Choosing a specific model is a host permission" in js
+    assert "/model-access" not in js
+    assert "allow_model_override" not in js
+    assert "The host has not granted model choice" not in js
 
 
 def test_no_hardcoded_text_colours_that_break_the_theme():
