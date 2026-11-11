@@ -8,7 +8,7 @@ repo: https://github.com/trillionverselabs-boop/strategic-arena   # must stay PU
 #   3. ONE final commit, then re-pin sha: to that exact 40-character commit
 # Re-pinning before (1) and (2) means a reviewer reads wording we are about to
 # change, and a SHA bump is a fresh review of the whole range.
-sha: 8d878c7223a857c2231e9b557eedf59be34d55c1
+sha: 1bce14ee83924605389406d42b5e34fc435693b5
 title: Strategic Arena
 # One line: this is what the catalogue card shows. The long form lives in the
 # README, which renders on /docs/plugins/strategic-arena at the pinned sha.
@@ -21,9 +21,9 @@ tier: community
 category: tools
 version: "0.6.3"
 requires_hermes: ">=0.23.0"
-image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/8d878c7223a857c2231e9b557eedf59be34d55c1/assets/banner.png
+image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/1bce14ee83924605389406d42b5e34fc435693b5/assets/banner.png
 screenshots:
-  - https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/8d878c7223a857c2231e9b557eedf59be34d55c1/assets/how-it-works.png
+  - https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/1bce14ee83924605389406d42b5e34fc435693b5/assets/how-it-works.png
 platforms: []
 capabilities:
   provides_tools:
