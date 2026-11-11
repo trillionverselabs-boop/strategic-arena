@@ -21,10 +21,34 @@ from . import prices
 DEFAULT_CALL_TIMEOUT_S = 180.0
 
 
-def _is_timeout(exc: Exception) -> bool:
-    """Timeout-shaped failures only. A trust denial or a bad key is not retried —
-    retrying it would just double the wait before the same honest error."""
-    return "timeout" in type(exc).__name__.lower() or "timeout" in str(exc).lower()
+# The provider fails transiently in ways that are not timeouts: a Cloudflare 502
+# when its origin is overloaded, a 503 during a deploy, a 429 when a free tier is
+# busy. All of them are retryable and all of them used to end the run on the spot.
+_RETRY_STATUS = {429, 500, 502, 503, 504}
+
+
+def _retry_delay(exc: Exception) -> float | None:
+    """How long to wait before retrying, or None when this failure is not retryable.
+
+    None is also the answer for a trust denial or a bad key: retrying those only
+    doubles the wait before the same honest error.
+    """
+    import re
+
+    text = str(exc)
+    status = getattr(exc, "status_code", None)
+    if status is None:
+        m = re.search(r"(?:Error code|['\"]status['\"])\s*[:=]\s*(\d{3})", text)
+        status = int(m.group(1)) if m else None
+    timeoutish = "timeout" in type(exc).__name__.lower() or "timeout" in text.lower()
+    if not timeoutish and status not in _RETRY_STATUS:
+        return None
+    # the provider usually tells us how long to wait; obey it, capped so a run is
+    # never parked for minutes on one round
+    ra = re.search(r"['\"]retry_after['\"]\s*:\s*(\d+)", text)
+    if ra:
+        return min(65.0, float(ra.group(1)))
+    return 2.0 if timeoutish else 5.0
 
 
 class LlmAdapter:
@@ -43,6 +67,9 @@ class LlmAdapter:
         self.fallback_note = ""
         # real usage, summed from the host's report — the number the run prints
         self.usage = prices.blank_usage()
+        # one retry by default; the paper setup path can raise it because those two
+        # calls are the ones a transient 502 kills the whole run on
+        self._max_attempts = 3
 
     def _kwargs(self) -> dict:
         kwargs = {"temperature": self.temperature}
@@ -51,20 +78,30 @@ class LlmAdapter:
         return kwargs
 
     def _once(self, messages, extra):
-        """One host call, with a single retry when it timed out.
+        """One host call, retried twice on a *transient* failure.
 
-        A free, rate-limited model can outlast one call budget and answer on the
-        next attempt. One retry at double the timeout is cheaper than losing a run
-        that has already paid for twenty rounds.
+        A run that has already paid for twenty rounds must not die because the
+        provider's edge returned a 502 for one call. Timeouts get a longer budget;
+        5xx and 429 get a short backoff, honouring the provider's `retry_after`.
+        A trust denial or a bad key is raised immediately — retrying those only
+        delays the same honest error.
         """
-        try:
-            return self._llm.complete(messages, **extra)
-        except Exception as exc:
-            if self.timeout and _is_timeout(exc):
-                retry = dict(extra)
-                retry["timeout"] = self.timeout * 2
-                return self._llm.complete(messages, **retry)
-            raise
+        import time as _time
+
+        attempts = 0
+        while True:
+            attempts += 1
+            try:
+                return self._llm.complete(messages, **extra)
+            except Exception as exc:
+                delay = _retry_delay(exc)
+                if delay is None or attempts >= self._max_attempts:
+                    raise
+                _time.sleep(delay)
+                nxt = dict(extra)
+                if self.timeout:
+                    nxt["timeout"] = self.timeout * 2
+                extra = nxt
 
     def complete(self, prompt: str) -> str:
         messages = [{"role": "user", "content": prompt}]

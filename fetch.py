@@ -68,6 +68,14 @@ _CHROME_PREFIXES = (
     "Branches", "Tags", "Contributors", "About", "Releases", "Packages", "Languages",
     "Watchers", "Forks", "Stars", "Go to file", "Code", "Issues", "Pull requests",
     "Actions", "Projects", "Wiki", "Insights", "Settings",
+    # long AI-written posts are mostly the argument wrapped in the same eight
+    # blocks; they survive tag-stripping and sit exactly where the head window
+    # wants to read the claim
+    "Subscribe", "Sign up for", "Join our", "Newsletter", "Share this",
+    "Read more", "Related posts", "You might also", "Follow us", "Cookie",
+    "We use cookies", "Accept cookies", "This site uses", "Advertisement",
+    "Sponsored", "Table of contents", "In this article", "Key takeaways",
+    "TL;DR", "Leave a comment", "Comments (", "Back to top", "Load more",
 )
 
 

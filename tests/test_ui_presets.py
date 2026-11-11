@@ -88,7 +88,7 @@ def test_the_paper_evidence_is_opt_in():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.3 · ui34" in UI.read_text()
+    assert "0.6.3 · ui35" in UI.read_text()
 
 
 def test_result_page_leads_with_the_answer_not_the_audit():
@@ -264,11 +264,14 @@ def test_injection_has_a_visible_impact():
     assert "Describe the counter-move first" in js
 
 
-def test_free_model_slowness_is_said_out_loud():
-    """The session's own model slug says whether it is free; if it is, the form
-    rehearses nothing but does say the wait is real."""
+def test_a_long_run_announces_itself_before_it_starts():
+    """Anything that visibly takes minutes says so, in the accent colour, or a
+    reviewer watches a spinner and decides the plugin is broken."""
     js = UI.read_text()
-    assert "This session is on a free model: rate-limited and slow" in js
+    assert "longWait" in js
+    assert "that is normal, not a hang" in js
+    assert "tl.rounds >= 12 || kind === 'paper'" in js
+    assert "you can stop it between rounds" in js
     assert "eta:" in js
 
 

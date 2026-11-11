@@ -132,9 +132,11 @@ def test_there_is_a_place_for_the_demo_and_a_script_to_record_it():
     assert "assets/how-it-works.png" in README          # a frame until the video lands
     assert "DEMO-SCRIPT.md" in README
     script = (ROOT / "docs" / "DEMO-SCRIPT.md").read_text()
-    for beat in ("The claim", "The price", "The record", "The lens"):
+    for beat in ("The claim", "The answer card", "the clock", "the room", "the bend", "the record"):
         assert beat in script, beat
-    assert "Don't hide the `n`" in script
+    # the honesty beats stay in the script: they are the credibility
+    assert "Don't hide the unknown clock" in script
+    assert "by removing each party in turn" in script
 
 
 def test_the_readme_names_the_person_behind_it():

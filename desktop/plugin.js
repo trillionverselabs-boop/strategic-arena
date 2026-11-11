@@ -43,7 +43,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.3 · ui34'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.3 · ui35'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -2086,6 +2086,10 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
     return () => { live = false }
   }, [sessionModel, est.tin, est.tout])
 
+  // a run that will occupy the screen for minutes must announce itself: the
+  // difference between "working" and "broken" is a sentence and a colour
+  const longWait = tl.rounds >= 12 || kind === 'paper'
+
   const costLine = !price || !price.found ? ''
     : price.free ? 'free'
     : price.cost_usd != null ? `≈$${Number(price.cost_usd).toFixed(3)} at the published price`
@@ -2256,11 +2260,14 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
             }),
           ]}),
 
-          // free models are rate-limited and slow — say so before the user
-          // commits half an hour to a review with no explanation
-          modelIsFree && jsx(Callout, { icon: 'info', tone: 'var(--ui-accent)',
-            title: 'This session is on a free model: rate-limited and slow',
-            children: `Expect roughly ${tl.eta} for this timeline, sometimes more. A short window is a fast sanity check; the longer ones are where positions actually move.` }),
+          // Anything that will visibly take minutes says so, in the accent
+          // colour, before the user presses Run — otherwise a reviewer watches a
+          // spinner and assumes the plugin is broken.
+          longWait && jsx(Callout, { icon: 'info', tone: C.hold,
+            title: `This will take about ${tl.eta} — that is normal, not a hang`,
+            children: `${tl.rounds} rounds at about ${est.parties} parties${kind === 'paper' ? ', plus one call to read the paper\'s clock' : ''}. `
+              + 'The page stays live while it runs: you will see each round land, and you can stop it between rounds.'
+              + (modelIsFree ? ' On a free model expect the longer end of that range.' : '') }),
 
           jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: `${est.calls} model calls · ≈${kTokens(est.tin)} tokens in / ≈${kTokens(est.tout)} tokens out${costLine ? ' · ' + costLine : ''} · ${modelLabel}` }),
           jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: 'For a first pass: whatever model the session is on, at 4–6 hours.' }),

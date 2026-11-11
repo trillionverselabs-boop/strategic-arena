@@ -24,6 +24,38 @@ from __future__ import annotations
 PLUGIN_ID = "strategic-arena"
 
 
+def friendly_failure(exc: Exception) -> str:
+    """One sentence a person can act on, out of whatever the provider returned.
+
+    A Cloudflare 502 payload is a page of JSON about zone health; pasting it into
+    the form tells the user nothing and reads like the plugin crashed. The full
+    text still goes to desktop-debug.log — this is only what is shown.
+    """
+    import re
+
+    text = str(exc)
+    status = getattr(exc, "status_code", None)
+    if status is None:
+        m = re.search(r"(?:Error code|['\"]status['\"])\s*[:=]\s*(\d{3})", text)
+        status = int(m.group(1)) if m else None
+    retry_after = re.search(r"['\"]retry_after['\"]\s*:\s*(\d+)", text)
+    if status in (500, 502, 503, 504):
+        back = f" It asked for {retry_after.group(1)}s before the next attempt." if retry_after else ""
+        return ("the model provider returned a bad gateway (HTTP %d). That is their "
+                "edge, not your input — this run already retried three times with "
+                "backoff.%s Try again in a minute." % (status, back))
+    if status == 429:
+        return ("the model provider rate-limited this run (HTTP 429). Nothing is wrong "
+                "with your input; wait a minute, or switch the session to a paid model.")
+    if status == 401 or status == 403:
+        return ("the model provider rejected the credential Hermes sent (HTTP %d). "
+                "Re-authenticate in the app: hermes auth add nous." % status)
+    if "timeout" in text.lower():
+        return ("the model call timed out. This plugin retries once at double the budget; "
+                "a free model can still exceed it. Try a longer window or a paid model.")
+    return "%s: %s" % (type(exc).__name__, text[:240])
+
+
 class HostLlm:
     """`complete(messages, temperature=..., model=...)` -> object with `.text`.
 
@@ -111,7 +143,8 @@ class HostLlm:
                              f"{__import__('traceback').format_exc()}\n")
             except Exception:
                 pass
-            raise
+            # the raw text is in the log; the user gets one actionable sentence
+            raise RuntimeError(friendly_failure(exc)) from exc
         text = getattr(res, "text", None)
         if text is None:
             text = res if isinstance(res, str) else ""
