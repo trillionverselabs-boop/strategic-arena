@@ -1,6 +1,6 @@
 name: strategic-arena
 repo: https://github.com/trillionverselabs-boop/strategic-arena   # must stay PUBLIC
-sha: 2082f15c08e682501e0bca88b3b542e8607e6e09
+sha: "5683f53fde3f2471d2db5872f2fa159bdfe34354"
 title: Strategic Arena
 # One line: this is what the catalogue card shows. The long form lives in the
 # README, which renders on /docs/plugins/strategic-arena at the pinned sha.
@@ -10,7 +10,7 @@ description: >-
 maintainer: LeMultiFox
 tier: community
 category: tools
-version: "0.6.2"
+version: "0.6.3"
 requires_hermes: ">=0.23.0"
 image: https://raw.githubusercontent.com/trillionverselabs-boop/strategic-arena/2082f15c08e682501e0bca88b3b542e8607e6e09/assets/banner.png
 screenshots:
