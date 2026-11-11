@@ -168,9 +168,11 @@ def run_scenario_progress(scenario: Scenario, llm, on_round: Callable | None = N
         )
         if extracted is None:
             detail = ingestion.LAST_ERROR or "no error detail was recorded"
+            stage = ("reading the paper's moat" if kind == ArtifactKind.PAPER.value
+                     else "reading your documents")
             raise SimulationError(
-                "The model call failed, so no stakeholders could be read from your "
-                f"documents. Nothing was simulated. Underlying error: {detail}"
+                f"The model call failed while {stage}, so no stakeholders could be "
+                f"read and nothing was simulated. Underlying error: {detail}"
             )
         personas, relationships = extracted
         if not personas:

@@ -55,3 +55,41 @@ def test_timeout_can_be_turned_off():
     adapter = LlmAdapter(llm, temperature=0.4, timeout=None)
     adapter.complete("hello")
     assert "timeout" not in llm.calls[0]
+
+
+def test_a_timeout_is_retried_once_with_a_longer_budget():
+    """A free model can outlast one call budget and answer on the next attempt.
+    One retry at double the timeout beats losing a run that has already paid for
+    twenty rounds."""
+    class Flaky:
+        def __init__(self):
+            self.timeouts = []
+
+        def complete(self, messages, **kwargs):
+            self.timeouts.append(kwargs.get("timeout"))
+            if len(self.timeouts) == 1:
+                raise TimeoutError("read timed out")
+            return type("R", (), {"text": "ok", "provider": "nous", "model": "m"})()
+
+    llm = Flaky()
+    adapter = LlmAdapter(llm, timeout=10)
+    assert adapter.complete("hi") == "ok"
+    assert llm.timeouts == [10, 20]
+
+
+def test_a_non_timeout_failure_is_not_retried():
+    class Broken:
+        def __init__(self):
+            self.calls = 0
+
+        def complete(self, messages, **kwargs):
+            self.calls += 1
+            raise ValueError("trust gate denied")
+
+    llm = Broken()
+    adapter = LlmAdapter(llm, timeout=10)
+    try:
+        adapter.complete("hi")
+    except ValueError:
+        pass
+    assert llm.calls == 1

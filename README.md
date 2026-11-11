@@ -496,6 +496,13 @@ What a user would want to know before installing, stated plainly:
   (http/https only, size and length limited, hard timeout).
 - **Background processes:** a simulation runs in a background thread while it streams
   progress to the desktop UI. No long-running daemon, no auto-update, no telemetry.
+- **Dependencies:** the manifest declares **none**, and that is deliberate. The only
+  third-party modules the shipped code imports are `pydantic` and `fastapi`, both of which
+  Hermes itself requires and pins (`pydantic==2.14.1`, `fastapi>=0.104,<1`). Restating them
+  would ask a user to install what they already have, and would let a plugin's floor try to
+  move Hermes's exact pins (rule 10). `tests/test_packaging_declares_nothing.py` pins the
+  imported set and checks it against Hermes's own dependency list, so this is a claim the
+  repository proves rather than argues.
 - **Data:** reads and writes live only under `<hermes home>/plugin-data/strategic-arena/` (graph + run history)
   plus the plugin's own package files. Nothing leaves the machine except the inference
   and URL-fetch calls above.

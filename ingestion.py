@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import List, Tuple
 
 from .models import Document, Persona
@@ -175,11 +176,77 @@ WHAT = {
     "decision": "a decision document",
 }
 
-def _docs_block(documents: List[Document]) -> str:
+# ── prompt budget ─────────────────────────────────────────────────────
+# An arXiv HTML page is up to 50k characters, of which the first ~2k is a table
+# of contents and a theme switcher. Two calls read that blob before the room
+# exists (the moat decode, then the persona extraction), on a free model — and a
+# paper run never once completed in the field while decision runs did. The model
+# does not need the whole paper for either question: it needs the claim, the
+# setup, the results and the limitations. So a document is windowed head and
+# tail, and the middle is dropped with an honest marker.
+PROMPT_BUDGET = 12_000
+
+
+# A paper's last pages are a bibliography: thousands of characters of names and
+# dates that carry no claim, sitting exactly where the window's tail is.
+_REF_HEADING = re.compile(r"^\s*(References|Bibliography|REFERENCES)\s*$", re.M)
+
+
+def _drop_toc(text: str) -> str:
+    """Start at the *real* Abstract heading.
+
+    arXiv's HTML opens with a table of contents that lists "Abstract" as its
+    first line — so the first match is the TOC, not the section. The heading we
+    want is the last standalone "Abstract" near the top of the page; the TOC
+    comes before it.
+    """
+    matches = [m for m in re.finditer(r"^Abstract\s*$", text, re.M) if m.start() < 8_000]
+    if matches:
+        return text[matches[-1].start():]
+    return text
+
+
+def _cut_references(text: str) -> str:
+    """Drop the bibliography, so the tail is conclusions and limitations.
+
+    Guarded by position: a "References" line inside the table of contents sits
+    early in the page, and cutting there would throw the paper away.
+    """
+    m = _REF_HEADING.search(text)
+    if m and m.start() > len(text) * 0.4:
+        return text[:m.start()]
+    return text
+
+
+def excerpt(text: str, budget: int = PROMPT_BUDGET) -> str:
+    """A prompt-sized window: head (claim, setup) + tail (results, limits).
+
+    Head-heavy on purpose — a paper's opening states the claim and the setup;
+    its ending states what it could not do, which is what a replication clock is
+    made of. The middle of a paper is derivation the reader can live without.
+    """
+    text = _cut_references(_drop_toc(text or ""))
+    if len(text) <= budget:
+        return text
+    head_n = int(budget * 0.6)
+    tail_n = budget - head_n
+    dropped = len(text) - head_n - tail_n
+    return (text[:head_n].rstrip()
+            + f"\n\n[... {dropped} characters omitted from the middle of this document ...]\n\n"
+            + text[-tail_n:].lstrip())
+
+
+def _docs_block(documents: List[Document], budget: int = PROMPT_BUDGET) -> str:
+    """Documents as one prompt block, each windowed to its share of the budget.
+
+    The budget is per *call*, split evenly: one 50k paper and five short
+    documents must cost the same prompt.
+    """
+    per = max(1_500, budget // max(1, len(documents)))
     out = []
     for d in documents:
         label = d.source or d.type.value
-        out.append(f"[{d.type.value}] ({label})\n{d.content}")
+        out.append(f"[{d.type.value}] ({label})\n{excerpt(d.content, per)}")
     return "\n\n".join(out)
 
 

@@ -19,6 +19,12 @@ from __future__ import annotations
 DEFAULT_CALL_TIMEOUT_S = 180.0
 
 
+def _is_timeout(exc: Exception) -> bool:
+    """Timeout-shaped failures only. A trust denial or a bad key is not retried —
+    retrying it would just double the wait before the same honest error."""
+    return "timeout" in type(exc).__name__.lower() or "timeout" in str(exc).lower()
+
+
 class LlmAdapter:
     """Wraps ctx.llm and exposes complete(prompt: str) -> str."""
 
@@ -40,13 +46,29 @@ class LlmAdapter:
             kwargs["model"] = self.model
         return kwargs
 
+    def _once(self, messages, extra):
+        """One host call, with a single retry when it timed out.
+
+        A free, rate-limited model can outlast one call budget and answer on the
+        next attempt. One retry at double the timeout is cheaper than losing a run
+        that has already paid for twenty rounds.
+        """
+        try:
+            return self._llm.complete(messages, **extra)
+        except Exception as exc:
+            if self.timeout and _is_timeout(exc):
+                retry = dict(extra)
+                retry["timeout"] = self.timeout * 2
+                return self._llm.complete(messages, **retry)
+            raise
+
     def complete(self, prompt: str) -> str:
         messages = [{"role": "user", "content": prompt}]
         extra = {} if self.timeout is None else {"timeout": self.timeout}
         if self.allow_override and self.model not in (None, "", "default"):
             try:
-                result = self._llm.complete(messages, model=self.model,
-                                            temperature=self.temperature, **extra)
+                result = self._once(messages, dict(model=self.model,
+                                                   temperature=self.temperature, **extra))
             except Exception as exc:
                 # Degrade rather than lose the run — but SAY SO. A silent
                 # fallback is how "the picker works" came to be believed while
@@ -55,9 +77,9 @@ class LlmAdapter:
                     f"{self.model} could not be reached ({type(exc).__name__}: {exc}); "
                     "this run used your active model instead."
                 )
-                result = self._llm.complete(messages, temperature=self.temperature, **extra)
+                result = self._once(messages, dict(temperature=self.temperature, **extra))
         else:
-            result = self._llm.complete(messages, temperature=self.temperature, **extra)
+            result = self._once(messages, dict(temperature=self.temperature, **extra))
         self.served_provider = getattr(result, "provider", "") or ""
         self.served_model = getattr(result, "model", "") or ""
         if isinstance(result, str):

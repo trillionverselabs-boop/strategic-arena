@@ -218,8 +218,16 @@ async def run(body: dict):
     """Start a review in a background thread. Returns {run_id} immediately."""
     try:
         scenario = _scenario_from(body)
+    except HTTPException:
+        raise
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"invalid scenario: {exc}")
+        # Name the folder that answered. When two copies of this plugin are
+        # installed, the one that failed is the whole diagnosis — and it is not
+        # the one the user is looking at.
+        raise HTTPException(
+            status_code=400,
+            detail=(f"invalid scenario: {exc} — raised by the plugin at "
+                    f"{_PLUGIN_ROOT} (package {_PKG_NAME})"))
 
     run_id = uuid.uuid4().hex[:12]
     engine._emit(run_id, "running", 0, scenario.rounds)

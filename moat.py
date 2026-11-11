@@ -25,6 +25,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
+from .ingestion import PROMPT_BUDGET, excerpt  # one budget, one implementation
+
 # ── what a decode returns ──────────────────────────────────────────────
 
 class Moat(BaseModel):
@@ -176,23 +178,19 @@ DOCUMENTS:
 {docs}
 """
 
-MAX_CHARS = 24000   # a decode needs the method and results, not the whole appendix
-
-
 def _docs_block(documents) -> str:
-    out, total = [], 0
-    for d in documents:
-        label = getattr(d, "source", "") or getattr(getattr(d, "type", None), "value", "doc")
-        body = str(getattr(d, "content", "") or "")
-        chunk = f"[{label}]\n{body}"
-        if total + len(chunk) > MAX_CHARS:
-            chunk = chunk[: max(0, MAX_CHARS - total)]
-        if chunk.strip():
-            out.append(chunk)
-            total += len(chunk)
-        if total >= MAX_CHARS:
-            break
-    return "\n\n".join(out)
+    """Same window as the room — a decode must not read a different paper.
+
+    This used to keep the first 24k characters, which on arXiv HTML is the table
+    of contents, the abstract and the start of the method: the tail (results,
+    limitations, what the authors did NOT do) is exactly where a replication
+    clock comes from, and it was being cut off. One budget, one implementation.
+    """
+    per = max(1_500, PROMPT_BUDGET // max(1, len(documents)))
+    return "\n\n".join(
+        f"[{getattr(d, 'source', '') or 'paper'}]\n{excerpt(str(getattr(d, 'content', '') or ''), per)}"
+        for d in documents
+    )
 
 
 def decode(documents, llm) -> Moat:
