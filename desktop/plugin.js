@@ -41,7 +41,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.2 · ui27'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.2 · ui28'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Read what it means before it reads you.'
 // The room has a name, and the name is the vocabulary: a session opens a
@@ -1979,22 +1979,22 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
     open: true,
     onOpenChange: open => { if (!open) onClose() },
     children: jsx(DialogContent, {
-      // A flex column with a hard cap, not a tall box with a scroll area inside:
-      // the header and footer stay pinned and only the middle scrolls. The old
-      // max-h-[72vh] on the inner div left header+footer outside the budget, so
-      // on a short window the form ran off the bottom and the footer sat half
-      // off-screen with nothing to scroll it back into view.
-      // No overflow-hidden: the Select popovers are portalled out of this box, but a
-      // future inline popover would be clipped by it. max-h + the inner scroll
-      // container already keep the content inside the shell.
-      className: 'flex max-h-[92vh] w-[min(42rem,94vw)] max-w-none flex-col',
+      // ONE scroll container, and it is the dialog itself. Two earlier shapes
+      // failed the same way: a tall box with a scroller inside (header and footer
+      // sat outside the height budget, so the Run button went off-screen), then a
+      // flex column (correct in theory, but it depends on the shell having a
+      // resolved height — and when it does not, flex-1 collapses to nothing and
+      // the footer is still unreachable). Scrolling the whole content and pinning
+      // the footer to the bottom of that scroll is the shape that holds whatever
+      // the app's dialog does with height.
+      className: 'max-h-[90vh] w-[min(42rem,94vw)] max-w-none overflow-y-auto',
       children: [
         jsxs(DialogHeader, { children: [
           jsx(DialogTitle, { children: `New ${ARENA} session` }),
           jsx(DialogDescription, { children: 'Add a link or the text — a README, a post, a whitepaper, an announcement. It opens the arena the room will answer in.' }),
         ]}),
 
-        jsxs('div', { className: 'flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-0.5', children: [
+        jsxs('div', { className: 'flex flex-col gap-3 pr-0.5', children: [
           jsx(Field, {
             label: 'Title',
             hint: 'Short and specific, the way you would say it out loud — it is what you will see in the run list.',
@@ -2130,7 +2130,11 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
           error && jsx('span', { className: 'text-[0.75rem] text-destructive', children: error }),
         ]}),
 
-        jsxs(DialogFooter, { children: [
+        jsxs(DialogFooter, {
+          // Pinned to the bottom of the scrolling dialog: a long form must never
+          // be able to hide the button that starts it.
+          className: 'sticky bottom-0 z-10 -mx-1 border-t border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-1 pt-3',
+          children: [
           jsx('div', { className: 'mr-auto text-[0.75rem] text-(--ui-text-tertiary)', children: hasInput ? 'Ready — one input is enough.' : 'Add a decision document or a URL to run.' }),
           jsx(Button, { variant: 'text', onClick: onClose, children: 'Cancel' }),
           jsx(PrimaryAction, { disabled: busy || !hasInput || !title.trim(), onClick: submit, children: busy ? 'Starting…' : 'Run review' }),
