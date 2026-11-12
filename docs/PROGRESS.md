@@ -6,10 +6,13 @@ Truth for state and gates: `docs/HANDOFF.md` + `docs/ROADMAP.md`.
 Gates (both must pass before every commit):
 
 ```
-VENV=/home/lisacore/.hermes/profiles/charlene/cache/scratch/upvenv
-$VENV/bin/python -m pytest tests/ -q --ignore=tests/test_real_run.py
-node --check desktop/plugin.js
+# the runner copies the tree to a temp `upfront/` and honours PYTHON=
+PYTHON=<a venv with pytest fastapi pydantic httpx pyyaml> ./scripts/test.sh -q
+node --input-type=module --check < desktop/plugin.js
 ```
+
+Marketplace/submission state lives in `docs/MARKETPLACE.md`; this PR's specifics in
+`docs/CATALOG-PR-153750.md`.
 
 | Item | Status | Tests | Commit |
 |---|---|---|---|

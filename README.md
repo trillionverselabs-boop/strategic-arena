@@ -339,6 +339,9 @@ python3 scripts/uninstall-clean.py strategic-arena      # add --keep-data to kee
 
 Full detail: [`docs/UNINSTALL.md`](docs/UNINSTALL.md).
 
+Getting this listed — the pin, the review loop, the permission trap — is written up in
+[`docs/MARKETPLACE.md`](docs/MARKETPLACE.md).
+
 ## Catalog disclosure (admission rule 13)
 
 - **Network calls:** to the inference endpoint serving your active Hermes model (via `ctx.llm`); to the
