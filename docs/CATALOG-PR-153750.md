@@ -1,8 +1,8 @@
 # Catalog PR #153750 — where it stands
 
-State as of 2026-11-12, after the review fixes. Written down because the PR
-description could not be updated (see "Known wart" below) and the reasoning
-should not have to be rediscovered.
+State as of 2026-11-12, after the review fixes. Written down so the state, and the
+permission boundary behind it, do not have to be rediscovered.
+
 
 ## The PR
 
@@ -23,11 +23,14 @@ should not have to be rediscovered.
 | `image:` / `screenshots:` / README at the pin | three `HTTP/2 200` |
 | Delta comment on the PR | posted 2026-11-12 22:38, verbatim |
 
-## Known wart: the PR description is stale
+## The description: fixed 2026-11-12 23:03
 
-The description still reads `version: "0.6.3"`, pin `65d341c…`, badge `0.6.3 · ui36`.
-The corrected text exists at `docs/PR-BODY-FINAL.md` in this repo and was never
-applied, because:
+The description now names pin `174fda73`, `version: "0.6.4"`, build `0.6.4 · ui45`,
+and carries the model-requirements, model-controlled-inputs and post-submission
+sections. Verified by reading it back: zero occurrences of `65d341c`, `0.6.3`,
+`ui36` or `83563c`; three of `174fda73`.
+
+It had been stuck because:
 
 - Editing a PR description is a write against `NousResearch/hermes-agent`.
 - Both GitHub credentials on the dev machine (gh's fine-grained PAT and the git
@@ -37,10 +40,12 @@ applied, because:
 - A fine-grained PAT cannot write to a public repo the user is not a member of —
   that is a documented GitHub limitation, not a configuration mistake.
 
-The delta comment is the authoritative record, and the pinned README (which is what
-the catalog page renders) is current. To close the wart, either the PR author edits
-the description in the browser (copy from `docs/PR-BODY-FINAL.md`), or a token with
-`pull_request: write` on the upstream repo is used:
+Resolved by re-authenticating the machine instead of handling a token: `gh auth login
+--web` (device flow) gave `gh` an OAuth token with scopes `gist, read:org, repo`, which
+can write to the upstream repo. That is the right first move when this comes up —
+hand the user a one-time code, not a secret to store.
+
+The equivalent command, if a token with `pull_request: write` is ever at hand:
 
 ```bash
 # classic PAT with public_repo, or an OAuth token from `gh auth login --web`
