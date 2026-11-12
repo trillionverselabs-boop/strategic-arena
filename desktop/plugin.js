@@ -2272,7 +2272,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
           jsx(Callout, { icon: 'warning', tone: C.hold,
             title: 'This runs on your Hermes model — free tier included, rate limits and all',
             children: jsxs('div', { className: 'flex flex-col gap-1.5 text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)', children: [
-              jsx('span', { children: `Whatever model your Hermes default model setting is on is what this run uses${sessionModel ? ` — ${sessionModel} right now` : ''}. There is no model setting in this form; change it in the app and the next run picks it up.` }),
+              jsx('span', { children: `This run uses the model the app has bound to this session${sessionModel ? ` — ${sessionModel}` : ''}. There is no model setting in this form: change the model in the app, and if this line still shows the old one, reload the plugin page — the app's model atom updates on the app's schedule, not on this form's. The finished run prints the model that actually served it.` }),
               jsx('span', { children: 'A free model works, and it is the cheapest way to try one review. Free tiers are rate-limited, so a large input — a research paper, a long technical post — can run several times slower and can still stop partway. For those, a paid model is the recommendation: same review, minutes instead of tens of minutes.' }),
               jsx('span', { children: 'If a run fails on a rate limit, nothing about your input is wrong. Change the session to another model and run it again — the form keeps what you typed, and finished runs stay in the list.' }),
             ]}),

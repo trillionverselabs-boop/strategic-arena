@@ -20,6 +20,10 @@ def test_the_form_says_which_model_runs_and_what_a_free_one_costs():
     assert "rate-limited" in js
     assert "a paid model is the recommendation" in js
     assert "change the session to another model and run it again".lower() in js.lower()
+    # the atom the form reads is the app's binding for this session, and it can
+    # lag the picker — so the copy must say that rather than claim the default
+    assert "bound to this session" in js
+    assert "prints the model that actually served it" in js
 
 
 def test_the_form_says_ingestion_is_the_longest_step():
