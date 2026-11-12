@@ -276,6 +276,7 @@ async def run(body: dict):
 
 @router.get("/status/{run_id}")
 async def status(run_id: str):
+    run_id = _checked_run_id(run_id)
     prog = dict(engine.get_progress(run_id))
     # What each party is worth, live. Arithmetic only — measured 0.5ms for a
     # 5-party room against 1-2 minutes of model time per round, so there is no
@@ -341,6 +342,7 @@ async def graph(run_id: str):
 
 @router.get("/report/{run_id}")
 async def report(run_id: str, full: bool = False):
+    run_id = _checked_run_id(run_id)
     data = reporting.load_run(run_id)
     key = "report_full" if full else "report"
     if not data.get(key):
@@ -570,6 +572,19 @@ async def export(run_id: str, out_dir: str = "decisions"):
 
 
 # ── helpers ──────────────────────────────────────────────────────────
+
+def _checked_run_id(run_id: str) -> str:
+    """Reject a run_id that is not the format this plugin mints, before it reaches a path.
+
+    `reporting` validates inside `_run_dir`, but `status` and `report` read
+    `meta.json` / `model-note.txt` / `usage.json` beside the run directory
+    directly, so they need the same guard at the door.
+    """
+    try:
+        return reporting.validate_run_id(run_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
 
 def _scenario_from(body: dict):
     models = _sub("models")

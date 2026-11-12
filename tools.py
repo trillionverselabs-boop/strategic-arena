@@ -178,9 +178,13 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
 
     def handle_report(params, **kwargs):
         from . import reporting
-        data = reporting.load_run(params.get("run_id", ""))
+        run_id = str(params.get("run_id", "") or "")
+        try:
+            data = reporting.load_run(run_id)
+        except ValueError as exc:
+            return json.dumps({"error": str(exc), "run_id": run_id})
         key = "report_full" if params.get("full") else "report"
-        return json.dumps({"run_id": params.get("run_id", ""), "report": data.get(key, "")})
+        return json.dumps({"run_id": run_id, "report": data.get(key, "")})
 
     ctx.register_tool(name="arena_report", toolset="arena", schema=report_schema, handler=handle_report)
 
@@ -252,12 +256,15 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
 
     def handle_export(params, **kwargs):
         from . import reporting
+        run_id = str(params.get("run_id", "") or "")
         try:
-            path = reporting.export_decision(params.get("run_id", ""),
+            path = reporting.export_decision(run_id,
                                              out_dir=params.get("out_dir") or "decisions")
         except FileNotFoundError:
-            return json.dumps({"error": "run not found", "run_id": params.get("run_id", "")})
-        return json.dumps({"run_id": params.get("run_id", ""), "path": path})
+            return json.dumps({"error": "run not found", "run_id": run_id})
+        except ValueError as exc:
+            return json.dumps({"error": str(exc), "run_id": run_id})
+        return json.dumps({"run_id": run_id, "path": path})
 
     ctx.register_tool(name="arena_export", toolset="arena",
                       schema=export_schema, handler=handle_export)

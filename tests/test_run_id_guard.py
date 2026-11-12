@@ -44,3 +44,41 @@ def test_mark_verified_cannot_rewrite_a_file_outside_runs(tmp_hermes_home):
     with pytest.raises(ValueError):
         reporting.mark_verified("..", "right")
     assert outside.read_text() == '{"victim": true}'
+
+
+def test_the_agent_tools_return_an_error_for_a_malformed_run_id():
+    import json as _json
+    from upfront.tools import register_tools
+
+    class Ctx:
+        def __init__(self):
+            self.handlers = {}
+
+        def register_tool(self, name, toolset, schema, handler):
+            self.handlers[name] = handler
+
+    c = Ctx()
+    register_tools(c)
+    out = _json.loads(c.handlers["arena_report"]({"run_id": "../evil"}))
+    assert "error" in out and "run_id" in out
+    out = _json.loads(c.handlers["arena_export"]({"run_id": "../evil"}))
+    assert "error" in out and "run_id" in out
+
+
+def test_the_routes_reject_a_malformed_run_id():
+    import importlib.util
+    from pathlib import Path
+
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    path = Path(__file__).resolve().parent.parent / "dashboard" / "plugin_api.py"
+    spec = importlib.util.spec_from_file_location("upfront_dashboard_run_id_guard", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    app = FastAPI()
+    app.include_router(mod.router, prefix="/api/plugins/strategic-arena")
+    client = TestClient(app)
+    assert client.get("/api/plugins/strategic-arena/status/not-a-run-id").status_code == 400
+    assert client.get("/api/plugins/strategic-arena/report/not-a-run-id").status_code == 400
