@@ -44,14 +44,16 @@ def test_the_long_timelines_do_not_claim_to_be_recommended():
 
 
 def test_the_caveat_is_dropped_only_when_the_catalogue_says_paid():
-    """A $0.017 paid run was being warned about free tiers. The caveat is now
-    conditional on the catalogue's own price for this exact id, and on nothing
-    else: an unknown id keeps the warning rather than assuming a model is paid."""
+    """A $0.017 paid run was being warned about free tiers. The note is now picked
+    from three states — loading, free, paid — so it never asserts something the
+    form cannot prove, and never flashes the wrong claim while the price loads."""
     js = UI.read_text()
-    assert "const paidKnown = !!(price && price.found && !price.free)" in js
+    assert "const priceState = price === null ? 'loading'" in js
+    assert "priceState === 'paid'" in js
+    assert "priceState === 'free'" in js
     assert "Paid model — the free-tier caveat does not apply" in js
-    # both branches must still exist: the free one is the default
     assert "This runs on your Hermes model — free tier included, rate limits and all" in js
+    assert "This run uses the model the app has bound to this session" in js
     assert "a paid model is the recommendation" in js
 
 

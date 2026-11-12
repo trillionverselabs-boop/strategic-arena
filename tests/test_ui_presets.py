@@ -88,7 +88,28 @@ def test_the_paper_evidence_is_opt_in():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.4 · ui39" in UI.read_text()
+    assert "0.6.4 · ui41" in UI.read_text()
+
+
+def test_the_session_form_header_is_pinned_and_first():
+    """The dialog is the one scroll container, so a long form scrolls its own title
+    out of view — which reads as "the top of this form is broken". The header must
+    stay the first child of the dialog content, and must be sticky."""
+    js = UI.read_text()
+    head = js.index("jsxs(DialogHeader")
+    title_field = js.index("label: 'Title'")
+    footer = js.index("jsxs(DialogFooter")
+    assert head < title_field < footer
+    assert "sticky top-0" in js[head:head + 300], "the header must pin, not scroll away"
+    assert "DialogTitle" in js[head:head + 300]
+
+
+def test_the_model_note_sits_below_the_model_field_inside_the_form():
+    js = UI.read_text()
+    model_field = js.index("label: 'Model'")
+    note = js.index("priceState === 'paid'")
+    footer = js.index("jsxs(DialogFooter")
+    assert model_field < note < footer
 
 
 def test_the_live_run_shows_a_blue_live_pill_and_the_word_live_once():

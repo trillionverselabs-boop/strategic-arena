@@ -43,7 +43,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.4 · ui39'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.4 · ui41'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Point it at a repo, a paper, a post — yours or someone else’s.'
 // The line under the wordmark: what the product is *for*, in the fewest words
@@ -2095,12 +2095,16 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
   // difference between "working" and "broken" is a sentence and a colour
   const longWait = tl.rounds >= 12 || kind === 'paper'
 
-  // Show the free-tier caveat only when we cannot PROVE the model is paid. Two
-  // sources, in order of authority: the catalogue's own price for this exact id
-  // (`price.free`), then the slug suffix. When neither says paid — unknown id, no
-  // catalogue, price not found — the caveat stays: warning someone who did not
-  // need it costs one paragraph, warning nobody who did costs a degraded run.
-  const paidKnown = !!(price && price.found && !price.free)
+  // Three states, because "unknown" is not "free" and not "paid":
+  //   loading  — the price request has not answered yet (first paint)
+  //   free     — the catalogue says this exact id is free, or the slug says :free
+  //   paid     — the catalogue prices this exact id
+  //   unknown  — the catalogue has no entry and the slug says nothing
+  // A two-way boolean flashed the free-tier warning on a paid model for as long
+  // as the price request took, which is exactly what made the note look wrong.
+  const priceState = price === null ? 'loading'
+    : price.found ? (price.free ? 'free' : 'paid')
+    : (modelIsFree ? 'free' : 'unknown')
 
   const costLine = !price || !price.found ? ''
     : price.free ? 'free'
@@ -2162,10 +2166,18 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
       // title. Eight per cent of the viewport is cheaper than fighting the z-order.
       className: 'max-h-[84vh] w-[min(42rem,94vw)] max-w-none overflow-y-auto',
       children: [
-        jsxs(DialogHeader, { children: [
-          jsx(DialogTitle, { children: `New ${ARENA} session` }),
-          jsx(DialogDescription, { children: 'Add a link or the text — a README, a post, a whitepaper, an announcement. It opens the arena the room will answer in.' }),
-        ]}),
+        // The title block is PINNED, not scrolled. The dialog is the one scroll
+        // container (see above), which means anything above the fold scrolls away
+        // — and with a tall form that reads as "the top of this thing is broken".
+        // A sticky header with the dialog's own background keeps "New arena
+        // session" and the close affordance on screen at any scroll position.
+        jsxs(DialogHeader, {
+          className: 'sticky top-0 z-20 -mx-1 border-b border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-1 pb-2 pt-1',
+          children: [
+            jsx(DialogTitle, { children: `New ${ARENA} session` }),
+            jsx(DialogDescription, { children: 'Add a link or the text — a README, a post, a whitepaper, an announcement. It opens the arena the room will answer in.' }),
+          ],
+        }),
 
         jsxs('div', { className: 'flex flex-col gap-3 pr-0.5', children: [
           jsx(Field, {
@@ -2284,20 +2296,25 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
           // — the reviewer's own screenshot showed a $0.017 run being warned about
           // free tiers. Unknown ids keep the caveat: one unnecessary paragraph is
           // cheaper than a degraded run nobody warned about.
-          paidKnown
+          priceState === 'paid'
             ? jsx(Callout, { icon: 'info',
               title: 'Paid model — the free-tier caveat does not apply',
-              children: jsxs('div', { className: 'flex flex-col gap-1.5 text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)', children: [
-                jsx('span', { children: `This run uses the model the app has bound to this session${sessionModel ? ` — ${sessionModel}` : ''}, billed at the published rate shown above. There is no model setting in this form; change it in the app. The finished run prints the model that actually served it.` }),
-                jsx('span', { children: 'A free model also works and costs nothing. It is rate-limited, so a large input — a paper, a long post — runs slower and can stop partway. That is the only reason to prefer a paid one.' }),
+              children: jsxs('div', { className: 'flex flex-col gap-1 text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)', children: [
+                jsx('span', { children: `This run uses the model the app has bound to this session${sessionModel ? ` — ${sessionModel}` : ''}, billed at the published rate above. No model setting in this form: change it in the app, and the finished run prints the model that actually served it. A free model works too — it is only rate-limited on large inputs.` }),
               ]}),
             })
-            : jsx(Callout, { icon: 'warning', tone: C.hold,
+            : priceState === 'free'
+            ? jsx(Callout, { icon: 'warning', tone: C.hold,
               title: 'This runs on your Hermes model — free tier included, rate limits and all',
-              children: jsxs('div', { className: 'flex flex-col gap-1.5 text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)', children: [
-                jsx('span', { children: `This run uses the model the app has bound to this session${sessionModel ? ` — ${sessionModel}` : ''}. There is no model setting in this form: change the model in the app, and if this line still shows the old one, reload the plugin page — the app's model atom updates on the app's schedule, not on this form's. The finished run prints the model that actually served it.` }),
-                jsx('span', { children: 'A free model works, and it is the cheapest way to try one review. Free tiers are rate-limited, so a large input — a research paper, a long technical post — can run several times slower and can still stop partway. For those, a paid model is the recommendation: same review, minutes instead of tens of minutes.' }),
-                jsx('span', { children: 'If a run fails on a rate limit, nothing about your input is wrong. Change the session to another model and run it again — the form keeps what you typed, and finished runs stay in the list.' }),
+              children: jsxs('div', { className: 'flex flex-col gap-1 text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)', children: [
+                jsx('span', { children: `This run uses the model the app has bound to this session${sessionModel ? ` — ${sessionModel}` : ''}. No model setting here: change it in the app, and if this line still shows the old one, reload the plugin page. The finished run prints the model that actually served it.` }),
+                jsx('span', { children: 'A free tier is rate-limited and a large input feels it — a paper or a long post runs slower and can stop partway. For those, a paid model is the recommendation. If a run fails on a rate limit, nothing about your input is wrong: change the session to another model and run it again.' }),
+              ]}),
+            })
+            : jsx(Callout, { icon: 'info',
+              title: 'This run uses the model the app has bound to this session',
+              children: jsxs('div', { className: 'flex flex-col gap-1 text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)', children: [
+                jsx('span', { children: `No model setting in this form: change it in the app${sessionModel ? ` (${sessionModel} right now)` : ''}, and the finished run prints the model that actually served it. Whether that model is free or paid decides whether you get a rate-limit note here.` }),
               ]}),
             }),
           ]}),
