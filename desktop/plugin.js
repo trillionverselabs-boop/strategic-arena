@@ -43,7 +43,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.3 · ui36'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.4 · ui37'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Point it at a repo, a paper, a post — yours or someone else’s.'
 // The line under the wordmark: what the product is *for*, in the fewest words
