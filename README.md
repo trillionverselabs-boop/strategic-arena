@@ -269,6 +269,8 @@ Those are the app's own estimates, shown before the run. Two things push past th
 
 **A run uses whatever model your Hermes default model setting is on.** The form shows it read-only and there is no model setting here — change it in the app and the next run follows.
 
+When the catalogue publishes a price for that model, the form says so and **drops the free-tier caveat** — a paid run is not warned about a quota it is not spending. When the model is unknown, free, or unpriced, the caveat stays.
+
 A free model is supported and is the cheapest way to try one review. Free tiers are **rate-limited**, and a large input makes it bite: a research paper or a long technical post is a bigger ingest and a longer argument, so it needs more calls in a row, and a long timeline can take several times longer and still end short. **For a large input, a paid model is the recommendation** — same review, minutes instead of tens of minutes.
 
 **If a run fails, change the model and run it again.** A rate limit (HTTP 429) is not your input's fault, and the form says so in those words. Change the session to another model and run it again; the form keeps what you typed and finished runs stay in the list. The run path now spaces calls on a 429, and a run is branded `DEGRADED` only when a meaningful share of its calls fail — not on one transient miss.

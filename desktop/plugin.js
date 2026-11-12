@@ -43,7 +43,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.4 · ui38'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.4 · ui39'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Point it at a repo, a paper, a post — yours or someone else’s.'
 // The line under the wordmark: what the product is *for*, in the fewest words
@@ -2095,6 +2095,13 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
   // difference between "working" and "broken" is a sentence and a colour
   const longWait = tl.rounds >= 12 || kind === 'paper'
 
+  // Show the free-tier caveat only when we cannot PROVE the model is paid. Two
+  // sources, in order of authority: the catalogue's own price for this exact id
+  // (`price.free`), then the slug suffix. When neither says paid — unknown id, no
+  // catalogue, price not found — the caveat stays: warning someone who did not
+  // need it costs one paragraph, warning nobody who did costs a degraded run.
+  const paidKnown = !!(price && price.found && !price.free)
+
   const costLine = !price || !price.found ? ''
     : price.free ? 'free'
     : price.cost_usd != null ? `≈$${Number(price.cost_usd).toFixed(3)} at the published price`
@@ -2268,19 +2275,31 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
               ]}),
             }),
 
-          // Which model runs, and what a free one costs in wall-clock. Shown
-          // ALWAYS, not only when the session slug ends in `:free`: a paid model
-          // can be throttled too, and a user who never chose a model still needs
-          // to know which one will serve the run. This is the disclosure the
-          // review asked for, put where the decision is actually made.
-          jsx(Callout, { icon: 'warning', tone: C.hold,
-            title: 'This runs on your Hermes model — free tier included, rate limits and all',
-            children: jsxs('div', { className: 'flex flex-col gap-1.5 text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)', children: [
-              jsx('span', { children: `This run uses the model the app has bound to this session${sessionModel ? ` — ${sessionModel}` : ''}. There is no model setting in this form: change the model in the app, and if this line still shows the old one, reload the plugin page — the app's model atom updates on the app's schedule, not on this form's. The finished run prints the model that actually served it.` }),
-              jsx('span', { children: 'A free model works, and it is the cheapest way to try one review. Free tiers are rate-limited, so a large input — a research paper, a long technical post — can run several times slower and can still stop partway. For those, a paid model is the recommendation: same review, minutes instead of tens of minutes.' }),
-              jsx('span', { children: 'If a run fails on a rate limit, nothing about your input is wrong. Change the session to another model and run it again — the form keeps what you typed, and finished runs stay in the list.' }),
-            ]}),
-          }),
+          // Which model runs, and what a free one costs in wall-clock. This is the
+          // disclosure the review asked for, put where the decision is actually
+          // made — and it says what this form can actually prove, nothing more.
+          // The caveat is conditional on what we KNOW, not on a guess. On a model
+          // the catalogue prices as paid, a "free tier, rate limits and all" banner
+          // is noise that makes the form look like it is not reading its own state
+          // — the reviewer's own screenshot showed a $0.017 run being warned about
+          // free tiers. Unknown ids keep the caveat: one unnecessary paragraph is
+          // cheaper than a degraded run nobody warned about.
+          paidKnown
+            ? jsx(Callout, { icon: 'info',
+              title: 'Paid model — the free-tier caveat does not apply',
+              children: jsxs('div', { className: 'flex flex-col gap-1.5 text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)', children: [
+                jsx('span', { children: `This run uses the model the app has bound to this session${sessionModel ? ` — ${sessionModel}` : ''}, billed at the published rate shown above. There is no model setting in this form; change it in the app. The finished run prints the model that actually served it.` }),
+                jsx('span', { children: 'A free model also works and costs nothing. It is rate-limited, so a large input — a paper, a long post — runs slower and can stop partway. That is the only reason to prefer a paid one.' }),
+              ]}),
+            })
+            : jsx(Callout, { icon: 'warning', tone: C.hold,
+              title: 'This runs on your Hermes model — free tier included, rate limits and all',
+              children: jsxs('div', { className: 'flex flex-col gap-1.5 text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)', children: [
+                jsx('span', { children: `This run uses the model the app has bound to this session${sessionModel ? ` — ${sessionModel}` : ''}. There is no model setting in this form: change the model in the app, and if this line still shows the old one, reload the plugin page — the app's model atom updates on the app's schedule, not on this form's. The finished run prints the model that actually served it.` }),
+                jsx('span', { children: 'A free model works, and it is the cheapest way to try one review. Free tiers are rate-limited, so a large input — a research paper, a long technical post — can run several times slower and can still stop partway. For those, a paid model is the recommendation: same review, minutes instead of tens of minutes.' }),
+                jsx('span', { children: 'If a run fails on a rate limit, nothing about your input is wrong. Change the session to another model and run it again — the form keeps what you typed, and finished runs stay in the list.' }),
+              ]}),
+            }),
           ]}),
 
           // Anything that will visibly take minutes says so, in the accent

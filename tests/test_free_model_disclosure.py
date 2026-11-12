@@ -43,13 +43,16 @@ def test_the_long_timelines_do_not_claim_to_be_recommended():
     assert "Confirmation, not discovery" in js
 
 
-def test_the_free_model_notice_is_not_gated_on_a_free_slug():
-    """It used to appear only when the session slug ended in `:free`. It must now
-    be unconditional: a paid model can be throttled, and an unchosen model still
-    needs naming."""
+def test_the_caveat_is_dropped_only_when_the_catalogue_says_paid():
+    """A $0.017 paid run was being warned about free tiers. The caveat is now
+    conditional on the catalogue's own price for this exact id, and on nothing
+    else: an unknown id keeps the warning rather than assuming a model is paid."""
     js = UI.read_text()
-    note = js.split("This runs on your Hermes model")[1].split("}),")[0]
-    assert "modelIsFree" not in note
+    assert "const paidKnown = !!(price && price.found && !price.free)" in js
+    assert "Paid model — the free-tier caveat does not apply" in js
+    # both branches must still exist: the free one is the default
+    assert "This runs on your Hermes model — free tier included, rate limits and all" in js
+    assert "a paid model is the recommendation" in js
 
 
 def test_the_readme_has_the_free_model_section():

@@ -88,7 +88,7 @@ def test_the_paper_evidence_is_opt_in():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.4 · ui38" in UI.read_text()
+    assert "0.6.4 · ui39" in UI.read_text()
 
 
 def test_the_live_run_shows_a_blue_live_pill_and_the_word_live_once():
