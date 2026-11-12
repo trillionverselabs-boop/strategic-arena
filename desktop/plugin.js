@@ -165,8 +165,8 @@ const TIMELINES = [
   { v: '4h', label: '4 hours', rounds: 8, note: 'Positions form. Catches the obvious blocker.', eta: '6–12 min' },
   { v: '6h', label: '6 hours', rounds: 10, note: 'Coalitions start to show.', eta: '8–15 min' },
   { v: '12h', label: '12 hours', rounds: 12, note: 'Counter-moves get tested.', eta: '10–20 min' },
-  { v: '24h', label: '24 hours', rounds: 16, note: 'Recommended. Full reaction cycle.', eta: '15–30 min' },
-  { v: '48h', label: '48 hours', rounds: 20, note: 'Deepest read — hard to move a veto player. ~2x cost.', eta: '25–45 min' },
+  { v: '24h', label: '24 hours', rounds: 16, note: 'Confirmation, not discovery — past the plateau, this re-tests what the room already settled.', eta: '15–30 min' },
+  { v: '48h', label: '48 hours', rounds: 20, note: 'The longest window: room for a late counter-move. ~2x the calls of 1 hour for almost no new position.', eta: '25–45 min' },
 ]
 const WINDOW_HOURS = { '30m': 0.5, '1h': 1, '4h': 4, '6h': 6, '12h': 12, '24h': 24, '48h': 48 }
 
@@ -2214,7 +2214,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
 
           jsx(Field, {
             label: 'Links (one per line — README, post, whitepaper, announcement)',
-            hint: `Each line is fetched as a real document, with the URL kept as provenance. Good sources: ${URL_TYPES.join(' · ')}.`,
+            hint: `Each line is fetched as a real document, with the URL kept as provenance. Good sources: ${URL_TYPES.join(' · ')}. Reading the links is the longest single step of a run — it happens once, before the room opens, so a big page can sit there a while before the first round lands.`,
             children: jsx(Textarea, {
               className: 'min-h-10',
               placeholder: 'https://github.com/owner/repo\nhttps://example.com/blog-post',
@@ -2253,7 +2253,7 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
             }),
             jsx(Field, {
               label: 'Model',
-              hint: 'A run uses the model this session is already on — change it in the app, not here.',
+              hint: 'A run uses whatever model this session is on — that is your default model setting. Change it in the app, not here.',
               children: jsxs('div', { className: 'flex flex-col gap-1 rounded-md border border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-2.5 py-2', children: [
                 jsx('div', { className: `truncate text-[0.75rem] font-medium text-(--ui-text-secondary)`, children: modelLabel }),
                 jsxs('div', { className: `${T.micro} ${NUM} text-(--ui-text-tertiary)`, children: [
@@ -2263,6 +2263,20 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
                 jsx('div', { className: `${T.micro} text-(--ui-text-quaternary)`, children: 'Tokens are the run\u2019s own arithmetic — rounds × parties × the prompt window. Money appears only when the catalogue publishes a price for this exact model; the finished run prints what it actually cost.' }),
               ]}),
             }),
+
+          // Which model runs, and what a free one costs in wall-clock. Shown
+          // ALWAYS, not only when the session slug ends in `:free`: a paid model
+          // can be throttled too, and a user who never chose a model still needs
+          // to know which one will serve the run. This is the disclosure the
+          // review asked for, put where the decision is actually made.
+          jsx(Callout, { icon: 'warning', tone: C.hold,
+            title: 'This runs on your Hermes model — free tier included, rate limits and all',
+            children: jsxs('div', { className: 'flex flex-col gap-1.5 text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)', children: [
+              jsx('span', { children: `Whatever model your Hermes default model setting is on is what this run uses${sessionModel ? ` — ${sessionModel} right now` : ''}. There is no model setting in this form; change it in the app and the next run picks it up.` }),
+              jsx('span', { children: 'A free model works, and it is the cheapest way to try one review. Free tiers are rate-limited, so a large input — a research paper, a long technical post — can run several times slower and can still stop partway. For those, a paid model is the recommendation: same review, minutes instead of tens of minutes.' }),
+              jsx('span', { children: 'If a run fails on a rate limit, nothing about your input is wrong. Change the session to another model and run it again — the form keeps what you typed, and finished runs stay in the list.' }),
+            ]}),
+          }),
           ]}),
 
           // Anything that will visibly take minutes says so, in the accent
@@ -2272,7 +2286,8 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
             title: `This will take about ${tl.eta} — that is normal, not a hang`,
             children: `${tl.rounds} rounds at about ${est.parties} parties${kind === 'paper' ? ', plus one call to read the paper\'s clock' : ''}. `
               + 'The page stays live while it runs: you will see each round land, and you can stop it between rounds.'
-              + (modelIsFree ? ' On a free model expect the longer end of that range.' : '') }),
+              + ' Most of that wait is ingestion: the links are fetched and read once, before any round appears — a long paper is the slowest step in the product.'
+              + (modelIsFree ? ' On a free model expect the longer end of that range, and a large input can push past it.' : '') }),
 
           jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: `${est.calls} model calls · ≈${kTokens(est.tin)} tokens in / ≈${kTokens(est.tout)} tokens out${costLine ? ' · ' + costLine : ''} · ${modelLabel}` }),
           jsx('div', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: 'For a first pass: whatever model the session is on, at 4–6 hours.' }),
