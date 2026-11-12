@@ -4,16 +4,31 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List
 
 from .models import SimulationResult
-from .paths import runs_dir
+from .paths import data_root, runs_dir
+
+
+# The format this plugin mints: `uuid.uuid4().hex[:12]` (models.py, and
+# plugin_api.py for the desktop route). A run_id reaches a filesystem path, so
+# anything else — `../`, an absolute path, a claim id — must be refused before
+# the join, not after it.
+RUN_ID_RE = re.compile(r"^[0-9a-f]{12}$")
+
+
+def validate_run_id(run_id: str) -> str:
+    """Return `run_id` if it is the format this plugin mints, else raise ValueError."""
+    if not isinstance(run_id, str) or not RUN_ID_RE.match(run_id):
+        raise ValueError(f"invalid run_id: {run_id!r}")
+    return run_id
 
 
 def _run_dir(run_id: str) -> Path:
-    return runs_dir() / run_id
+    return runs_dir() / validate_run_id(run_id)
 
 
 def write_report(result: SimulationResult) -> str:

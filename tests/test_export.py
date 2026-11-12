@@ -56,8 +56,14 @@ def test_reexport_after_verify_fills_verdict_without_duplicating():
 
 def test_export_of_unknown_run_fails_loudly():
     import pytest
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(ValueError):
         reporting.export_decision("nope")
+
+
+def test_a_well_formed_unknown_run_is_still_a_missing_run():
+    import pytest
+    with pytest.raises(FileNotFoundError):
+        reporting.export_decision("0123456789ab")
 
 
 def test_export_tool_is_registered():
