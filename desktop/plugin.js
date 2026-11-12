@@ -43,7 +43,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.4 · ui37'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.4 · ui38'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Point it at a repo, a paper, a post — yours or someone else’s.'
 // The line under the wordmark: what the product is *for*, in the fewest words
@@ -2149,7 +2149,11 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
       // the footer is still unreachable). Scrolling the whole content and pinning
       // the footer to the bottom of that scroll is the shape that holds whatever
       // the app's dialog does with height.
-      className: 'max-h-[90vh] w-[min(42rem,94vw)] max-w-none overflow-y-auto',
+      // 84vh, not 90: the app draws its own banner above a plugin page (the
+      // "unreviewed local source" notice), and a taller dialog lets that banner
+      // land on this header — visible in a screen grab as a clipped, overlapping
+      // title. Eight per cent of the viewport is cheaper than fighting the z-order.
+      className: 'max-h-[84vh] w-[min(42rem,94vw)] max-w-none overflow-y-auto',
       children: [
         jsxs(DialogHeader, { children: [
           jsx(DialogTitle, { children: `New ${ARENA} session` }),
