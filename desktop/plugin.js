@@ -43,7 +43,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.4 · ui44'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.4 · ui45'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Point it at a repo, a paper, a post — yours or someone else’s.'
 // The line under the wordmark: what the product is *for*, in the fewest words
@@ -2589,7 +2589,13 @@ function UpfrontPage({ ctx }) {
     // scope the accent to this page only: every SDK control inside inherits it,
     // so the primary button is the product's blue without touching core UI
     style: { '--ui-accent': BRAND.blue },
-    className: 'flex h-full flex-col gap-3 overflow-auto p-4', children: [
+    // The page is a scroll container in its own right. `overflow-auto` alone did
+    // nothing: `h-full` resolves to `auto` when the app's route host has no
+    // resolved height, so the page grew past the window and the app clipped it —
+    // results and the live rounds were unreachable below the fold. `min-h-0
+    // flex-1` covers a flex host, `h-full` covers a fixed-height one; both are
+    // harmless if the other applies.
+    className: 'flex h-full min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4', children: [
     // header — one line of identity, one line of state, one primary action
     jsxs('div', { className: 'flex flex-wrap items-center justify-between gap-3', children: [
       jsxs('div', { className: 'flex flex-col gap-1', children: [

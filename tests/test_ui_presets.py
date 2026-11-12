@@ -88,7 +88,7 @@ def test_the_paper_evidence_is_opt_in():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.4 · ui44" in UI.read_text()
+    assert "0.6.4 · ui45" in UI.read_text()
 
 
 def test_the_session_form_header_is_outside_the_scroller():
@@ -107,6 +107,18 @@ def test_the_session_form_header_is_outside_the_scroller():
     assert "h-[78vh]" in js and "flex flex-col" in js
     # the form column is the scroller, and it may shrink below its content
     assert "min-h-0 flex-1 flex-col gap-3 overflow-y-auto" in js
+
+
+def test_the_page_itself_scrolls():
+    """Results and the live rounds sit below the fold; if the page is not a real
+    scroll container the app clips them and there is nothing to scroll.
+
+    `overflow-auto` with `h-full` alone was not enough — `h-full` resolves to
+    `auto` under a route host with no resolved height. `min-h-0 flex-1` covers a
+    flex host, `h-full` covers a fixed-height one.
+    """
+    js = UI.read_text()
+    assert "flex h-full min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4" in js
 
 
 def test_the_model_note_sits_below_the_model_field_inside_the_form():
