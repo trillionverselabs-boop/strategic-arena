@@ -88,21 +88,22 @@ def test_the_paper_evidence_is_opt_in():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.4 · ui43" in UI.read_text()
+    assert "0.6.4 · ui44" in UI.read_text()
 
 
 def test_the_session_form_header_is_outside_the_scroller():
     """The dialog has a resolved height and is a flex column; only the form column
-    scrolls. The title is plain elements we own — the SDK's DialogHeader stopped
-    rendering its children in this app once it was given a className, and the title
-    disappeared for two builds because of it."""
+    scrolls. The title block sits outside the scroller, and DialogHeader is used as
+    the SDK documents it (children only, no className passthrough)."""
     js = UI.read_text()
     head = js.index("shrink-0 border-b border-(--ui-stroke-tertiary)")
     title_field = js.index("label: 'Title'")
     footer = js.index("jsxs(DialogFooter")
     assert head < title_field < footer
-    assert "New ${ARENA} session" in js[head:head + 900]
-    assert "jsxs(DialogHeader" not in js, "do not go back to the SDK header for this dialog"
+    header = js[head:head + 900]
+    assert "jsxs(DialogHeader" in header and "New ${ARENA} session" in header
+    # documented usage: no props on the SDK component beyond its children
+    assert "jsxs(DialogHeader, {\n              children:" in header
     assert "h-[78vh]" in js and "flex flex-col" in js
     # the form column is the scroller, and it may shrink below its content
     assert "min-h-0 flex-1 flex-col gap-3 overflow-y-auto" in js

@@ -25,6 +25,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
   DialogTitle,
   Input,
   Select,
@@ -42,7 +43,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.4 · ui43'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.4 · ui44'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Point it at a repo, a paper, a post — yours or someone else’s.'
 // The line under the wordmark: what the product is *for*, in the fewest words
@@ -2178,22 +2179,20 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
       // dialog, so the top of our box can never be clipped by the wrapper.
       className: 'h-[78vh] w-[min(42rem,94vw)] max-w-none flex flex-col overflow-hidden',
       children: [
-        // Plain elements, not DialogHeader. The SDK's header component stopped
-        // rendering its children in this app once it was given a className — the
-        // title vanished at ui41 and stayed gone at ui42 with the badge proving
-        // the new build was loaded. A div we own cannot do that. The
-        // DialogTitle/Description are kept inside it for the dialog's accessible
-        // name; they carry no layout of their own that matters here.
+        // Chrome we own, composition we don't: the title block sits outside the
+        // scroller so it cannot scroll away, and inside it DialogHeader/DialogTitle
+        // are used exactly as the SDK documents them — no className passed through,
+        // which is the shape that rendered correctly at 0.6.3. The wrapper carries
+        // the chrome (border, background, padding) so the SDK component keeps its
+        // own layout.
         jsxs('div', {
           className: 'shrink-0 border-b border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-1 pb-2 pt-1',
           children: [
-            jsx(DialogTitle, {
-              className: 'block text-[0.9375rem] font-semibold text-(--ui-text-primary)',
-              children: `New ${ARENA} session`,
-            }),
-            jsx(DialogDescription, {
-              className: 'mt-0.5 block text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)',
-              children: 'Add a link or the text — a README, a post, a whitepaper, an announcement. It opens the arena the room will answer in.',
+            jsxs(DialogHeader, {
+              children: [
+                jsx(DialogTitle, { children: `New ${ARENA} session` }),
+                jsx(DialogDescription, { children: 'Add a link or the text — a README, a post, a whitepaper, an announcement. It opens the arena the room will answer in.' }),
+              ],
             }),
           ],
         }),
