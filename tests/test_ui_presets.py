@@ -88,24 +88,22 @@ def test_the_paper_evidence_is_opt_in():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.4 · ui42" in UI.read_text()
+    assert "0.6.4 · ui43" in UI.read_text()
 
 
 def test_the_session_form_header_is_outside_the_scroller():
-    """The dialog has a resolved height (h-[84vh], not max-h) and is a flex
-    column; only the form column scrolls. The title and the Run footer must stay
-    put — a sticky header did not survive the app's dialog wrapper, so the chrome
-    is out of the scroller rather than pinned inside it."""
+    """The dialog has a resolved height and is a flex column; only the form column
+    scrolls. The title is plain elements we own — the SDK's DialogHeader stopped
+    rendering its children in this app once it was given a className, and the title
+    disappeared for two builds because of it."""
     js = UI.read_text()
-    head = js.index("jsxs(DialogHeader")
+    head = js.index("shrink-0 border-b border-(--ui-stroke-tertiary)")
     title_field = js.index("label: 'Title'")
     footer = js.index("jsxs(DialogFooter")
     assert head < title_field < footer
-    header = js[head:head + 400]
-    assert "shrink-0" in header and "DialogTitle" in header
-    assert "sticky top-0" not in header, "the header must not depend on sticky"
-    assert "h-[84vh]" in js
-    assert "flex flex-col" in js
+    assert "New ${ARENA} session" in js[head:head + 900]
+    assert "jsxs(DialogHeader" not in js, "do not go back to the SDK header for this dialog"
+    assert "h-[78vh]" in js and "flex flex-col" in js
     # the form column is the scroller, and it may shrink below its content
     assert "min-h-0 flex-1 flex-col gap-3 overflow-y-auto" in js
 
