@@ -27,7 +27,7 @@ No box fits a catalog entry exactly — this PR adds no Hermes code, only `plugi
 ## Changes Made
 
 - `plugin-catalog/strategic-arena.yaml` — new entry:
-  - `name: strategic-arena`, `repo:` the public upstream, `sha:` the full 40-char pin `83563c42…`
+  - `name: strategic-arena`, `repo:` the public upstream, `sha:` the full 40-char pin `174fda73…`
   - `tier: community`, `category: tools`, `version: "0.6.4"`, `requires_hermes: ">=0.23.0"`
   - `capabilities.provides_tools`: the seven `arena_*` tools the plugin registers at that commit
   - `capabilities.provides_hooks` / `provides_middleware` / `requires_env`: empty — the plugin declares no hooks, middleware or env vars
@@ -42,7 +42,7 @@ No other file is touched: no core modules, no tests, no docs, no dependency chan
 
    ```
    git clone https://github.com/trillionverselabs-boop/strategic-arena /tmp/strategic-arena
-   cd /tmp/strategic-arena && git checkout 83563c423608aaa8ca51ad0f65fc0fc9c1bdaa10
+   cd /tmp/strategic-arena && git checkout 174fda73f7abe986d5c020ca41bfa07cd97361b5
    hermes plugins validate . --install-deps
    ```
 
@@ -123,7 +123,7 @@ The demo video and the hackathon entry are final as submitted. This range is the
 <img width="1200" height="600" alt="how-it-works" src="https://github.com/user-attachments/assets/6acf6147-2ac6-43c2-a41d-6d0ee08c7302" />
 <img width="1200" height="600" alt="marketplace" src="https://github.com/user-attachments/assets/58a1ea97-168a-45c5-b783-a15bb5985bcc" />
 
-Validation at the pinned sha (`65d341c`):
+Validation at the pinned sha (`174fda73`):
 
 ```text
 $ hermes plugins validate . --install-deps
