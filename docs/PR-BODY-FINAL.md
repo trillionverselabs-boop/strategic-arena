@@ -26,13 +26,13 @@ No box fits a catalog entry exactly — this PR adds no Hermes code, only `plugi
 
 ## Changes Made
 
-- `plugin-catalog/strategic-arena.yaml` — new entry (36 lines):
-  - `name: strategic-arena`, `repo:` the public upstream, `sha:` the full 40-char pin `65d341c…`
-  - `tier: community`, `category: tools`, `version: "0.6.3"`, `requires_hermes: ">=0.23.0"`
+- `plugin-catalog/strategic-arena.yaml` — new entry:
+  - `name: strategic-arena`, `repo:` the public upstream, `sha:` the full 40-char pin `83563c42…`
+  - `tier: community`, `category: tools`, `version: "0.6.4"`, `requires_hermes: ">=0.23.0"`
   - `capabilities.provides_tools`: the seven `arena_*` tools the plugin registers at that commit
   - `capabilities.provides_hooks` / `provides_middleware` / `requires_env`: empty — the plugin declares no hooks, middleware or env vars
   - `image:` and one `screenshots:` URL, both pinned to the same sha
-  - `known_issues`: four informational strings (session model, free-model rate limits, desktop half loading from the app's machine, unreadable PDFs reported as SKIPPED)
+  - `known_issues`: four informational strings — which model runs (and that there is no picker), free-tier rate limiting with the paid-model recommendation and the change-model-and-rerun recovery, the desktop half loading from the app's machine, and unreadable PDFs reported as SKIPPED
 
 No other file is touched: no core modules, no tests, no docs, no dependency changes.
 
@@ -42,11 +42,11 @@ No other file is touched: no core modules, no tests, no docs, no dependency chan
 
    ```
    git clone https://github.com/trillionverselabs-boop/strategic-arena /tmp/strategic-arena
-   cd /tmp/strategic-arena && git checkout 65d341c624f992c8e5636a9ba156dc8bd39f91d5
+   cd /tmp/strategic-arena && git checkout 83563c423608aaa8ca51ad0f65fc0fc9c1bdaa10
    hermes plugins validate . --install-deps
    ```
 
-   → `Validation passed.` (desktop surface OK · no core override · security scan clean)
+   → `Validation passed.` (desktop surface OK · no core override · security scan safe)
 
 2. Install and confirm it surfaces:
 
@@ -54,14 +54,48 @@ No other file is touched: no core modules, no tests, no docs, no dependency chan
    hermes plugins install /tmp/strategic-arena --enable
    ```
 
-   → Capabilities → Plugins lists Strategic Arena, enabled; the left sidebar gains a Strategic Arena page; the header badge reads `build 0.6.3 · ui36`.
+   → Capabilities → Plugins lists Strategic Arena, enabled; the left sidebar gains a Strategic Arena page; the header badge reads `build 0.6.4 · ui45`.
 
 3. Run a review end to end: on that page press **+ Start arena session**, paste any public repo README or an arXiv link, choose the 30-minute / 3-round timeline, and run.
 
    → 2–10 minutes later: the six outputs (What it means · The room · Who decides · The field · The price · The record) and 2–4 frozen claims with dates.
+   → The results and the live rounds screen scroll; the session dialog's title and Run button stay put while the form scrolls.
    → `arena_calibration()` then returns the ledger entry for that run.
 
 Optional cleanup check: `hermes plugins remove strategic-arena && python3 scripts/uninstall-clean.py strategic-arena` removes the 18 paths a plain remove leaves behind.
+
+## Model requirements — free models are supported and rate-limited
+
+Strategic Arena ships no model and has no model setting: a run uses whatever model the Hermes session is on, which is the model in the user's **default model setting**. That is deliberate — it is what lets the plugin install with no key, no picker and no host permission.
+
+Free models work. They are **rate-limited**, and a large input makes that bite: a research paper or a long technical post is a bigger ingest and a longer argument, so it needs more calls in a row, and a long timeline on a free tier can take several times longer and can still end short. The form, the README, `docs/MODELS.md` and the entry's `known_issues` all say this before a run starts, recommend a paid model for large inputs, and give the recovery: a rate limit is not the user's input's fault — change the model in the app and run it again. The run path was hardened for the same case (the reliability item in my comment): an adaptive gate spaces calls once a provider answers 429, and a run is branded `DEGRADED` only when a meaningful share of its calls fail, not on one transient miss.
+
+No behaviour here is hidden or conditional: the notice is shown on every run, not only when the session's model slug ends in `:free`, because a paid model can be throttled too. When the catalogue publishes a price for that model the form says so and drops the free-tier caveat instead of warning about a quota it is not spending; while the price is unknown it says neither — it never flashes a claim it cannot prove.
+
+**Where the wait actually goes.** The longest single step of a run is ingestion, not the debate: the artifact is fetched and decoded once (2MB cap, 20s timeout, plus one decode call for a paper) before the first round appears. That is minutes on a paper where a round is seconds, so a shorter timeline does not make a large input fast. The form says this on the Links field and in the long-wait callout, and the README and `docs/MODELS.md` say it in full.
+
+## Model-controlled inputs (rule 13)
+
+Every value the model can pass to a tool, and what happens if it is hostile. Filled from the plugin's `docs/MODEL-CONTROLLED-INPUTS.md`.
+
+| Input | What it can touch | If it is hostile | Proven by |
+|---|---|---|---|
+| `urls[]` | outbound HTTP(S) | LAN / metadata address, or a redirect into the LAN | `tests/test_fetch_ssrf.py` |
+| `run_id` | paths under `runs/` | `../` walks out; `mark_verified` could rewrite an existing `meta.json` | `tests/test_run_id_guard.py` |
+| `out_dir` | filesystem write | writes a record anywhere the user can write | `tests/test_export_containment.py` |
+| `documents[].content` | model prompts, `log.jsonl`, report text | prompt injection; disclosed and bounded by the prompt budget | `tests/test_ingestion.py` |
+| `title` | `decisions/<slug>.md` | path traversal — `_slug()` strips everything non-alphanumeric | `tests/test_export.py` |
+| `personas[].name` | graph node ids, report text | names are ids, not paths | `tests/test_agents.py` |
+| `verdict` / `hits` / `actual_friction` | `meta.json` fields | already validated (`right|partial|wrong`) | `tests/test_verify.py` |
+| `as_of` | timestamp parse | unparseable values are skipped, never guessed | `tests/test_due.py` |
+| `limit` | slice size | bounded by a default of 20 | `tests/test_endtoend.py` |
+| `inject.description` | model prompt, mid-run | prompt injection; disclosed | `tests/test_injection.py` |
+| session model | which model serves the run | not a path or network target, but a free/throttled model is a real failure mode — the form names it and says what to do | `tests/test_free_model_disclosure.py` |
+| provider `429` | run length, the `degraded` flag | spaced and retried; degraded only above a failure share, never a silent short report | `tests/test_model_timeout.py` |
+
+## Post-submission note
+
+The demo video and the hackathon entry are final as submitted. This range is the review's security work — the three limits, the `get_hermes_home()` recommendation, the reliability fix found while testing — plus the disclosure copy those items made true, and the UI fixes that copy required (model line, timeline label, dialog title and page scroll). No new tool, no new dependency, no new capability.
 
 ## Checklist
 
