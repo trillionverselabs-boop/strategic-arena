@@ -263,8 +263,19 @@ What the form does show is the run's arithmetic, before you commit:
 | 24 hours | 16 | 15–30 min — the default |
 | 48 hours | 20 | 25–45 min |
 
-Those are the app's own estimates, shown before the run. A large paper adds ingest and decode time, a
-rate-limited free model can roughly double the band, and a bigger room means more calls per round.
+Those are the app's own estimates, shown before the run. Two things push past the band: **ingestion** — the longest single step, which happens once before the first round and is minutes on a paper where a round is seconds, so the timeline you choose does not shorten it — and the model, where a rate-limited free tier can roughly double the band.
+
+### Free models: supported, slower, and rate-limited
+
+**A run uses whatever model your Hermes default model setting is on.** The form shows it read-only and there is no model setting here — change it in the app and the next run follows.
+
+A free model is supported and is the cheapest way to try one review. Free tiers are **rate-limited**, and a large input makes it bite: a research paper or a long technical post is a bigger ingest and a longer argument, so it needs more calls in a row, and a long timeline can take several times longer and still end short. **For a large input, a paid model is the recommendation** — same review, minutes instead of tens of minutes.
+
+**If a run fails, change the model and run it again.** A rate limit (HTTP 429) is not your input's fault, and the form says so in those words. Change the session to another model and run it again; the form keeps what you typed and finished runs stay in the list. The run path now spaces calls on a 429, and a run is branded `DEGRADED` only when a meaningful share of its calls fail — not on one transient miss.
+
+### Where the wait goes: ingestion, not rounds
+
+Reading your input is the long step: the link is fetched and decoded whole (2MB cap, 20s timeout), a paper pays an extra decode call, and only then does the room open — minutes on a paper where a round is seconds. Rounds are cheap; the artifact is not.
 
 - **Tokens always; money only when it is published.** Money appears when the public Nous catalog
   publishes a price for *that exact model* (`≈$0.016 at the published price`), and when it does not the
@@ -332,8 +343,10 @@ Full detail: [`docs/UNINSTALL.md`](docs/UNINSTALL.md).
   public Nous model catalog (`inference-api.nousresearch.com/v1/models`, anonymous, no credentials,
   cached 6h) **only to read the price of the model you are already on** — it can never select one; and,
   only when you provide URLs, to fetch those URLs as text (http/https only, size and length capped,
-  hard timeout). If the catalog is unreachable the form shows tokens and no money; nothing about a run
-  depends on it.
+  hard timeout) — and only to hosts that resolve to a public address: loopback, private, link-local
+  (including `169.254.169.254`), CGNAT and unspecified targets are refused, on the initial request
+  and on every redirect. If the catalog is unreachable the form shows tokens and no money; nothing
+  about a run depends on it.
 - **Background processes:** a simulation runs in a background thread while it streams progress to the
   desktop UI. No long-running daemon, no auto-update, no telemetry.
 - **Dependencies:** the manifest declares **none**, deliberately. The only third-party modules the
@@ -343,8 +356,10 @@ Full detail: [`docs/UNINSTALL.md`](docs/UNINSTALL.md).
   `tests/test_packaging_declares_nothing.py` checks the imported set against Hermes's own list, so
   this is proved rather than argued — and it keeps the desktop's non-interactive Install from Git
   dialog from stopping at a dependency-consent prompt it cannot answer.
-- **Data:** reads and writes live only under `<hermes home>/plugin-data/strategic-arena/` (graph + run
-  history) plus the plugin's own package files. Nothing leaves the machine except the calls above.
+- **Data:** reads and writes live only under `<hermes home>/plugin-data/strategic-arena/` (graph +
+  run history) plus the plugin's own package files; decision records written by `arena_export` stay
+  inside that directory too — the path is resolved and refused otherwise. Nothing leaves the machine
+  except the calls above.
 - **UI build readback:** `GET /ui` reads this plugin's own `desktop/plugin.js` and the app-level copy
   at `<hermes home>/desktop-plugins/strategic-arena/plugin.js` — outside the plugin's data directory,
   but of this plugin's own file only — so the header can tell you the window is stale. `POST
