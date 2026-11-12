@@ -244,8 +244,9 @@ def register_tools(ctx, allow_model_override: bool = False) -> None:
         "parameters": {"type": "object", "properties": {
             "run_id": {"type": "string"},
             "out_dir": {"type": "string", "default": "decisions",
-                        "description": "Directory for the record; relative paths resolve inside "
-                                       "the plugin data dir."}},
+                        "description": "Directory for the record. Relative paths resolve "
+                                       "inside the plugin data dir; absolute paths are "
+                                       "accepted only inside it. Anything outside is refused."}},
             "required": ["run_id"]},
     }
 

@@ -565,10 +565,16 @@ def export_decision(run_id: str, out_dir: str = "decisions") -> str:
         lines.append("_unscored_ — run `arena_due` when the window closes, score each claim, "
                      "then re-export to fill this section.")
 
+    # `out_dir` comes from the model, so it is untrusted input sitting next to a
+    # tool that writes files. Resolve it and refuse anything that escapes the
+    # plugin's own data dir — `mkdir(parents=True)` would otherwise create the
+    # directory tree anywhere the user can write.
+    root = data_root().resolve()
     out_base = Path(out_dir)
-    if not out_base.is_absolute():
-        from .paths import data_root
-        out_base = data_root() / out_base
+    out_base = out_base if out_base.is_absolute() else root / out_base
+    out_base = out_base.resolve()
+    if out_base != root and root not in out_base.parents:
+        raise ValueError(f"out_dir must stay inside the plugin data dir ({root}): {out_dir!r}")
     out_base.mkdir(parents=True, exist_ok=True)
 
     slug = _slug(meta.get("title", ""))
