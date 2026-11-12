@@ -43,7 +43,7 @@ import {
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const BUILD = '0.6.4 · ui41'          // bump on every UI change — how you know the app reloaded
+const BUILD = '0.6.4 · ui42'          // bump on every UI change — how you know the app reloaded
 const PRODUCT_NAME = 'Strategic Arena'   // display only — one line to rename the product
 const TAGLINE = 'Point it at a repo, a paper, a post — yours or someone else’s.'
 // The line under the wordmark: what the product is *for*, in the fewest words
@@ -2160,26 +2160,32 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
       // the footer is still unreachable). Scrolling the whole content and pinning
       // the footer to the bottom of that scroll is the shape that holds whatever
       // the app's dialog does with height.
-      // 84vh, not 90: the app draws its own banner above a plugin page (the
-      // "unreviewed local source" notice), and a taller dialog lets that banner
-      // land on this header — visible in a screen grab as a clipped, overlapping
-      // title. Eight per cent of the viewport is cheaper than fighting the z-order.
-      className: 'max-h-[84vh] w-[min(42rem,94vw)] max-w-none overflow-y-auto',
+      // The dialog is a flex column with a RESOLVED height, and only the form
+      // column scrolls. The header and footer are outside the scroller, so they
+      // cannot scroll away or be hidden behind the app's page banner.
+      //
+      // Why not the earlier shapes:
+      //   • a tall box with a scroller inside — header/footer sat outside the
+      //     height budget, so Run went off-screen;
+      //   • a flex column with flex-1 — depends on the shell having a resolved
+      //     height; with `max-h` it does not, so flex-1 collapses to nothing;
+      //   • one scroll container for everything — every added section pushes the
+      //     title off the top, and a sticky header did not survive the app's
+      //     dialog wrapper.
+      // `h-[84vh]` resolves the height, `min-h-0` is what lets the scroller
+      // shrink below its content, and `shrink-0` keeps the chrome out of the
+      // flex-basis fight.
+      className: 'h-[84vh] w-[min(42rem,94vw)] max-w-none flex flex-col',
       children: [
-        // The title block is PINNED, not scrolled. The dialog is the one scroll
-        // container (see above), which means anything above the fold scrolls away
-        // — and with a tall form that reads as "the top of this thing is broken".
-        // A sticky header with the dialog's own background keeps "New arena
-        // session" and the close affordance on screen at any scroll position.
         jsxs(DialogHeader, {
-          className: 'sticky top-0 z-20 -mx-1 border-b border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-1 pb-2 pt-1',
+          className: 'shrink-0 -mx-1 border-b border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-1 pb-2 pt-1',
           children: [
             jsx(DialogTitle, { children: `New ${ARENA} session` }),
             jsx(DialogDescription, { children: 'Add a link or the text — a README, a post, a whitepaper, an announcement. It opens the arena the room will answer in.' }),
           ],
         }),
 
-        jsxs('div', { className: 'flex flex-col gap-3 pr-0.5', children: [
+        jsxs('div', { className: 'flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-0.5', children: [
           jsx(Field, {
             label: 'Title',
             hint: 'Short and specific, the way you would say it out loud — it is what you will see in the run list.',
@@ -2337,9 +2343,9 @@ function NewReviewModal({ ctx, onClose, onStarted }) {
         ]}),
 
         jsxs(DialogFooter, {
-          // Pinned to the bottom of the scrolling dialog: a long form must never
-          // be able to hide the button that starts it.
-          className: 'sticky bottom-0 z-10 -mx-1 border-t border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-1 pt-3',
+          // Outside the scroller, so a long form can never hide the button that
+          // starts it.
+          className: 'shrink-0 -mx-1 border-t border-(--ui-stroke-tertiary) bg-(--ui-bg-elevated) px-1 pt-3',
           children: [
           jsx('div', { className: 'mr-auto text-[0.75rem] text-(--ui-text-tertiary)', children: hasInput ? 'Ready — one input is enough.' : 'Add a decision document or a URL to run.' }),
           jsx(Button, { variant: 'text', onClick: onClose, children: 'Cancel' }),

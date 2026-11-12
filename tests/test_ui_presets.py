@@ -88,20 +88,26 @@ def test_the_paper_evidence_is_opt_in():
 
 
 def test_build_stamp_is_the_current_one():
-    assert "0.6.4 · ui41" in UI.read_text()
+    assert "0.6.4 · ui42" in UI.read_text()
 
 
-def test_the_session_form_header_is_pinned_and_first():
-    """The dialog is the one scroll container, so a long form scrolls its own title
-    out of view — which reads as "the top of this form is broken". The header must
-    stay the first child of the dialog content, and must be sticky."""
+def test_the_session_form_header_is_outside_the_scroller():
+    """The dialog has a resolved height (h-[84vh], not max-h) and is a flex
+    column; only the form column scrolls. The title and the Run footer must stay
+    put — a sticky header did not survive the app's dialog wrapper, so the chrome
+    is out of the scroller rather than pinned inside it."""
     js = UI.read_text()
     head = js.index("jsxs(DialogHeader")
     title_field = js.index("label: 'Title'")
     footer = js.index("jsxs(DialogFooter")
     assert head < title_field < footer
-    assert "sticky top-0" in js[head:head + 300], "the header must pin, not scroll away"
-    assert "DialogTitle" in js[head:head + 300]
+    header = js[head:head + 400]
+    assert "shrink-0" in header and "DialogTitle" in header
+    assert "sticky top-0" not in header, "the header must not depend on sticky"
+    assert "h-[84vh]" in js
+    assert "flex flex-col" in js
+    # the form column is the scroller, and it may shrink below its content
+    assert "min-h-0 flex-1 flex-col gap-3 overflow-y-auto" in js
 
 
 def test_the_model_note_sits_below_the_model_field_inside_the_form():
