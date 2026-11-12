@@ -9,8 +9,11 @@
 from __future__ import annotations
 
 import html
+import ipaddress
 import re
+import socket
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import List
 
@@ -79,13 +82,90 @@ _CHROME_PREFIXES = (
 )
 
 
+# ── the address guard ─────────────────────────────────────────────────
+# A URL the model chose is untrusted input. urllib would happily follow it to
+# 127.0.0.1, a LAN host, or 169.254.169.254 (cloud metadata, which hands back
+# the machine's own credentials), and the fetched text comes back to the model
+# — so a prompt-injected page could turn a run into an internal port scan. The
+# rule is simple: resolve the host and refuse anything that is not a global
+# address. Requiring *every* address a name resolves to be global closes the
+# multi-A-record case; re-checking each redirect hop closes the "public page
+# redirects into the LAN" case.
+#
+# Known limit: this resolves the name and urllib resolves it again to connect,
+# so a host that answers two different ways could in principle slip between the
+# two lookups (a DNS-rebinding window). Pinning the resolved address would close
+# it and needs a custom HTTPConnection; that is a follow-up, not a reason to
+# leave the hole open. It is disclosed in the PR comment.
+
+_REFUSED_REASON = ("refused: not a public http/https address (loopback, private, "
+                   "link-local, CGNAT, unspecified and cloud-metadata targets are "
+                   "never fetched)")
+
+
+class _Refused(Exception):
+    """A URL or redirect target was refused by the address guard."""
+
+
+def _host_is_public(host: str) -> bool:
+    """True only when every address `host` resolves to is a global address."""
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except (OSError, UnicodeError):
+        return False
+    if not infos:
+        return False
+    for info in infos:
+        try:
+            ip = ipaddress.ip_address(info[4][0])
+        except ValueError:
+            return False
+        if not ip.is_global:
+            return False
+    return True
+
+
+def _url_is_public(url: str) -> bool:
+    """http/https only, and the host must resolve to global address(es) only."""
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        return False
+    host = parsed.hostname
+    if not host:
+        return False
+    return _host_is_public(host)
+
+
+class _PublicRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Re-check every redirect target; refuse one that is not a public address."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not _url_is_public(newurl):
+            raise _Refused(f"refused: redirect to a non-public address ({newurl})")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+_OPENER = urllib.request.build_opener(_PublicRedirectHandler())
+
+
 def _get_text(url: str) -> str | None:
-    """Fetch a URL and return decoded, chrome-stripped text. None on any failure."""
+    """Fetch a URL and return decoded, chrome-stripped text. None on any failure.
+
+    Refuses a URL whose host is not a global address *before* any bytes are
+    requested. The opener re-checks every redirect hop, so a public page cannot
+    bounce the fetch into the LAN.
+    """
+    if not _url_is_public(url):
+        LAST_SKIPPED.append((url, _REFUSED_REASON))
+        return None
     try:
         req = urllib.request.Request(url, headers={"User-Agent": _UA})
-        with urllib.request.urlopen(req, timeout=TIMEOUT_S) as resp:
+        with _OPENER.open(req, timeout=TIMEOUT_S) as resp:
             raw = resp.read(MAX_BYTES + 1)
             ctype = (resp.headers.get("Content-Type") or "").lower()
+    except _Refused as exc:
+        LAST_SKIPPED.append((url, str(exc)))
+        return None
     except Exception:
         return None
     if len(raw) > MAX_BYTES:
@@ -170,8 +250,9 @@ def fetch_url(url: str, doc_type: DocumentType = DocumentType.CONTEXT) -> Docume
 
     text = _get_text(url)
     if not text:
-        LAST_SKIPPED.append((url, "no readable text at that link "
-                                  "(a PDF or a page that hides its body behind a script)"))
+        if not any(u == url for u, _ in LAST_SKIPPED):
+            LAST_SKIPPED.append((url, "no readable text at that link "
+                                      "(a PDF or a page that hides its body behind a script)"))
         return None
     return Document(type=doc_type, content=text, source=url)
 

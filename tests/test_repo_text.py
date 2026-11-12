@@ -245,8 +245,13 @@ def test_the_readme_is_a_readme_not_a_book():
     with four sections saying the same thing; this cap is a ratchet against drift
     back there, not a line-count contest — the six tables and the worked example
     are the product page, not padding.
+
+    It moved to 470 in 0.6.4: the free-model section and the ingestion note are
+    deliberate, user-facing content added on purpose (and the README was 2 lines
+    over the old cap before that). A cap that never moves is a budget; this one
+    moves when a real section is added, and the diff should show why.
     """
-    assert len(README.splitlines()) <= 440, len(README.splitlines())
+    assert len(README.splitlines()) <= 470, len(README.splitlines())
 
 
 def test_the_readme_does_not_describe_the_removed_model_picker():
