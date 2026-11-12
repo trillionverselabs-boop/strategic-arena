@@ -12,7 +12,19 @@ from pathlib import Path
 
 
 def _hermes_home() -> Path:
-    return Path(os.environ.get("HERMES_HOME") or (Path.home() / ".hermes"))
+    """The active profile's Hermes home.
+
+    `hermes_constants.get_hermes_home()` follows the active profile (context
+    override -> `$HERMES_HOME` -> platform default); the env var alone is a
+    legacy read that misses the override. Fall back to the env var, then
+    `~/.hermes`, when the host module is not importable (standalone runs, tests).
+    """
+    try:
+        from hermes_constants import get_hermes_home
+
+        return Path(get_hermes_home())
+    except Exception:
+        return Path(os.environ.get("HERMES_HOME") or (Path.home() / ".hermes"))
 
 
 def data_root() -> Path:
