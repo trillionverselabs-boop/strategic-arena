@@ -3,7 +3,7 @@
 Thanks for your interest. Strategic Arena is a small, local-first plugin;
 contributions are welcome.
 
-The plugin id, the folder name, the tool prefixes (`upfront_*`) and the data
+The plugin id, the folder name, the tool prefixes (`arena_*`) and the data
 directory are deliberately stable — they are what installs, the catalogue pin and
 the desktop plugin loader depend on. A change to any of them is a breaking change
 and needs an issue first.
