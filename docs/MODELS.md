@@ -40,17 +40,48 @@ so a span that is not in the document is dropped and listed, never kept.
 
 ## Free versus paid
 
-Free models are a moving target by nature — rate-limited, sometimes slow, occasionally withdrawn.
-The plugin treats that as an operational fact rather than a recommendation:
+Free models work — everything in this plugin runs on one, and the demo's live runs are
+built on the assumption that replies arrive slowly, arrive refused, or do not arrive.
+What differs is throughput, not shape: the same review comes back, and one honest
+recommendation follows from it.
 
-- the form reads `:free` from the session's model slug and says, before you start, that the wait is
-  real;
-- the form prints a realistic wall-clock estimate for the chosen timeline, and the timeline itself
-  is suggested from the input rather than defaulted;
-- a refused or unavailable model produces a message naming the cause, not a generic failure.
+**The run uses whatever model your Hermes default model setting is on.** There is no
+model setting in this plugin. The form reads the session's model from the app's own
+state and shows it read-only; every call — ingest, rounds, reflection, claims — goes
+through that one model. To change it, change it in the app. The next run picks it up,
+and nothing already finished is affected.
 
-If a model stops working, nothing here needs changing: switch the model in the app. The plugin
-follows the session.
+**A free model is the cheapest way to try one review.** Three rounds is a couple of
+minutes and costs nothing. That is the right first run for most people: find out whether
+anyone objects before paying to find out how much.
+
+**A free tier is rate-limited, and a large input makes that bite.** A research paper or
+a long technical post is a bigger ingest and a longer argument, so it needs more calls in
+a row — exactly the shape a per-minute quota refuses. The run path now spaces calls once
+a provider answers 429 and retries with backoff instead of firing eight at once, so a
+throttled run usually finishes; it just takes several times longer, and a long timeline
+can still end short.
+
+**For a large input, use a paid model.** Not because the free one is wrong — the output
+has the same shape and the same honesty about what it could not ground — but because
+minutes instead of tens of minutes is worth the cents, and a run interrupted by someone
+else's quota is a run you have to repeat.
+
+**The wait is mostly ingestion, not rounds.** The timeline you pick changes how long the
+room argues; it does not change how long the link takes to read. Fetching and decoding the
+artifact happens once, before the first round appears, and on a research paper or a long
+technical post it is the slowest single step in the product — a couple of minutes where a
+round is seconds. Two consequences worth knowing: an early "nothing is happening" is
+usually the ingest, and choosing a shorter timeline will not shorten it.
+
+**If a run fails, change the model and run it again.** When the provider rate-limits you
+(HTTP 429) the form says exactly that: nothing about your input is wrong. Switch the
+session to another model — free or paid — and start the review again. The form keeps what
+you typed, and every finished run stays in the list, so a rerun costs you the wait and
+nothing else.
+
+If a model stops working altogether, nothing here needs changing either: change the model
+in the app. The plugin follows the session.
 
 ## Why this file has no model table
 
