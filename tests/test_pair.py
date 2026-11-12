@@ -8,7 +8,7 @@ def test_pair_reports_a_delta():
                   documents=[Document(type=DocumentType.DECISION, content="Ship it")])
     pair = engine.run_pair(sc, InterventionAware(),
                            Intervention(name="Publish evals", description="Publish eval suite first"),
-                           "base1", "treat1")
-    assert (reporting.runs_dir() / "base1" / "pair.json").exists()
+                           "ab1ab1ab1ab1", "ab2ab2ab2ab2")
+    assert (reporting.runs_dir() / "ab1ab1ab1ab1" / "pair.json").exists()
     assert pair["verdict"] in ("counter-move works", "counter-move did not help")
     assert "friction_delta" in pair

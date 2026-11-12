@@ -12,12 +12,12 @@ def test_injection_lands_mid_run():
     out = {}
 
     def go():
-        out["res"] = engine.run_scenario_progress(sc, SlowLLM(), run_id="inj1")
+        out["res"] = engine.run_scenario_progress(sc, SlowLLM(), run_id="ab3ab3ab3ab3")
 
     t = threading.Thread(target=go)
     t.start()
     time.sleep(0.15)
-    queued = engine.inject("inj1", Intervention(name="Publish eval suite",
+    queued = engine.inject("ab3ab3ab3ab3", Intervention(name="Publish eval suite",
                                                 description="Ship the evals first"))
     t.join(timeout=60)
     assert queued is True
